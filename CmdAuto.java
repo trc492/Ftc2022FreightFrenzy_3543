@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package team3543;
+package Ftc2022FreightFrenzy_3543;
 
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
