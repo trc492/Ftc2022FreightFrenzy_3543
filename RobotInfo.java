@@ -161,5 +161,10 @@ public class RobotInfo
     static final double ELEVATOR_MAX_HEIGHT                     = 19.0;
     static final double ELEVATOR_SCALE                          = 17.0/4718.0;
     static final double ELEVATOR_OFFSET                         = 0.0;
+    //
+    // Spinner subsystem.
+    //
+    static final double SPINNER_POWER                           = 0.5;
+    static final double SPINNER_DEGREES_PER_COUNT               = 1.0;
 
 }   //class RobotInfo
