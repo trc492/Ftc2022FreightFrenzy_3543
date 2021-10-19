@@ -68,7 +68,7 @@ public class Robot
     //
     public static class Preferences
     {
-        static boolean visionOnly = true;
+        static boolean visionOnly = false;
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = false;
         static boolean hasArm = false;
