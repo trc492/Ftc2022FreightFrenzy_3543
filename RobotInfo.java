@@ -146,20 +146,20 @@ public class RobotInfo
     //
     // Elevator subsystem.
     //
-    static final double ELEVATOR_KP                             = 0.5;
-    static final double ELEVATOR_KI                             = 0.0;
-    static final double ELEVATOR_KD                             = 0.0;
-    static final double ELEVATOR_TOLERANCE                      = 0.5;
-    static final boolean ELEVATOR_INVERTED                      = false;
-    static final boolean ELEVATOR_HAS_LOWER_LIMIT_SWITCH        = true;
-    static final boolean ELEVATOR_HAS_UPPER_LIMIT_SWITCH        = false;
-    static final double ELEVATOR_CAL_POWER                      = 0.5;
-    static final double ELEVATOR_STALL_MIN_POWER                = 0.5;
-    static final double ELEVATOR_STALL_TIMEOUT                  = 1.0;
-    static final double ELEVATOR_RESET_TIMEOUT                  = 0.5;
-    static final double ELEVATOR_MIN_HEIGHT                     = 0.0;
-    static final double ELEVATOR_MAX_HEIGHT                     = 19.0;
-    static final double ELEVATOR_SCALE                          = 17.0/4718.0;
-    static final double ELEVATOR_OFFSET                         = 0.0;
+    static final double ARM_KP                                  = 0.5;
+    static final double ARM_KI                                  = 0.0;
+    static final double ARM_KD                                  = 0.0;
+    static final double ARM_TOLERANCE                           = 0.5;
+    static final boolean ARM_INVERTED                           = false;
+    static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
+    static final boolean ARM_HAS_UPPER_LIMIT_SWITCH             = false;
+    static final double ARM_CAL_POWER                           = 0.5;
+    static final double ARM_STALL_MIN_POWER                     = 0.5;
+    static final double ARM_STALL_TIMEOUT                       = 1.0;
+    static final double ARM_RESET_TIMEOUT                       = 0.5;
+    static final double ARM_MIN_HEIGHT                          = 0.0;
+    static final double ARM_MAX_HEIGHT                          = 19.0;
+    static final double ARM_SCALE                               = 17.0/4718.0;
+    static final double ARM_OFFSET                              = 0.0;
 
 }   //class RobotInfo

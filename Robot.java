@@ -71,7 +71,7 @@ public class Robot
         static boolean visionOnly = true;
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = false;
-        static boolean hasElevator = false;
+        static boolean hasArm = false;
         static boolean hasBlinkin = false;
         static boolean useVuforia = false;
         static boolean showVuforiaView = false;
@@ -145,7 +145,7 @@ public class Robot
     //
     // Subsystems.
     //
-    public FtcMotorActuator elevator = null;
+    public FtcMotorActuator arm = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -237,22 +237,22 @@ public class Robot
             //
             if (Preferences.initSubsystems)
             {
-                if (Preferences.hasElevator)
+                if (Preferences.hasArm)
                 {
-                    final FtcMotorActuator.Parameters elevatorParams = new FtcMotorActuator.Parameters()
-                        .setPosRange(RobotInfo.ELEVATOR_MIN_HEIGHT, RobotInfo.ELEVATOR_MAX_HEIGHT)
-                        .setScaleOffset(RobotInfo.ELEVATOR_SCALE, RobotInfo.ELEVATOR_OFFSET)
+                    final FtcMotorActuator.Parameters armParams = new FtcMotorActuator.Parameters()
+                        .setPosRange(RobotInfo.ARM_MIN_HEIGHT, RobotInfo.ARM_MAX_HEIGHT)
+                        .setScaleOffset(RobotInfo.ARM_SCALE, RobotInfo.ARM_OFFSET)
                         .setPidParams(
-                            RobotInfo.ELEVATOR_KP, RobotInfo.ELEVATOR_KI, RobotInfo.ELEVATOR_KD,
-                            RobotInfo.ELEVATOR_TOLERANCE)
+                            RobotInfo.ARM_KP, RobotInfo.ARM_KI, RobotInfo.ARM_KD,
+                            RobotInfo.ARM_TOLERANCE)
                         .setMotorParams(
-                            RobotInfo.ELEVATOR_INVERTED, RobotInfo.ELEVATOR_HAS_LOWER_LIMIT_SWITCH,
-                            RobotInfo.ELEVATOR_HAS_UPPER_LIMIT_SWITCH, RobotInfo.ELEVATOR_CAL_POWER)
+                            RobotInfo.ARM_INVERTED, RobotInfo.ARM_HAS_LOWER_LIMIT_SWITCH,
+                            RobotInfo.ARM_HAS_UPPER_LIMIT_SWITCH, RobotInfo.ARM_CAL_POWER)
                         .setStallProtectionParams(
-                            RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
-                            RobotInfo.ELEVATOR_RESET_TIMEOUT);
-                    elevator = new FtcMotorActuator("elevator", elevatorParams);
-                    elevator.zeroCalibrate();
+                            RobotInfo.ARM_STALL_MIN_POWER, RobotInfo.ARM_STALL_TIMEOUT,
+                            RobotInfo.ARM_RESET_TIMEOUT);
+                    arm = new FtcMotorActuator("arm", armParams);
+                    arm.zeroCalibrate();
                 }
             }
         }

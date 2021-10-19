@@ -147,21 +147,21 @@ public class FtcTeleOp extends FtcOpMode
         //
         // Other subsystems.
         //
-        double elevatorPower = operatorGamepad.getRightStickY(true);
-        double elevatorPos = 0.0;
-        boolean elevatorDownSwitch = false;
-        boolean elevatorUpSwitch = false;
-        if (robot.elevator != null)
+        double armPower = operatorGamepad.getRightStickY(true);
+        double armPos = 0.0;
+        boolean armDownSwitch = false;
+        boolean armUpSwitch = false;
+        if (robot.arm != null)
         {
-            robot.elevator.setPower(elevatorPower);
-            elevatorPos = robot.elevator.getPosition();
-            elevatorDownSwitch = robot.elevator.isLowerLimitSwitchActive();
-            elevatorUpSwitch = robot.elevator.isUpperLimitSwitchActive();
+            robot.arm.setPower(armPower);
+            armPos = robot.arm.getPosition();
+            armDownSwitch = robot.arm.isLowerLimitSwitchActive();
+            armUpSwitch = robot.arm.isUpperLimitSwitchActive();
         }
 
         robot.dashboard.displayPrintf(
             3, "ElevatorPower=%.1f, ElevatorPos=%.1f, ElevatorLimitSwitch=[%b, %b]",
-            elevatorPower, elevatorPos, elevatorDownSwitch, elevatorUpSwitch);
+            armPower, armPos, armDownSwitch, armUpSwitch);
     }   //runPeriodic
 
     //
@@ -245,7 +245,7 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_RBUMPER:
-                robot.elevator.setManualOverride(pressed);
+                robot.arm.setManualOverride(pressed);
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
@@ -263,7 +263,7 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_BACK:
                 if (pressed)
                 {
-                    robot.elevator.zeroCalibrate();
+                    robot.arm.zeroCalibrate();
                 }
                 break;
         }
