@@ -50,6 +50,7 @@ import TrcFtcLib.ftclib.FtcRevBlinkin;
 import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
+import TrcFtcLib.ftclib.FtcServo;
 import TrcFtcLib.ftclib.FtcVuforia;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
@@ -146,6 +147,10 @@ public class Robot
     // Subsystems.
     //
     public FtcMotorActuator arm = null;
+    public FtcServo wrist = null;
+    public FtcDcMotor intake = null;
+    public FtcDcMotor spinner = null;
+    public FtcServo odometryWheelDeployer = null;
 
     /**
      * Constructor: Create an instance of the object.
