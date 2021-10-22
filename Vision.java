@@ -389,7 +389,11 @@ public class Vision
     // TensorFlow Vision.
     //
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-    private static final String[] OBJECT_LABELS = {"Ball", "Cube", "Duck", "Marker"};
+    private static final String LABEL_BALL = "Ball";
+    private static final String LABEL_CUBE = "Cube";
+    private static final String LABEL_DUCK = "Duck";
+    private static final String LABEL_MARKER = "Marker";
+    private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
     private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
@@ -472,24 +476,58 @@ public class Vision
      * This method returns an array of detected targets from TensorFlow vision.
      *
      * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+     * @param filter specifies the filter to call to filter out false positive targets.
      * @return array of detected target info.
      */
-    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label)
+    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
     {
         if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        return tensorFlow.getDetectedTargetsInfo(label, this::validateTarget);
+        return tensorFlow.getDetectedTargetsInfo(label, filter);
     }   //getDetectedTargetsInfo
 
     /**
-     * This method is called to validate the detected target.
+     * This method is called to validate the detected target as a duck.
      *
      * @param target specifies the target to be validated.
      * @return true if target is valid, false if false positive.
      */
-    public boolean validateTarget(Recognition target)
+    public boolean validateDuck(Recognition target)
     {
-        return true;
-    }   //validateTarget
+        FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
+        boolean valid = target.getLabel().equals(LABEL_DUCK);
+        //
+        // Ways to validate a target.
+        // - Correct aspect ratio.
+        // - At expected location(s).
+        // - ...
+        //
+        if (valid)
+        {
+
+        }
+
+        return valid;
+    }   //validateDuck
+
+    /**
+     * This method detects the duck and returns its barcode position.
+     *
+     * @return duck position 1, 2 or 3; 0 if no valid duck found.
+     */
+    public int getDuckPosition()
+    {
+        int position = 0;
+        FtcTensorFlow.TargetInfo[] targets = getDetectedTargetsInfo(LABEL_DUCK, this::validateDuck);
+
+        if (targets.length == 1)
+        {
+            //
+            // Check the duck location and determine its position.
+            //
+        }
+
+        return position;
+    }   //getDuckPosition
 
 }   //class Vision

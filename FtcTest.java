@@ -594,7 +594,7 @@ public class FtcTest extends FtcTeleOp
 
         if (robot.vision.isTensorFlowInitialized())
         {
-            FtcTensorFlow.TargetInfo[] targetInfo = robot.vision.getDetectedTargetsInfo(null);
+            FtcTensorFlow.TargetInfo[] targetInfo = robot.vision.getDetectedTargetsInfo(null, null);
             if (targetInfo != null && targetInfo.length > 0)
             {
                 for (int i = 0; i < targetInfo.length; i++)
