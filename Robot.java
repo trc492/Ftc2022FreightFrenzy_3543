@@ -23,17 +23,12 @@
 package Ftc2022FreightFrenzy_3543;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDigitalInput;
 import TrcCommonLib.trclib.TrcDriveBase;
 import TrcCommonLib.trclib.TrcDriveBaseOdometry;
 import TrcCommonLib.trclib.TrcGyro;
-import TrcCommonLib.trclib.TrcHomographyMapper;
 import TrcCommonLib.trclib.TrcMecanumDriveBase;
 import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
@@ -42,7 +37,6 @@ import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRevBlinkin;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
-import TrcCommonLib.trclib.TrcUtil;
 import TrcFtcLib.ftclib.FtcBNO055Imu;
 import TrcFtcLib.ftclib.FtcDashboard;
 import TrcFtcLib.ftclib.FtcOpMode;
@@ -51,11 +45,6 @@ import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
 import TrcFtcLib.ftclib.FtcServo;
-import TrcFtcLib.ftclib.FtcVuforia;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import java.util.Locale;
 
@@ -85,16 +74,6 @@ public class Robot
         static boolean useVelocityControl = false;
     }   //class Preferences
 
-    private static class CameraParameters
-    {
-        static double cameraFrontOffset = RobotInfo.CAMERA_FRONT_OFFSET;
-        static double cameraLeftOffset = RobotInfo.CAMERA_LEFT_OFFSET;
-        static double cameraHeightOffset = RobotInfo.CAMERA_HEIGHT_OFFSET;
-        static boolean extendedTracking = false;
-        static VuforiaLocalizer.Parameters.CameraMonitorFeedback cameraMonitorFeedback =
-            VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
-    }   //class CameraParameters
-
     public enum DriveMode
     {
         TANK_MODE,
@@ -105,15 +84,14 @@ public class Robot
     // Global objects.
     //
     private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
+    private static final String ROBOT_NAME = "Ftc3543";
     public FtcOpMode opMode;
     public FtcDashboard dashboard;
     public TrcDbgTrace globalTracer;
     //
     // Vision subsystems.
     //
-    public FtcVuforia vuforia;
-    public VuforiaVision vuforiaVision;
-    public TensorFlowVision tensorFlowVision;
+    public Vision vision;
     //
     // Sensors and indicators.
     //
@@ -175,41 +153,18 @@ public class Robot
         //
         if (Preferences.useVuforia || Preferences.useTensorFlow)
         {
-            final String VUFORIA_LICENSE_KEY =
-                "ARbBwjf/////AAABmZijKPKUWEY+uNSzCuTOUFgm7Gr5irDO55gtIOjsOXmhLzLEILJp45qdPrwMfoBV2Yh7F+Wh8iEjnSA" +
-                "NnnRKiJNHy1T9Pr2uufETE40YJth10Twv0sTNSEqxDPhg2t4PJXwRImMaEsTE53fmcm08jT9qMso2+1h9eNk2b4x6DVKgBt" +
-                "Tv5wocDs949Gkh6lRt5rAxATYYO9esmyKyfyzfFLMMpfq7/uvQQrSibNBqa13hJRmmHoM2v0Gfk8TCTTfP044/XsOm54u8k" +
-                "dv0HfeMBC91uQ/NvWHVV5XCh8pZAzmL5sry1YwG8FSRNVlSAZ1zN/m6jAe98q6IxpwQxP0da/TpJoqDI7x4RGjOs1Areunf";
-            int cameraViewId = !Preferences.showVuforiaView ? -1 :
-                opMode.hardwareMap.appContext.getResources().getIdentifier(
-                    "cameraMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
-
-            vuforia = new FtcVuforia(
-                VUFORIA_LICENSE_KEY, cameraViewId, opMode.hardwareMap.get(WebcamName.class, "Webcam 1"),
-                CameraParameters.extendedTracking, CameraParameters.cameraMonitorFeedback);
+            vision = new Vision(this);
 
             if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
             {
                 if (Preferences.useVuforia)
                 {
-                    initVuforia();
+                    vision.initVuforia();
                 }
 
                 if (Preferences.useTensorFlow)
                 {
-                    TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
-                        RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
-
-                    TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
-                        RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
-
-                    initTensorFlow(Preferences.showTensorFlowView, cameraRect, worldRect);
+                    vision.initTensorFlow();
                 }
             }
         }
@@ -264,6 +219,17 @@ public class Robot
     }   //Robot
 
     /**
+     * This method returns the instance name.
+     *
+     * @return instance name.
+     */
+    @Override
+    public String toString()
+    {
+        return ROBOT_NAME;
+    }   //toString
+
+    /**
      * This method is call when the robot mode is about to start. It contains code to initialize robot hardware
      * necessary for running the robot mode.
      *
@@ -293,10 +259,19 @@ public class Robot
         //
         // Vision generally will impact performance, so we only enable it if it's needed such as in autonomous.
         //
-        if (vuforiaVision != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
+        if (vision != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
         {
-            globalTracer.traceInfo(funcName, "Enabling Vuforia.");
-            vuforiaVision.setEnabled(true);
+            if (vision.isVuforiaInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Enabling Vuforia.");
+                vision.setVuforiaEnabled(true);
+            }
+
+            if (vision.isTensorFlowInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
+                vision.setTensorFlowEnabled(true);
+            }
         }
         //
         // The following are performance counters, could be disabled for competition if you want.
@@ -337,17 +312,19 @@ public class Robot
         //
         // Disable vision.
         //
-        if (vuforiaVision != null)
+        if (vision != null)
         {
-            globalTracer.traceInfo(funcName, "Disabling Vuforia.");
-            vuforiaVision.setEnabled(false);
-        }
+            if (vision.isVuforiaInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Disabling Vuforia.");
+                vision.setVuforiaEnabled(false);
+            }
 
-        if (tensorFlowVision != null)
-        {
-            globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
-            tensorFlowVision.shutdown();
-            tensorFlowVision = null;
+            if (vision.isTensorFlowInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
+                vision.tensorFlowShutdown();
+            }
         }
         //
         // Disable odometry.
@@ -382,63 +359,6 @@ public class Robot
                 blinkinFlashOn? TrcRevBlinkin.LEDPattern.SolidWhite: TrcRevBlinkin.LEDPattern.SolidBlack);
         }
     }   //setFlashLightOn
-
-    private void initVuforia()
-    {
-        /*
-         * Create a transformation matrix describing where the camera is on the robot.
-         *
-         * Info:  The coordinate frame for the robot looks the same as the field.
-         * The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along the Y axis.
-         * Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
-         *
-         * For a WebCam, the default starting orientation of the camera is looking UP (pointing in the Z direction),
-         * with the wide (horizontal) axis of the camera aligned with the X axis, and
-         * the Narrow (vertical) axis of the camera aligned with the Y axis
-         *
-         * But, this example assumes that the camera is actually facing forward out the front of the robot.
-         * So, the "default" camera position requires two rotations to get it oriented correctly.
-         * 1) First it must be rotated +90 degrees around the X axis to get it horizontal (its now facing out the right side of the robot)
-         * 2) Next it must be be rotated +90 degrees (counter-clockwise) around the Z axis to face forward.
-         *
-         * Finally the camera can be translated to its actual mounting position on the robot.
-         *      In this example, it is centered on the robot (left-to-right and front-to-back), and 6 inches above ground level.
-         */
-        final int CAMERA_FORWARD_DISPLACEMENT =
-            (int)((RobotInfo.ROBOT_LENGTH/2.0 - CameraParameters.cameraFrontOffset)* TrcUtil.MM_PER_INCH);
-        final int CAMERA_VERTICAL_DISPLACEMENT =
-            (int)(CameraParameters.cameraHeightOffset*TrcUtil.MM_PER_INCH);
-        final int CAMERA_LEFT_DISPLACEMENT =
-            (int)((RobotInfo.ROBOT_WIDTH/2.0 - CameraParameters.cameraLeftOffset)*TrcUtil.MM_PER_INCH);
-
-        OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
-            .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
-
-        vuforiaVision = new VuforiaVision(this, vuforia, cameraLocationOnRobot);
-    }   //initVuforia
-
-    /**
-     * This method initialize TensorFlow for the vision subsystem.
-     *
-     * @param showTensorFlowView specifies true to show TensorFlow camera view.
-     * @param cameraRect specifies the camera rectangle for Homography Mapper.
-     * @param worldRect specifies the world rectangle for Homography Mapper.
-     */
-    private void initTensorFlow(
-        boolean showTensorFlowView, TrcHomographyMapper.Rectangle cameraRect, TrcHomographyMapper.Rectangle worldRect)
-    {
-        final String funcName = "initTensorFlow";
-
-        System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
-
-        int tfodMonitorViewId = !showTensorFlowView ? -1 :
-            opMode.hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
-        tensorFlowVision = new TensorFlowVision(vuforia, tfodMonitorViewId, cameraRect, worldRect, globalTracer);
-        tensorFlowVision.setEnabled(true, Preferences.useBlinkinFlashLight);
-        globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
-    } //initTensorFlow
 
     /**
      * This method creates and initializes the drive base related components.
@@ -521,8 +441,16 @@ public class Robot
         pidDrive.setMsgTracer(globalTracer);
     }   //initDriveBase
 
+    /**
+     * This method is typically called in the autonomous state machine to log the autonomous state info as a state
+     * event in the trace log file. The logged event can be used to play back autonomous path movement.
+     *
+     * @param state specifies the current state of the state machine.
+     */
     public void traceStateInfo(Object state)
     {
+        final String funcName = "traceStateInfo";
+
         if (driveBase != null)
         {
             StringBuilder msg = new StringBuilder();
@@ -556,7 +484,7 @@ public class Robot
                                          " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
             }
 
-            globalTracer.logEvent("Ftc3543", "StateInfo", "%s", msg);
+            globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
         }
     }   //traceStateInfo
 

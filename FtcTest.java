@@ -37,6 +37,7 @@ import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcMenu;
+import TrcFtcLib.ftclib.FtcTensorFlow;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -107,7 +108,9 @@ public class FtcTest extends FtcTeleOp
         // Test menus.
         //
         doTestMenus();
-
+        //
+        // Create the robot command for the tests that need one.
+        //
         switch (test)
         {
             case DRIVE_MOTORS_TEST:
@@ -183,11 +186,11 @@ public class FtcTest extends FtcTeleOp
         //
         // Only SENSORS_TEST and SUBSYSTEMS_TEST need TensorFlow, shut it down for all other tests.
         //
-        if (robot.tensorFlowVision != null && test != Test.SENSORS_TEST && test != Test.SUBSYSTEMS_TEST)
+        if (robot.vision != null && robot.vision.isTensorFlowInitialized() &&
+            test != Test.SENSORS_TEST && test != Test.SUBSYSTEMS_TEST)
         {
             robot.globalTracer.traceInfo("TestInit", "Shutting down TensorFlow.");
-            robot.tensorFlowVision.shutdown();
-            robot.tensorFlowVision = null;
+            robot.vision.tensorFlowShutdown();
         }
     }   //initRobot
 
@@ -195,6 +198,13 @@ public class FtcTest extends FtcTeleOp
     // Overrides TrcRobot.RobotMode methods.
     //
 
+    /**
+     * This method is called before test mode is about to start so it can initialize appropriate subsystems for the
+     * test.
+     *
+     * @param prevMode specifies the previous RunMode it is coming from (always null for FTC).
+     * @param nextMode specifies the next RunMode it is going into.
+     */
     @Override
     public void startMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
@@ -223,6 +233,12 @@ public class FtcTest extends FtcTeleOp
         }
     }   //startMode
 
+    /**
+     * This method is called before test mode is about to exit so it can do appropriate cleanup.
+     *
+     * @param prevMode specifies the previous RunMode it is coming from.
+     * @param nextMode specifies the next RunMode it is going into (always null for FTC).
+     */
     @Override
     public void stopMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
@@ -239,6 +255,12 @@ public class FtcTest extends FtcTeleOp
         super.stopMode(prevMode, nextMode);
     }   //stopMode
 
+    /**
+     * This method is called periodically during test mode to perform low frequency tasks such as teleop control or
+     * displaying status or test results.
+     *
+     * @param elapsedTime specifies the elapsed time since the mode started.
+     */
     @Override
     public void runPeriodic(double elapsedTime)
     {
@@ -260,6 +282,11 @@ public class FtcTest extends FtcTeleOp
         }
     }   //runPeriodic
 
+    /**
+     * This method is called continuously during test mode to execute the test command.
+     *
+     * @param elapsedTime specifies the elapsed time since the mode started.
+     */
     @Override
     public void runContinuous(double elapsedTime)
     {
@@ -356,6 +383,13 @@ public class FtcTest extends FtcTeleOp
     // Overrides TrcGameController.ButtonHandler in TeleOp.
     //
 
+    /**
+     * This method is called when a driver gamepad button event occurs.
+     *
+     * @param gamepad specifies the game controller object that generated the event.
+     * @param button specifies the button ID that generates the event
+     * @param pressed specifies true if the button is pressed, false otherwise.
+     */
     @Override
     public void driverButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
@@ -392,6 +426,13 @@ public class FtcTest extends FtcTeleOp
         }
     }   //driverButtonEvent
 
+    /**
+     * This method is called when an operator gamepad button event occurs.
+     *
+     * @param gamepad specifies the game controller object that generated the event.
+     * @param button specifies the button ID that generates the event
+     * @param pressed specifies true if the button is pressed, false otherwise.
+     */
     @Override
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
@@ -428,6 +469,9 @@ public class FtcTest extends FtcTeleOp
         }
     }   //operatorButtonEvent
 
+    /**
+     * This method creates and displays the test menus and record the selected choices.
+     */
     private void doTestMenus()
     {
         //
@@ -468,7 +512,6 @@ public class FtcTest extends FtcTeleOp
             tuneKfMenu = new FtcValueMenu(
                 "Kf:", testMenu, 0.0, 1.0, 0.001, robot.tunePidCoeff.kF, " %f");
         }
-
         //
         // Populate menus.
         //
@@ -490,7 +533,6 @@ public class FtcTest extends FtcTeleOp
         tuneKpMenu.setChildMenu(tuneKiMenu);
         tuneKiMenu.setChildMenu(tuneKdMenu);
         tuneKdMenu.setChildMenu(tuneKfMenu);
-
         //
         // Traverse menus.
         //
@@ -538,18 +580,21 @@ public class FtcTest extends FtcTeleOp
         }
     }   //doSensorsTest
 
+    /**
+     * This method calls vision code to detect target objects and display their info.
+     */
     private void doVisionTest()
     {
-        if (robot.vuforiaVision != null)
+        if (robot.vision.isVuforiaInitialized())
         {
-            TrcPose2D robotPose = robot.vuforiaVision.getRobotPose(null, false);
+            TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
             robot.dashboard.displayPrintf(12, "RobotLocation %s: %s",
-                                          robot.vuforiaVision.getLastSeenImageName(), robotPose);
+                                          robot.vision.getLastSeenVuforiaImageName(), robotPose);
         }
 
-        if (robot.tensorFlowVision != null)
+        if (robot.vision.isTensorFlowInitialized())
         {
-            TensorFlowVision.TargetInfo[] targetInfo = robot.tensorFlowVision.getDetectedTargetsInfo(null);
+            FtcTensorFlow.TargetInfo[] targetInfo = robot.vision.getDetectedTargetsInfo(null);
             if (targetInfo != null && targetInfo.length > 0)
             {
                 for (int i = 0; i < targetInfo.length; i++)
@@ -561,6 +606,11 @@ public class FtcTest extends FtcTeleOp
         }
     }   //doVisionTest
 
+    /**
+     * This method is called to determine if Test mode is allowed to do teleop control of the robot.
+     *
+     * @return true to allow and false otherwise.
+     */
     private boolean shouldDoTeleOp()
     {
         return !Robot.Preferences.visionOnly && test == Test.SUBSYSTEMS_TEST;

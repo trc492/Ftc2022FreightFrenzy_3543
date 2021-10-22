@@ -135,7 +135,7 @@ public class FtcTeleOp extends FtcOpMode
                     double rot = (driverGamepad.getRightTrigger(true) - driverGamepad.getLeftTrigger(true)) *
                                  drivePowerScale;
                     robot.driveBase.holonomicDrive(x, y, rot, invertedDrive);
-                    robot.dashboard.displayPrintf(1, "Mecan:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
+                    robot.dashboard.displayPrintf(1, "Holonomic:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
                                                   x, y, rot, Boolean.toString(invertedDrive));
                     break;
             }
@@ -160,7 +160,7 @@ public class FtcTeleOp extends FtcOpMode
         }
 
         robot.dashboard.displayPrintf(
-            3, "ElevatorPower=%.1f, ElevatorPos=%.1f, ElevatorLimitSwitch=[%b, %b]",
+            3, "ArmPower=%.1f, ArmPos=%.1f, ArmLimitSwitches=[%b, %b]",
             armPower, armPos, armDownSwitch, armUpSwitch);
     }   //runPeriodic
 

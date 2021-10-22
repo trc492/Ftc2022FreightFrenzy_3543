@@ -30,12 +30,12 @@ import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 
-import java.util.Date;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcFtcLib.ftclib.FtcChoiceMenu;
+import TrcFtcLib.ftclib.FtcMatchInfo;
 import TrcFtcLib.ftclib.FtcMenu;
 import TrcFtcLib.ftclib.FtcOpMode;
 import TrcFtcLib.ftclib.FtcValueMenu;
@@ -46,30 +46,6 @@ import TrcFtcLib.ftclib.FtcValueMenu;
 @Autonomous(name="FtcAutonomous", group="Ftc3543")
 public class FtcAuto extends FtcOpMode
 {
-    public enum MatchType
-    {
-        PRACTICE,
-        QUALIFICATION,
-        SEMI_FINAL,
-        FINAL
-    }   //enum MatchType
-
-    /**
-     * This class stores the match info.
-     */
-    public static class MatchInfo
-    {
-        Date matchDate;
-        MatchType matchType;
-        int matchNumber;
-
-        public String toString()
-        {
-            return String.format(
-                Locale.US, "date=\"%s\" type=\"%s\" number=%d", matchDate, matchType, matchNumber);
-        }   //toString
-    }   //class MatchInfo
-
     public enum AutoStrategy
     {
         DO_AUTONOMOUS,
@@ -149,7 +125,7 @@ public class FtcAuto extends FtcOpMode
     private static final boolean debugTurnPid = true;
 
     private Robot robot;
-    private MatchInfo matchInfo;
+    private FtcMatchInfo matchInfo;
     private final AutoChoices autoChoices = new AutoChoices();
     private TrcRobot.RobotCommand autoCommand = null;
 
@@ -174,8 +150,7 @@ public class FtcAuto extends FtcOpMode
         //
         if (Robot.Preferences.useTraceLog)
         {
-            matchInfo = new MatchInfo();
-            doMatchInfoMenus();
+            matchInfo = FtcMatchInfo.getMatchInfo();
             String filePrefix = String.format(Locale.US, "%s%02d", matchInfo.matchType, matchInfo.matchNumber);
             robot.globalTracer.openTraceLog("/sdcard/FIRST/tracelog", filePrefix);
         }
@@ -367,39 +342,6 @@ public class FtcAuto extends FtcOpMode
             }
         }
     }   //runContinuous
-
-    /**
-     * This method creates the MatchInfo menus, displays them and stores the choices.
-     */
-    private void doMatchInfoMenus()
-    {
-        if (matchInfo != null)
-        {
-            //
-            // Construct menus.
-            //
-            FtcChoiceMenu<MatchType> matchTypeMenu = new FtcChoiceMenu<>("Match type:", null);
-            FtcValueMenu matchNumberMenu = new FtcValueMenu(
-                "Match number:", matchTypeMenu, 1.0, 50.0, 1.0, 1.0, "%.0f");
-            //
-            // Populate choice menus.
-            //
-            matchTypeMenu.addChoice("Practice", MatchType.PRACTICE, true, matchNumberMenu);
-            matchTypeMenu.addChoice("Qualification", MatchType.QUALIFICATION, false, matchNumberMenu);
-            matchTypeMenu.addChoice("Semi-final", MatchType.SEMI_FINAL, false, matchNumberMenu);
-            matchTypeMenu.addChoice("Final", MatchType.FINAL, false, matchNumberMenu);
-            //
-            // Traverse menus.
-            //
-            FtcMenu.walkMenuTree(matchTypeMenu);
-            //
-            // Fetch choices.
-            //
-            matchInfo.matchDate = new Date();
-            matchInfo.matchType = matchTypeMenu.getCurrentChoiceObject();
-            matchInfo.matchNumber = (int)matchNumberMenu.getCurrentValue();
-        }
-    }   //doMatchInfoMenus
 
     /**
      * This method creates the autonomous menus, displays them and stores the choices.

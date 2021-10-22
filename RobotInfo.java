@@ -32,6 +32,7 @@ public class RobotInfo
     // Hardware names.
     //
     static final String IMU_NAME                                = "imu";
+    static final String WEBCAM_NAME                             = "Webcam 1";
     static final String LEFT_FRONT_WHEEL_NAME                   = "lfWheel";
     static final String RIGHT_FRONT_WHEEL_NAME                  = "rfWheel";
     static final String LEFT_BACK_WHEEL_NAME                    = "lbWheel";
