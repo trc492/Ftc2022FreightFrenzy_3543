@@ -37,6 +37,8 @@ public class RobotInfo
     static final String RIGHT_FRONT_WHEEL_NAME                  = "rfWheel";
     static final String LEFT_BACK_WHEEL_NAME                    = "lbWheel";
     static final String RIGHT_BACK_WHEEL_NAME                   = "rbWheel";
+    static final String INTAKE_NAME                             = "intake";
+    static final String ARM_NAME                                = "arm";
     //
     // Robot base odometry.
     //

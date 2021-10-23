@@ -211,9 +211,10 @@ public class Robot
                         .setStallProtectionParams(
                             RobotInfo.ARM_STALL_MIN_POWER, RobotInfo.ARM_STALL_TIMEOUT,
                             RobotInfo.ARM_RESET_TIMEOUT);
-                    arm = new FtcMotorActuator("arm", armParams);
+                    arm = new FtcMotorActuator(RobotInfo.ARM_NAME, armParams);
                     arm.zeroCalibrate();
                 }
+                intake = new FtcDcMotor(RobotInfo.INTAKE_NAME);
             }
         }
     }   //Robot

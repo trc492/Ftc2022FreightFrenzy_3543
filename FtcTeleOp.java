@@ -236,9 +236,22 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_X:
+                if(pressed){
+//robotisinstance
+                    robot.arm.setPower(RobotInfo.INTAKE_POWER);
+                }
+                else{
+                    robot.arm.setPower(0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
+                if(pressed){
+                    robot.arm.setPower(-RobotInfo.INTAKE_POWER);
+                }
+                else{
+                    robot.arm.setPower(0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_LBUMPER:
