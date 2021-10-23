@@ -163,4 +163,6 @@ public class RobotInfo
     static final double ARM_SCALE                               = 17.0/4718.0;
     static final double ARM_OFFSET                              = 0.0;
 
+    //intake subsystem
+    static final double INTAKE_POWER                            = 1.0;
 }   //class RobotInfo
