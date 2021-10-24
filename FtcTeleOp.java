@@ -230,27 +230,32 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
+                //spinner spin positive direction for set amount of time
+                robot.spinner.set(RobotInfo.SPINNER_POWER, RobotInfo.SPINNER_TIME);
                 break;
 
             case FtcGamepad.GAMEPAD_B:
+                //spinner spin negative direction for set amount of time
+                robot.spinner.set(-RobotInfo.SPINNER_POWER, RobotInfo.SPINNER_TIME);
+
                 break;
 
             case FtcGamepad.GAMEPAD_X:
                 if(pressed){
 //robotisinstance
-                    robot.arm.setPower(RobotInfo.INTAKE_POWER);
+                    robot.intake.set(RobotInfo.INTAKE_POWER);
                 }
                 else{
-                    robot.arm.setPower(0);
+                    robot.intake.set(0);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
                 if(pressed){
-                    robot.arm.setPower(-RobotInfo.INTAKE_POWER);
+                    robot.intake.set(-RobotInfo.INTAKE_POWER);
                 }
                 else{
-                    robot.arm.setPower(0);
+                    robot.intake.set(0);
                 }
                 break;
 
@@ -262,6 +267,7 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
+
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_DOWN:

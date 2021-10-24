@@ -39,6 +39,7 @@ public class RobotInfo
     static final String RIGHT_BACK_WHEEL_NAME                   = "rbWheel";
     static final String INTAKE_NAME                             = "intake";
     static final String ARM_NAME                                = "arm";
+    static final String SPINNER_NAME                            = "spinner";
     //
     // Robot base odometry.
     //
@@ -167,4 +168,8 @@ public class RobotInfo
 
     //intake subsystem
     static final double INTAKE_POWER                            = 1.0;
+
+    //Spinner subsystem
+    static final double SPINNER_POWER                            = 1.0;
+    static final double SPINNER_TIME                             = 2.0;
 }   //class RobotInfo

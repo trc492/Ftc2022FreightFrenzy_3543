@@ -215,6 +215,7 @@ public class Robot
                     arm.zeroCalibrate();
                 }
                 intake = new FtcDcMotor(RobotInfo.INTAKE_NAME);
+                spinner = new FtcDcMotor(RobotInfo.SPINNER_NAME);
             }
         }
     }   //Robot
