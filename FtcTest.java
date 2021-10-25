@@ -567,7 +567,7 @@ public class FtcTest extends FtcTeleOp
         if (!Robot.Preferences.visionOnly)
         {
             robot.dashboard.displayPrintf(
-                9, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
+                8, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
                 robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
                 robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
         }
@@ -575,7 +575,7 @@ public class FtcTest extends FtcTeleOp
         if (robot.gyro != null)
         {
             robot.dashboard.displayPrintf(
-                10, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
+                9, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
                 robot.gyro.getZRotationRate().value, robot.gyro.getZHeading().value);
         }
     }   //doSensorsTest
@@ -588,7 +588,7 @@ public class FtcTest extends FtcTeleOp
         if (robot.vision.isVuforiaInitialized())
         {
             TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
-            robot.dashboard.displayPrintf(12, "RobotLocation %s: %s",
+            robot.dashboard.displayPrintf(10, "RobotLocation %s: %s",
                                           robot.vision.getLastSeenVuforiaImageName(), robotPose);
         }
 
@@ -600,7 +600,7 @@ public class FtcTest extends FtcTeleOp
                 for (int i = 0; i < targetInfo.length; i++)
                 {
                     robot.dashboard.displayPrintf(
-                        12 + i, "%s", targetInfo[i]);
+                        11 + i, "%s", targetInfo[i]);
                 }
             }
         }

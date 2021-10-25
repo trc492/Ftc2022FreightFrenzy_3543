@@ -147,21 +147,31 @@ public class FtcTeleOp extends FtcOpMode
         //
         // Other subsystems.
         //
-        double armPower = operatorGamepad.getRightStickY(true);
-        double armPos = 0.0;
-        boolean armDownSwitch = false;
-        boolean armUpSwitch = false;
         if (robot.arm != null)
         {
+            double armPower = operatorGamepad.getRightStickY(true);
+
             robot.arm.setPower(armPower);
-            armPos = robot.arm.getPosition();
-            armDownSwitch = robot.arm.isLowerLimitSwitchActive();
-            armUpSwitch = robot.arm.isUpperLimitSwitchActive();
+            robot.dashboard.displayPrintf(
+                3, "Arm: Power=%.1f,Pos=%.1f,LimitSwitches=[%b, %b]",
+                armPower, robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(),
+                robot.arm.isLowerLimitSwitchActive());
         }
 
-        robot.dashboard.displayPrintf(
-            3, "ArmPower=%.1f, ArmPos=%.1f, ArmLimitSwitches=[%b, %b]",
-            armPower, armPos, armDownSwitch, armUpSwitch);
+        if (robot.intake != null)
+        {
+            robot.dashboard.displayPrintf(4, "Intake: Power=%.1f", robot.intake.getPower());
+        }
+
+        if (robot.spinner != null)
+        {
+            robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.intake.getPower());
+        }
+
+        if (robot.wrist != null)
+        {
+            robot.dashboard.displayPrintf(6, "Wrist: Pos=%.1f", robot.wrist.getPosition());
+        }
     }   //runPeriodic
 
     //
@@ -230,32 +240,45 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
-                //spinner spin positive direction for set amount of time
-                robot.spinner.set(RobotInfo.SPINNER_POWER, RobotInfo.SPINNER_TIME);
+                if (pressed)
+                {
+                    // Pickup freight.
+                    robot.intake.set(RobotInfo.INTAKE_POWER_PICKUP);
+                }
+                else
+                {
+                    robot.intake.set(0.0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
-                //spinner spin negative direction for set amount of time
-                robot.spinner.set(-RobotInfo.SPINNER_POWER, RobotInfo.SPINNER_TIME);
-
+                // Code Review: Operator shouldn't be burdened to determine which direction spinner should spin.
+                // In other words, we should use just one button and the code should determine the correct direction.
+                // How??? Alternatively, we use RED and BLUE buttons so the operator can easily tell.
+                if (pressed)
+                {
+                    // Spin the red carousel for set amount of time.
+                    robot.spinner.set(RobotInfo.SPINNER_POWER_RED, RobotInfo.SPINNER_TIME);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:
-                if(pressed){
-//robotisinstance
-                    robot.intake.set(RobotInfo.INTAKE_POWER);
-                }
-                else{
-                    robot.intake.set(0);
+                if (pressed)
+                {
+                    // Spin the blue carousel for set amount of time.
+                    robot.spinner.set(RobotInfo.SPINNER_POWER_BLUE, RobotInfo.SPINNER_TIME);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
-                if(pressed){
-                    robot.intake.set(-RobotInfo.INTAKE_POWER);
+                if (pressed)
+                {
+                    // Dump freight.
+                    robot.intake.set(RobotInfo.INTAKE_POWER_DUMP);
                 }
-                else{
-                    robot.intake.set(0);
+                else
+                {
+                    robot.intake.set(0.0);
                 }
                 break;
 
@@ -267,10 +290,17 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
-
+                if (pressed)
+                {
+                    robot.wrist.setPosition(RobotInfo.WRIST_UP_POS);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_DOWN:
+                if (pressed)
+                {
+                    robot.wrist.setPosition(RobotInfo.WRIST_DOWN_POS);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_LEFT:

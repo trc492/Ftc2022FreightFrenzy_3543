@@ -84,7 +84,7 @@ public class Vision
             cameraViewId == -1? new VuforiaLocalizer.Parameters(): new VuforiaLocalizer.Parameters(cameraViewId);
 
         vuforiaParams.vuforiaLicenseKey = VUFORIA_LICENSE_KEY;
-        vuforiaParams.cameraName = opMode.hardwareMap.get(WebcamName.class, RobotInfo.WEBCAM_NAME);
+        vuforiaParams.cameraName = opMode.hardwareMap.get(WebcamName.class, RobotInfo.HWNAME_WEBCAM);
         vuforiaParams.useExtendedTracking = false;
         vuforiaParams.cameraMonitorFeedback = VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
         vuforia = new FtcVuforia(vuforiaParams);

@@ -61,8 +61,8 @@ public class Robot
         static boolean visionOnly = false;
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = false;
-        static boolean hasArm = false;
-        static boolean hasBlinkin = false;
+        static boolean hasArm = true;
+        static boolean hasBlinkin = true;
         static boolean useVuforia = false;
         static boolean showVuforiaView = false;
         static boolean useTensorFlow = true;
@@ -83,8 +83,8 @@ public class Robot
     //
     // Global objects.
     //
-    private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
     private static final String ROBOT_NAME = "Ftc3543";
+    private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
     public FtcOpMode opMode;
     public FtcDashboard dashboard;
     public TrcDbgTrace globalTracer;
@@ -125,9 +125,9 @@ public class Robot
     // Subsystems.
     //
     public FtcMotorActuator arm = null;
-    public FtcServo wrist = null;
     public FtcDcMotor intake = null;
     public FtcDcMotor spinner = null;
+    public FtcServo wrist = null;
     public FtcServo odometryWheelDeployer = null;
 
     /**
@@ -184,9 +184,9 @@ public class Robot
 
             if (Preferences.hasBlinkin)
             {
-                blinkin = new FtcRevBlinkin("blinkin");
+                blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
             }
-            imu = new FtcBNO055Imu(RobotInfo.IMU_NAME);
+            imu = new FtcBNO055Imu(RobotInfo.HWNAME_IMU);
             gyro = imu.gyro;
             //
             // Initialize DriveBase.
@@ -200,8 +200,8 @@ public class Robot
                 if (Preferences.hasArm)
                 {
                     final FtcMotorActuator.Parameters armParams = new FtcMotorActuator.Parameters()
-                        .setPosRange(RobotInfo.ARM_MIN_HEIGHT, RobotInfo.ARM_MAX_HEIGHT)
-                        .setScaleOffset(RobotInfo.ARM_SCALE, RobotInfo.ARM_OFFSET)
+                        .setPosRange(RobotInfo.ARM_MIN_POS, RobotInfo.ARM_MAX_POS)
+                        .setScaleOffset(RobotInfo.ARM_DEG_PER_COUNT, RobotInfo.ARM_OFFSET)
                         .setPidParams(
                             RobotInfo.ARM_KP, RobotInfo.ARM_KI, RobotInfo.ARM_KD,
                             RobotInfo.ARM_TOLERANCE)
@@ -211,11 +211,13 @@ public class Robot
                         .setStallProtectionParams(
                             RobotInfo.ARM_STALL_MIN_POWER, RobotInfo.ARM_STALL_TIMEOUT,
                             RobotInfo.ARM_RESET_TIMEOUT);
-                    arm = new FtcMotorActuator(RobotInfo.ARM_NAME, armParams);
+                    arm = new FtcMotorActuator(RobotInfo.HWNAME_ARM, armParams);
                     arm.zeroCalibrate();
                 }
-                intake = new FtcDcMotor(RobotInfo.INTAKE_NAME);
-                spinner = new FtcDcMotor(RobotInfo.SPINNER_NAME);
+                intake = new FtcDcMotor(RobotInfo.HWNAME_INTAKE);
+                spinner = new FtcDcMotor(RobotInfo.HWNAME_SPINNER);
+                wrist = new FtcServo(RobotInfo.HWNAME_WRIST);
+                wrist.setPosition(RobotInfo.WRIST_UP_POS);
             }
         }
     }   //Robot
@@ -239,7 +241,7 @@ public class Robot
      */
     public void startMode(TrcRobot.RunMode runMode)
     {
-        final String funcName = "Robot.startMode";
+        final String funcName = "startMode";
         //
         // Since the IMU gyro is giving us cardinal heading, we need to enable its cardinal to cartesian converter.
         //
@@ -296,7 +298,7 @@ public class Robot
      */
     public void stopMode(TrcRobot.RunMode runMode)
     {
-        final String funcName = "Robot.stopMode";
+        final String funcName = "stopMode";
         //
         // Print all performance counters if there are any.
         //
@@ -367,10 +369,10 @@ public class Robot
      */
     private void initDriveBase()
     {
-        leftFrontWheel = new FtcDcMotor(RobotInfo.LEFT_FRONT_WHEEL_NAME);
-        rightFrontWheel = new FtcDcMotor(RobotInfo.RIGHT_FRONT_WHEEL_NAME);
-        leftBackWheel = new FtcDcMotor(RobotInfo.LEFT_BACK_WHEEL_NAME);
-        rightBackWheel = new FtcDcMotor(RobotInfo.RIGHT_BACK_WHEEL_NAME);
+        leftFrontWheel = new FtcDcMotor(RobotInfo.HWNAME_LEFT_FRONT_WHEEL);
+        rightFrontWheel = new FtcDcMotor(RobotInfo.HWNAME_RIGHT_FRONT_WHEEL);
+        leftBackWheel = new FtcDcMotor(RobotInfo.HWNAME_LEFT_BACK_WHEEL);
+        rightBackWheel = new FtcDcMotor(RobotInfo.HWNAME_RIGHT_BACK_WHEEL);
 
         leftFrontWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);
         rightFrontWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);

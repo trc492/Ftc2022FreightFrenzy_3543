@@ -31,15 +31,17 @@ public class RobotInfo
     //
     // Hardware names.
     //
-    static final String IMU_NAME                                = "imu";
-    static final String WEBCAM_NAME                             = "Webcam 1";
-    static final String LEFT_FRONT_WHEEL_NAME                   = "lfWheel";
-    static final String RIGHT_FRONT_WHEEL_NAME                  = "rfWheel";
-    static final String LEFT_BACK_WHEEL_NAME                    = "lbWheel";
-    static final String RIGHT_BACK_WHEEL_NAME                   = "rbWheel";
-    static final String INTAKE_NAME                             = "intake";
-    static final String ARM_NAME                                = "arm";
-    static final String SPINNER_NAME                            = "spinner";
+    static final String HWNAME_IMU                              = "imu";
+    static final String HWNAME_WEBCAM                           = "Webcam 1";
+    static final String HWNAME_BLINKIN                          = "blinkin";
+    static final String HWNAME_LEFT_FRONT_WHEEL                 = "lfWheel";
+    static final String HWNAME_RIGHT_FRONT_WHEEL                = "rfWheel";
+    static final String HWNAME_LEFT_BACK_WHEEL                  = "lbWheel";
+    static final String HWNAME_RIGHT_BACK_WHEEL                 = "rbWheel";
+    static final String HWNAME_ARM                              = "arm";
+    static final String HWNAME_INTAKE                           = "intake";
+    static final String HWNAME_SPINNER                          = "spinner";
+    static final String HWNAME_WRIST                            = "wrist";
     //
     // Robot base odometry.
     //
@@ -127,7 +129,7 @@ public class RobotInfo
     static final String TRACKABLE_IMAGES_FILE                   = "FreightFrenzy";
     static final double CAMERA_FRONT_OFFSET                     = 5.0;  //Camera offset from front of robot in inches
     static final double CAMERA_HEIGHT_OFFSET                    = 12.0; //Camera offset from floor in inches
-    static final double CAMERA_LEFT_OFFSET                      = 8.5; //Camera offset from left of robot in inches
+    static final double CAMERA_LEFT_OFFSET                      = 8.5;  //Camera offset from left of robot in inches
 
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 360.0;
@@ -148,28 +150,42 @@ public class RobotInfo
     static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_X          = 12.0;
     static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 19.0;
     //
-    // Elevator subsystem.
+    // Arm subsystem.
     //
     static final double ARM_KP                                  = 0.5;
     static final double ARM_KI                                  = 0.0;
     static final double ARM_KD                                  = 0.0;
     static final double ARM_TOLERANCE                           = 0.5;
+    // https://www.gobilda.com/5202-series-yellow-jacket-planetary-gear-motor-5-2-1-ratio-1150-rpm-3-3-5v-encoder/
+    static final double ARM_ENCODER_PPR                         = ((1.0 + (46.0/11.0)) * 28.0);
+    // https://www.gobilda.com/super-duty-worm-drive-pan-kit-28-1-ratio/
+    static final double ARM_GEAR_RATIO                          = (1.0/28.0);
+    static final double ARM_DEG_PER_COUNT                       = (360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO));
+    static final double ARM_OFFSET                              = 0.0;
+    static final double ARM_MIN_POS                             = 0.0;
+    static final double ARM_MAX_POS                             = 19.0;
     static final boolean ARM_INVERTED                           = false;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_HAS_UPPER_LIMIT_SWITCH             = false;
-    static final double ARM_CAL_POWER                           = 0.5;
-    static final double ARM_STALL_MIN_POWER                     = 0.5;
-    static final double ARM_STALL_TIMEOUT                       = 1.0;
-    static final double ARM_RESET_TIMEOUT                       = 0.5;
-    static final double ARM_MIN_HEIGHT                          = 0.0;
-    static final double ARM_MAX_HEIGHT                          = 19.0;
-    static final double ARM_SCALE                               = 17.0/4718.0;
-    static final double ARM_OFFSET                              = 0.0;
+    static final double ARM_CAL_POWER                           = 0.3;
+    static final double ARM_STALL_MIN_POWER                     = 0.3;
+    static final double ARM_STALL_TIMEOUT                       = 0.5;
+    static final double ARM_RESET_TIMEOUT                       = 0.2;
+    //
+    // Intake subsystem.
+    //
+    static final double INTAKE_POWER_PICKUP                     = 1.0;
+    static final double INTAKE_POWER_DUMP                       = -1.0;
+    //
+    // Spinner subsystem.
+    //
+    static final double SPINNER_POWER_RED                       = 1.0;
+    static final double SPINNER_POWER_BLUE                      = -1.0;
+    static final double SPINNER_TIME                            = 2.0;
+    //
+    // Wrist subsystem.
+    //
+    static final double WRIST_UP_POS                            = 0.0;
+    static final double WRIST_DOWN_POS                          = 1.0;
 
-    //intake subsystem
-    static final double INTAKE_POWER                            = 1.0;
-
-    //Spinner subsystem
-    static final double SPINNER_POWER                            = 1.0;
-    static final double SPINNER_TIME                             = 2.0;
 }   //class RobotInfo
