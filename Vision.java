@@ -53,9 +53,30 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
  */
 public class Vision
 {
+    public static final String blueStorageName = "Blue Storage";
+    public static final String blueAllianceWallName = "Blue Alliance Wall";
+    public static final String redStorageName = "Red Storage";
+    public static final String redAllianceWallName = "Red Alliance Wall";
+    public static final String LABEL_BALL = "Ball";
+    public static final String LABEL_CUBE = "Cube";
+    public static final String LABEL_DUCK = "Duck";
+    public static final String LABEL_MARKER = "Marker";
+    public static final String duckPos1 = "DuckPos1";
+    public static final String duckPos2 = "DuckPos2";
+    public static final String duckPos3 = "DuckPos3";
+
     private final Robot robot;
     private final TrcDbgTrace tracer;
     private final FtcVuforia vuforia;
+    private static final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
+        new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
+            .add(blueStorageName, TrcRevBlinkin.LEDPattern.SolidBlue)
+            .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedShotBlue)
+            .add(redStorageName, TrcRevBlinkin.LEDPattern.SolidRed)
+            .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedShotRed)
+            .add(duckPos1, TrcRevBlinkin.LEDPattern.FixedStrobeRed)
+            .add(duckPos2, TrcRevBlinkin.LEDPattern.FixedStrobeWhite)
+            .add(duckPos3, TrcRevBlinkin.LEDPattern.FixedStrobeBlue);
 
     /**
      * Constructor: Create an instance of the object. Vision is required by both Vuforia and TensorFlow and must be
@@ -96,17 +117,6 @@ public class Vision
     private static final int IMAGE_WIDTH = 1280;    //in pixels
     private static final int IMAGE_HEIGHT = 720;    //in pixels
     private static final int FRAME_QUEUE_CAPACITY = 2;
-
-    private static final String blueStorageName = "Blue Storage";
-    private static final String blueAllianceWallName = "Blue Alliance Wall";
-    private static final String redStorageName = "Red Storage";
-    private static final String redAllianceWallName = "Red Alliance Wall";
-    private static final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
-        new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
-            .add(blueStorageName, TrcRevBlinkin.LEDPattern.SolidBlue)
-            .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedStrobeBlue)
-            .add(redStorageName, TrcRevBlinkin.LEDPattern.SolidRed)
-            .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedStrobeRed);
     //
     // Since ImageTarget trackables use mm to specify their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here.
@@ -121,7 +131,6 @@ public class Vision
     private boolean vuforiaInitialized = false;
     private VuforiaTrackable[] vuforiaImageTargets;
     private String lastVuforiaImageName;
-    private int duckPosition = 0;
 
     /**
      * This method must be called before any Vuforia related methods can be called or it may throw an exception.
@@ -390,16 +399,13 @@ public class Vision
     // TensorFlow Vision.
     //
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-    public static final String LABEL_BALL = "Ball";
-    public static final String LABEL_CUBE = "Cube";
-    public static final String LABEL_DUCK = "Duck";
-    public static final String LABEL_MARKER = "Marker";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
     private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
 
     private FtcTensorFlow tensorFlow = null;
+    private int duckPosition = 0;
 
     /**
      * This method must be called before any TensorFlow related methods can be called or it may throw an exception.
@@ -434,6 +440,11 @@ public class Vision
 
             tensorFlow = new FtcTensorFlow(
                 vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect, tracer);
+
+            if (robot.blinkin != null)
+            {
+                robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
+            }
         }
     }   //initTensorFlow
 
@@ -519,8 +530,30 @@ public class Vision
      */
     public void determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
     {
-        duckPosition = 0;
-    }   //getDuckPosition
+        duckPosition = 0;   //add code to determine duck position.
+        if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+        {
+            switch (duckPosition)
+            {
+                default:
+                case 0:
+                    robot.blinkin.reset();
+                    break;
+
+                case 1:
+                    robot.blinkin.setPatternState(duckPos1, true);
+                    break;
+
+                case 2:
+                    robot.blinkin.setPatternState(duckPos2, true);
+                    break;
+
+                case 3:
+                    robot.blinkin.setPatternState(duckPos3, true);
+                    break;
+            }
+        }
+    }   //determineDuckPosition
 
     /**
      * This method returns the duck position determined before autonomous was started.
