@@ -585,22 +585,28 @@ public class FtcTest extends FtcTeleOp
      */
     private void doVisionTest()
     {
-        if (robot.vision.isVuforiaInitialized())
+        if (robot.vision != null)
         {
-            TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
-            robot.dashboard.displayPrintf(10, "RobotLocation %s: %s",
-                                          robot.vision.getLastSeenVuforiaImageName(), robotPose);
-        }
-
-        if (robot.vision.isTensorFlowInitialized())
-        {
-            FtcTensorFlow.TargetInfo[] targetInfo = robot.vision.getDetectedTargetsInfo(null, null);
-            if (targetInfo != null && targetInfo.length > 0)
+            if (robot.vision.isVuforiaInitialized())
             {
-                for (int i = 0; i < targetInfo.length; i++)
+                TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
+                robot.dashboard.displayPrintf(10, "RobotLocation %s: %s",
+                                              robot.vision.getLastSeenVuforiaImageName(), robotPose);
+            }
+
+            if (robot.vision.isTensorFlowInitialized())
+            {
+                FtcTensorFlow.TargetInfo[] targetInfo =
+                    robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
+
+                if (targetInfo != null && targetInfo.length > 0)
                 {
-                    robot.dashboard.displayPrintf(
-                        11 + i, "%s", targetInfo[i]);
+                    for (int i = 0; i < targetInfo.length; i++)
+                    {
+                        robot.vision.determineDuckPosition(targetInfo[i]);
+                        robot.dashboard.displayPrintf(11 + i, "%s (Pos=%d)",
+                                                      targetInfo[i], robot.vision.getDuckPosition());
+                    }
                 }
             }
         }

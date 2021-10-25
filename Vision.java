@@ -121,6 +121,7 @@ public class Vision
     private boolean vuforiaInitialized = false;
     private VuforiaTrackable[] vuforiaImageTargets;
     private String lastVuforiaImageName;
+    private int duckPosition = 0;
 
     /**
      * This method must be called before any Vuforia related methods can be called or it may throw an exception.
@@ -389,10 +390,10 @@ public class Vision
     // TensorFlow Vision.
     //
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-    private static final String LABEL_BALL = "Ball";
-    private static final String LABEL_CUBE = "Cube";
-    private static final String LABEL_DUCK = "Duck";
-    private static final String LABEL_MARKER = "Marker";
+    public static final String LABEL_BALL = "Ball";
+    public static final String LABEL_CUBE = "Cube";
+    public static final String LABEL_DUCK = "Duck";
+    public static final String LABEL_MARKER = "Marker";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
     private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
@@ -499,6 +500,7 @@ public class Vision
         //
         // Ways to validate a target.
         // - Correct aspect ratio.
+        // - Correct size.
         // - At expected location(s).
         // - ...
         //
@@ -511,23 +513,23 @@ public class Vision
     }   //validateDuck
 
     /**
-     * This method detects the duck and returns its barcode position.
+     * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found) and remembers it.
      *
-     * @return duck position 1, 2 or 3; 0 if no valid duck found.
+     * @param targetInfo specifies the detected duck's target info.
+     */
+    public void determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
+    {
+        duckPosition = 0;
+    }   //getDuckPosition
+
+    /**
+     * This method returns the duck position determined before autonomous was started.
+     *
+     * @return duck barcode position 1, 2, or 3 (0 if no valid duck found).
      */
     public int getDuckPosition()
     {
-        int position = 0;
-        FtcTensorFlow.TargetInfo[] targets = getDetectedTargetsInfo(LABEL_DUCK, this::validateDuck);
-
-        if (targets.length == 1)
-        {
-            //
-            // Check the duck location and determine its position.
-            //
-        }
-
-        return position;
+        return duckPosition;
     }   //getDuckPosition
 
 }   //class Vision

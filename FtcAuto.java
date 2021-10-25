@@ -38,6 +38,7 @@ import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcMatchInfo;
 import TrcFtcLib.ftclib.FtcMenu;
 import TrcFtcLib.ftclib.FtcOpMode;
+import TrcFtcLib.ftclib.FtcTensorFlow;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -293,6 +294,27 @@ public class FtcAuto extends FtcOpMode
             robot.globalTracer.closeTraceLog();
         }
     }   //stopMode
+
+    /**
+     * This method is called periodically after initRobot() is called but before competition starts. Typically,
+     * you override this method and put code that will check and display robot status in this method. For example,
+     * one may monitor the gyro heading in this method to make sure there is no major gyro drift before competition
+     * starts. By default, this method is doing exactly what waitForStart() does.
+     */
+    @Override
+    public void initPeriodic()
+    {
+        if (robot.vision != null && robot.vision.isTensorFlowInitialized())
+        {
+            FtcTensorFlow.TargetInfo[] targets =
+                robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
+
+            if (targets != null && targets.length == 1)
+            {
+                robot.vision.determineDuckPosition(targets[0]);
+            }
+        }
+    }   //initPeriodic
 
     /**
      * This method is called periodically as fast as the control system allows. Typically, you put code that requires
