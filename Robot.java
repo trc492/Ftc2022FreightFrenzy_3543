@@ -83,7 +83,7 @@ public class Robot
     //
     // Global objects.
     //
-    private static final String ROBOT_NAME = "Ftc3543";
+    private static final String ROBOT_NAME = "Robot3543";
     private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
     public FtcOpMode opMode;
     public FtcDashboard dashboard;

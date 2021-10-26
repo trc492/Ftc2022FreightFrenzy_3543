@@ -296,10 +296,8 @@ public class FtcAuto extends FtcOpMode
     }   //stopMode
 
     /**
-     * This method is called periodically after initRobot() is called but before competition starts. Typically,
-     * you override this method and put code that will check and display robot status in this method. For example,
-     * one may monitor the gyro heading in this method to make sure there is no major gyro drift before competition
-     * starts. By default, this method is doing exactly what waitForStart() does.
+     * This method is called periodically after initRobot() is called but before competition starts. For this season,
+     * we are detecting the duck's barcode position before the match starts.
      */
     @Override
     public void initPeriodic()

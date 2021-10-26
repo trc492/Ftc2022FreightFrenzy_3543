@@ -152,18 +152,18 @@ public class RobotInfo
     //
     // Arm subsystem.
     //
-    static final double ARM_KP                                  = 0.5;
+    static final double ARM_KP                                  = 0.05;
     static final double ARM_KI                                  = 0.0;
     static final double ARM_KD                                  = 0.0;
     static final double ARM_TOLERANCE                           = 0.5;
     // https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/
     static final double ARM_ENCODER_PPR                         = ((((1.0 + (46.0/17.0)))*(1.0 + (46.0/11.0)))*28.0);
     // https://www.gobilda.com/super-duty-worm-drive-pan-kit-28-1-ratio/
-    static final double ARM_GEAR_RATIO                          = (1.0/28.0);
-    static final double ARM_DEG_PER_COUNT                       = (360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO));
+    static final double ARM_GEAR_RATIO                          = 28.0;
+    static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
     static final double ARM_OFFSET                              = 31.0;
-    static final double ARM_MIN_POS                             = 0.0;
-    static final double ARM_MAX_POS                             = 19.0;
+    static final double ARM_MIN_POS                             = 30.0;
+    static final double ARM_MAX_POS                             = 150.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
@@ -171,8 +171,8 @@ public class RobotInfo
     static final boolean ARM_UPPER_LIMIT_INVERTED               = false;
     static final double ARM_CAL_POWER                           = 0.3;
     static final double ARM_STALL_MIN_POWER                     = 0.3;
-    static final double ARM_STALL_TIMEOUT                       = 0.5;
-    static final double ARM_RESET_TIMEOUT                       = 0.2;
+    static final double ARM_STALL_TIMEOUT                       = 1.0;
+    static final double ARM_RESET_TIMEOUT                       = 0.5;
     //
     // Intake subsystem.
     //
