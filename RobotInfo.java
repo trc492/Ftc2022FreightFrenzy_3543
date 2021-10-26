@@ -39,9 +39,9 @@ public class RobotInfo
     static final String HWNAME_LEFT_BACK_WHEEL                  = "lbWheel";
     static final String HWNAME_RIGHT_BACK_WHEEL                 = "rbWheel";
     static final String HWNAME_ARM                              = "arm";
-    static final String HWNAME_INTAKE                           = "intake";
-    static final String HWNAME_SPINNER                          = "spinner";
-    static final String HWNAME_WRIST                            = "wrist";
+    static final String HWNAME_INTAKE                           = "intakeMotor";
+    static final String HWNAME_SPINNER                          = "spinnerMotor";
+    static final String HWNAME_WRIST                            = "wristServo";
     //
     // Robot base odometry.
     //
@@ -156,17 +156,19 @@ public class RobotInfo
     static final double ARM_KI                                  = 0.0;
     static final double ARM_KD                                  = 0.0;
     static final double ARM_TOLERANCE                           = 0.5;
-    // https://www.gobilda.com/5202-series-yellow-jacket-planetary-gear-motor-5-2-1-ratio-1150-rpm-3-3-5v-encoder/
-    static final double ARM_ENCODER_PPR                         = ((1.0 + (46.0/11.0)) * 28.0);
+    // https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/
+    static final double ARM_ENCODER_PPR                         = ((((1.0 + (46.0/17.0)))*(1.0 + (46.0/11.0)))*28.0);
     // https://www.gobilda.com/super-duty-worm-drive-pan-kit-28-1-ratio/
     static final double ARM_GEAR_RATIO                          = (1.0/28.0);
     static final double ARM_DEG_PER_COUNT                       = (360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO));
-    static final double ARM_OFFSET                              = 0.0;
+    static final double ARM_OFFSET                              = 31.0;
     static final double ARM_MIN_POS                             = 0.0;
     static final double ARM_MAX_POS                             = 19.0;
-    static final boolean ARM_INVERTED                           = false;
+    static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
-    static final boolean ARM_HAS_UPPER_LIMIT_SWITCH             = false;
+    static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
+    static final boolean ARM_HAS_UPPER_LIMIT_SWITCH             = true;
+    static final boolean ARM_UPPER_LIMIT_INVERTED               = false;
     static final double ARM_CAL_POWER                           = 0.3;
     static final double ARM_STALL_MIN_POWER                     = 0.3;
     static final double ARM_STALL_TIMEOUT                       = 0.5;
@@ -179,8 +181,8 @@ public class RobotInfo
     //
     // Spinner subsystem.
     //
-    static final double SPINNER_POWER_RED                       = 1.0;
-    static final double SPINNER_POWER_BLUE                      = -1.0;
+    static final double SPINNER_POWER_RED                       = -0.5;
+    static final double SPINNER_POWER_BLUE                      = 0.5;
     static final double SPINNER_TIME                            = 2.0;
     //
     // Wrist subsystem.

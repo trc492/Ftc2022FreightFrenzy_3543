@@ -206,8 +206,9 @@ public class Robot
                             RobotInfo.ARM_KP, RobotInfo.ARM_KI, RobotInfo.ARM_KD,
                             RobotInfo.ARM_TOLERANCE)
                         .setMotorParams(
-                            RobotInfo.ARM_INVERTED, RobotInfo.ARM_HAS_LOWER_LIMIT_SWITCH,
-                            RobotInfo.ARM_HAS_UPPER_LIMIT_SWITCH, RobotInfo.ARM_CAL_POWER)
+                            RobotInfo.ARM_MOTOR_INVERTED, RobotInfo.ARM_HAS_LOWER_LIMIT_SWITCH,
+                            RobotInfo.ARM_LOWER_LIMIT_INVERTED, RobotInfo.ARM_HAS_UPPER_LIMIT_SWITCH,
+                            RobotInfo.ARM_UPPER_LIMIT_INVERTED, RobotInfo.ARM_CAL_POWER)
                         .setStallProtectionParams(
                             RobotInfo.ARM_STALL_MIN_POWER, RobotInfo.ARM_STALL_TIMEOUT,
                             RobotInfo.ARM_RESET_TIMEOUT);

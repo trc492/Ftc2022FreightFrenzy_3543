@@ -155,7 +155,7 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(
                 3, "Arm: Power=%.1f,Pos=%.1f,LimitSwitches=[%b, %b]",
                 armPower, robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(),
-                robot.arm.isLowerLimitSwitchActive());
+                robot.arm.isUpperLimitSwitchActive());
         }
 
         if (robot.intake != null)
@@ -165,7 +165,7 @@ public class FtcTeleOp extends FtcOpMode
 
         if (robot.spinner != null)
         {
-            robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.intake.getPower());
+            robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
         if (robot.wrist != null)
