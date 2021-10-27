@@ -49,7 +49,8 @@ public class FtcAuto extends FtcOpMode
 {
     public enum AutoStrategy
     {
-        DO_AUTONOMOUS,
+        AUTO_NEAR_CAROUSEL,
+        AUTO_FAR_CAROUSEL,
         PURE_PURSUIT_DRIVE,
         PID_DRIVE,
         TIMED_DRIVE,
@@ -61,12 +62,6 @@ public class FtcAuto extends FtcOpMode
         RED_ALLIANCE,
         BLUE_ALLIANCE
     }   //enum Alliance
-
-    public enum StartPos
-    {
-        CLOSE_TO_CAROUSEL,
-        FAR_FROM_CAROUSEL
-    }   //enum StartPos
 
     public enum Carousel
     {
@@ -89,7 +84,6 @@ public class FtcAuto extends FtcOpMode
         AutoStrategy strategy = AutoStrategy.DO_NOTHING;
         Alliance alliance = Alliance.RED_ALLIANCE;
         double startDelay = 0.0;
-        StartPos startPos = StartPos.CLOSE_TO_CAROUSEL;
         Carousel doCarousel = Carousel.NO_CAROUSEL;
         Parking parking = Parking.NO_PARKING;
         double xTarget = 0.0;
@@ -106,7 +100,6 @@ public class FtcAuto extends FtcOpMode
                 "strategy=\"%s\" " +
                 "alliance=\"%s\" " +
                 "startDelay=%.0f " +
-                "startPos=\"%s\" " +
                 "doCarousel=\"%s\" " +
                 "parking=\"%s\" " +
                 "xTarget=%.1f " +
@@ -114,7 +107,7 @@ public class FtcAuto extends FtcOpMode
                 "turnTarget=%.0f " +
                 "driveTime=%.0f " +
                 "drivePower=%.1f",
-                strategy, alliance, startDelay, startPos, doCarousel, parking,
+                strategy, alliance, startDelay, doCarousel, parking,
                 xTarget, yTarget, turnTarget, driveTime, drivePower);
         }   //toString
     }   //class AutoChoices
@@ -161,11 +154,14 @@ public class FtcAuto extends FtcOpMode
         doAutoChoicesMenus();
 
         robot.driveBase.setFieldPosition(
-            autoChoices.alliance == Alliance.RED_ALLIANCE && autoChoices.startPos == StartPos.CLOSE_TO_CAROUSEL?
+            autoChoices.alliance == Alliance.RED_ALLIANCE &&
+            autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
                 RobotInfo.STARTPOS_RED_1:
-            autoChoices.alliance == Alliance.RED_ALLIANCE && autoChoices.startPos == StartPos.FAR_FROM_CAROUSEL?
+            autoChoices.alliance == Alliance.RED_ALLIANCE &&
+            autoChoices.strategy == AutoStrategy.AUTO_FAR_CAROUSEL?
                 RobotInfo.STARTPOS_RED_2:
-            autoChoices.alliance == Alliance.BLUE_ALLIANCE && autoChoices.startPos == StartPos.CLOSE_TO_CAROUSEL?
+            autoChoices.alliance == Alliance.BLUE_ALLIANCE &&
+            autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
                 RobotInfo.STARTPOS_BLUE_1: RobotInfo.STARTPOS_BLUE_2);
 
         //
@@ -173,10 +169,17 @@ public class FtcAuto extends FtcOpMode
         //
         switch (autoChoices.strategy)
         {
-            case DO_AUTONOMOUS:
+            case AUTO_NEAR_CAROUSEL:
                 if (!Robot.Preferences.visionOnly)
                 {
-                    autoCommand = new CmdAuto(robot, autoChoices);
+                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
+                }
+                break;
+
+            case AUTO_FAR_CAROUSEL:
+                if (!Robot.Preferences.visionOnly)
+                {
+                    autoCommand = new CmdAutoFarCarousel(robot, autoChoices);
                 }
                 break;
 
@@ -375,8 +378,7 @@ public class FtcAuto extends FtcOpMode
         FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", strategyMenu);
         FtcValueMenu startDelayMenu = new FtcValueMenu(
             "Start delay time:", allianceMenu, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
-        FtcChoiceMenu<StartPos>startPosMenu=new FtcChoiceMenu<>("Start Position:", startDelayMenu);
-        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", startPosMenu);
+        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", startDelayMenu);
         FtcChoiceMenu<Parking>parkingMenu=new FtcChoiceMenu<>("Parking:", carouselMenu);
 
         FtcValueMenu xTargetMenu = new FtcValueMenu(
@@ -390,7 +392,7 @@ public class FtcAuto extends FtcOpMode
         FtcValueMenu drivePowerMenu = new FtcValueMenu(
             "Drive power:", strategyMenu, -1.0, 1.0, 0.1, 0.5, " %.1f");
 
-        startDelayMenu.setChildMenu(startPosMenu);
+        startDelayMenu.setChildMenu(carouselMenu);
         xTargetMenu.setChildMenu(yTargetMenu);
         yTargetMenu.setChildMenu(turnTargetMenu);
         turnTargetMenu.setChildMenu(drivePowerMenu);
@@ -398,7 +400,8 @@ public class FtcAuto extends FtcOpMode
         //
         // Populate choice menus.
         //
-        strategyMenu.addChoice("Do Autonomous", AutoStrategy.DO_AUTONOMOUS, true, allianceMenu);
+        strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, allianceMenu);
+        strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, allianceMenu);
         strategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PURE_PURSUIT_DRIVE, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
@@ -406,9 +409,6 @@ public class FtcAuto extends FtcOpMode
 
         allianceMenu.addChoice("Red", Alliance.RED_ALLIANCE, true, startDelayMenu);
         allianceMenu.addChoice("Blue", Alliance.BLUE_ALLIANCE, false, startDelayMenu);
-
-        startPosMenu.addChoice("Close to Carousel", StartPos.CLOSE_TO_CAROUSEL, true, carouselMenu);
-        startPosMenu.addChoice("Far from Carousel", StartPos.FAR_FROM_CAROUSEL, false, carouselMenu);
 
         carouselMenu.addChoice("Do Carousel", Carousel.DO_CAROUSEL, true, parkingMenu);
         carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
@@ -426,7 +426,6 @@ public class FtcAuto extends FtcOpMode
         autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
         autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
         autoChoices.startDelay = startDelayMenu.getCurrentValue();
-        autoChoices.startPos = startPosMenu.getCurrentChoiceObject();
         autoChoices.doCarousel = carouselMenu.getCurrentChoiceObject();
         autoChoices.parking = parkingMenu.getCurrentChoiceObject();
         autoChoices.xTarget = xTargetMenu.getCurrentValue();
