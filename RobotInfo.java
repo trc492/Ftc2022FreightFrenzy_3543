@@ -60,6 +60,13 @@ public class RobotInfo
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     static final TrcPose2D STARTPOS_BLUE_2                      =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
+
+
+    //coordinates for Autonomous
+    //
+    static final TrcPose2D SHIPPING_HUB_LOCATION = null;
+    static final TrcPose2D CAROUSEL_LOCATION     = null;
+    static final TrcPose2D STORAGE_UNIT_LOCATION = null;
     //
     // DriveBase subsystem.
     //
@@ -120,9 +127,12 @@ public class RobotInfo
         new TrcPose2D(24.0, 48.0, 225.0),
         new TrcPose2D(0.0, 46.0, 270.0),
         new TrcPose2D(0.0, 0.0, 0.0),
+
         new TrcPose2D(-23.0, 47.0, 225.0),
         new TrcPose2D(0.0, 0.0, 0.0)
     };
+
+
     //
     // Vision subsystem.
     //
@@ -152,7 +162,7 @@ public class RobotInfo
     //
     // Arm subsystem.
     //
-    static final double ARM_KP                                  = 0.05;
+    static final double ARM_KP                                  = 0.2;
     static final double ARM_KI                                  = 0.0;
     static final double ARM_KD                                  = 0.0;
     static final double ARM_TOLERANCE                           = 0.5;

@@ -137,7 +137,7 @@ public class FtcAuto extends FtcOpMode
     {
         //
         // Create and initialize robot object.
-        //
+        // calls hardware, subsystems, etc.
         robot = new Robot(TrcRobot.getRunMode());
         //
         // Open trace log.
@@ -152,6 +152,7 @@ public class FtcAuto extends FtcOpMode
         // Create and run choice menus.
         //
         doAutoChoicesMenus();
+        //now know ur alliance, ternary if statements
 
         robot.driveBase.setFieldPosition(
             autoChoices.alliance == Alliance.RED_ALLIANCE &&
@@ -166,7 +167,7 @@ public class FtcAuto extends FtcOpMode
 
         //
         // Create autonomous command according to chosen strategy.
-        //
+        //create statemachine, timer, etc
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:

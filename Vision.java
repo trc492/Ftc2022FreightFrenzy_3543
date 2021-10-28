@@ -495,6 +495,7 @@ public class Vision
     {
         if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
+        //use filter function
         return tensorFlow.getDetectedTargetsInfo(label, filter);
     }   //getDetectedTargetsInfo
 
