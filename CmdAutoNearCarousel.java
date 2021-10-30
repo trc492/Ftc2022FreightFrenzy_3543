@@ -31,7 +31,14 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 {
     private enum State
     {
+        //assume duckie is preloaded
         START_DELAY,
+        DRIVE_TO_CAROUSEL,
+        SPIN_CAROUSEL,
+        DRIVE_TO_SHIPPING_HUB,
+        DUMP_FREIGHT,
+        DRIVE_STORAGE_UNIT,
+
         DONE
     }   //enum State
 
@@ -42,6 +49,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     private final TrcTimer timer;
     private final TrcEvent event;
     private final TrcStateMachine<State> sm;
+    private int duckPosition = 0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -100,7 +108,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     public boolean cmdPeriodic(double elapsedTime)
     {
         State state = sm.checkReadyAndGetState();
-
+        double yTarget = 0;
+        double xTarget = 0;
+        double degreeTarget = 0;
         if (state == null)
         {
             robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
@@ -116,10 +126,16 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case START_DELAY:
                     //
                     // Do start delay if any.
+                    //call vision
+                    if(robot.vision!=null&&robot.vision.isTensorFlowInitialized()){
+                        duckPosition = robot.vision.getLastDuckPosition();
+                        robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
+                        if (duckPosition == 0) duckPosition = 2;
+                    }
                     //
                     if (autoChoices.startDelay == 0.0)
                     {
-                        sm.setState(State.DONE);
+                        sm.setState(State.DRIVE_TO_CAROUSEL);
                         //
                         // Intentionally falling through to the next state.
                         //
@@ -127,9 +143,45 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     else
                     {
                         timer.set(autoChoices.startDelay, event);
-                        sm.waitForSingleEvent(event, State.DONE);
+                        sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                         break;
                     }
+                case DRIVE_TO_CAROUSEL:
+                    yTarget= RobotInfo.CAROUSEL_LOCATION.y- robot.pidDrive.getAbsoluteTargetPose().y;
+                    xTarget = RobotInfo.CAROUSEL_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    State nextState=null;
+                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    sm.waitForSingleEvent(event,State.SPIN_CAROUSEL);
+                    break;
+                case SPIN_CAROUSEL:
+                    robot.spinner.set(
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                                    RobotInfo.SPINNER_POWER_RED: RobotInfo.SPINNER_POWER_BLUE,
+                            RobotInfo.SPINNER_TIME, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_SHIPPING_HUB);
+                    break;
+
+                case DRIVE_TO_SHIPPING_HUB:
+                    //rotate arm to the right level while driving, i think it is equal to duckLevel-currentLevel
+                    robot.arm.setPosition(RobotInfo.ARM_PRESET_LEVELS[duckPosition]);
+                    //move to the shipping hub location
+                    xTarget = RobotInfo.SHIPPING_HUB_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget = RobotInfo.SHIPPING_HUB_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
+                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
+                    break;
+
+                case DUMP_FREIGHT:
+                    //dumps the block for 2 seconds, when done signals event and goes to next state
+                    robot.intake.set(RobotInfo.INTAKE_POWER_DUMP, 2, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_STORAGE_UNIT);
+                    break;
+                case DRIVE_STORAGE_UNIT:
+                    //find distance to drive from current position to target position o
+                    xTarget = RobotInfo.STORAGE_UNIT_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget = RobotInfo.STORAGE_UNIT_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
+                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    sm.waitForSingleEvent(event, State.DONE);
 
                 case DONE:
                 default:

@@ -128,8 +128,11 @@ public class FtcTeleOp extends FtcOpMode
                     robot.dashboard.displayPrintf(1, "Tank:left=%.1f,right=%.1f,inv=%s",
                                                   leftPower, rightPower, Boolean.toString(invertedDrive));
                     break;
-
+                //this one
                 case HOLONOMIC_MODE:
+                    //change code so that left stick only changes rotation
+                    //and right stick makes it go forward and backwards and sideways
+
                     double x = driverGamepad.getLeftStickX(true) * drivePowerScale;
                     double y = driverGamepad.getRightStickY(true) * drivePowerScale;
                     double rot = (driverGamepad.getRightTrigger(true) - driverGamepad.getLeftTrigger(true)) *
