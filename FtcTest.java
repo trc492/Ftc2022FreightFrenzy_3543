@@ -37,7 +37,6 @@ import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcMenu;
-import TrcFtcLib.ftclib.FtcTensorFlow;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -596,18 +595,7 @@ public class FtcTest extends FtcTeleOp
 
             if (robot.vision.isTensorFlowInitialized())
             {
-                FtcTensorFlow.TargetInfo[] targetInfo =
-                    robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
-
-                if (targetInfo != null && targetInfo.length > 0)
-                {
-                    for (int i = 0; i < targetInfo.length; i++)
-                    {
-                        robot.vision.determineDuckPosition(targetInfo[i]);
-                        robot.dashboard.displayPrintf(11 + i, "%s (Pos=%d)",
-                                                      targetInfo[i], robot.vision.getDuckPosition());
-                    }
-                }
+                robot.vision.getCurrentDuckPositions();
             }
         }
     }   //doVisionTest

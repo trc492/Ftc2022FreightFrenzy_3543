@@ -33,7 +33,6 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcHashMap;
-import TrcCommonLib.trclib.TrcHomographyMapper;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRevBlinkin;
 import TrcCommonLib.trclib.TrcUtil;
@@ -45,6 +44,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGR
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
+import java.util.Arrays;
 
 /**
  * This class implements Vuforia/TensorFlow Vision for the game season. It creates and initializes all the vision
@@ -70,13 +71,21 @@ public class Vision
     private final FtcVuforia vuforia;
     private static final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
         new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
-            .add(blueStorageName, TrcRevBlinkin.LEDPattern.SolidBlue)
-            .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedShotBlue)
-            .add(redStorageName, TrcRevBlinkin.LEDPattern.SolidRed)
-            .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedShotRed)
-            .add(duckPos1, TrcRevBlinkin.LEDPattern.FixedStrobeRed)
-            .add(duckPos2, TrcRevBlinkin.LEDPattern.FixedStrobeWhite)
-            .add(duckPos3, TrcRevBlinkin.LEDPattern.FixedStrobeBlue);
+            .add(duckPos1, TrcRevBlinkin.LEDPattern.SolidRed)
+            .add(duckPos2, TrcRevBlinkin.LEDPattern.SolidGreen)
+            .add(duckPos3, TrcRevBlinkin.LEDPattern.SolidBlue)
+            .add(redStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeRed)
+            .add(blueStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeBlue)
+            .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseRed)
+            .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseBlue);
+    private static final TrcRevBlinkin.LEDPattern[] ledPatternPriorities = {
+        TrcRevBlinkin.LEDPattern.SolidRed,
+        TrcRevBlinkin.LEDPattern.SolidGreen,
+        TrcRevBlinkin.LEDPattern.SolidBlue,
+        TrcRevBlinkin.LEDPattern.FixedStrobeRed,
+        TrcRevBlinkin.LEDPattern.FixedStrobeBlue,
+        TrcRevBlinkin.LEDPattern.FixedLightChaseRed,
+        TrcRevBlinkin.LEDPattern.FixedLightChaseBlue};
 
     /**
      * Constructor: Create an instance of the object. Vision is required by both Vuforia and TensorFlow and must be
@@ -114,8 +123,8 @@ public class Vision
     //
     // Vuforia Vision.
     //
-    private static final int IMAGE_WIDTH = 1280;    //in pixels
-    private static final int IMAGE_HEIGHT = 720;    //in pixels
+    private static final int IMAGE_WIDTH = 640;     //in pixels
+    private static final int IMAGE_HEIGHT = 480;    //in pixels
     private static final int FRAME_QUEUE_CAPACITY = 2;
     //
     // Since ImageTarget trackables use mm to specify their dimensions, we must use mm for all the physical dimension.
@@ -159,12 +168,12 @@ public class Vision
              * Finally the camera can be translated to its actual mounting position on the robot.
              *      In this example, it is centered on the robot (left-to-right and front-to-back), and 6 inches above ground level.
              */
-            final int CAMERA_FORWARD_DISPLACEMENT =
-                (int)((RobotInfo.ROBOT_LENGTH/2.0 - RobotInfo.CAMERA_FRONT_OFFSET)* TrcUtil.MM_PER_INCH);
-            final int CAMERA_VERTICAL_DISPLACEMENT =
-                (int)(RobotInfo.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
-            final int CAMERA_LEFT_DISPLACEMENT =
-                (int)((RobotInfo.ROBOT_WIDTH/2.0 - RobotInfo.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
+            final float CAMERA_FORWARD_DISPLACEMENT =
+                (float)((RobotInfo.ROBOT_LENGTH/2.0 - RobotInfo.CAMERA_FRONT_OFFSET)* TrcUtil.MM_PER_INCH);
+            final float CAMERA_VERTICAL_DISPLACEMENT =
+                (float)(RobotInfo.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
+            final float CAMERA_LEFT_DISPLACEMENT =
+                (float)((RobotInfo.ROBOT_WIDTH/2.0 - RobotInfo.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
             OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
@@ -216,6 +225,7 @@ public class Vision
 
             if (robot.blinkin != null)
             {
+                robot.blinkin.setPatternPriorities(ledPatternPriorities);
                 robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
             }
 
@@ -405,7 +415,7 @@ public class Vision
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
 
     private FtcTensorFlow tensorFlow = null;
-    private int duckPosition = 0;
+    private int[] lastDuckPositions = null;
 
     /**
      * This method must be called before any TensorFlow related methods can be called or it may throw an exception.
@@ -414,16 +424,16 @@ public class Vision
     {
         if (tensorFlow == null)
         {
-            TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
-                RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
-                RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
-                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
-                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
-            TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
-                RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_Y,
-                RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
-                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
-                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
+//            TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
+//                RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
+//                RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
+//                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
+//                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
+//            TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
+//                RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_Y,
+//                RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
+//                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
+//                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
             FtcOpMode opMode = FtcOpMode.getInstance();
             int tfodMonitorViewId = !Robot.Preferences.showTensorFlowView ? -1 :
                 opMode.hardwareMap.appContext.getResources().getIdentifier(
@@ -438,11 +448,13 @@ public class Vision
             tfodParams.isModelTensorFlow2 = true;
             tfodParams.inputSize = 320;
 
-            tensorFlow = new FtcTensorFlow(
-                vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect, tracer);
+//            tensorFlow = new FtcTensorFlow(
+//                vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect, tracer);
+            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
 
             if (robot.blinkin != null)
             {
+                robot.blinkin.setPatternPriorities(ledPatternPriorities);
                 robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
             }
         }
@@ -485,18 +497,36 @@ public class Vision
     }   //tensorFlowShutdown
 
     /**
+     * This method is called by the Arrays.sort to sort the target object by decreasing confidence.
+     *
+     * @param a specifies the first target
+     * @param b specifies the second target.
+     * @return negative value if a has higher confidence than b, 0 if a and b have equal confidence, positive value
+     *         if a has lower confidence than b.
+     */
+    private int compareConfidence(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
+    {
+        return (int)((b.confidence - a.confidence)*100);
+    }   //compareConfidence
+
+    /**
      * This method returns an array of detected targets from TensorFlow vision.
      *
      * @param label specifies the label of the targets to detect for, can be null for detecting any target.
      * @param filter specifies the filter to call to filter out false positive targets.
      * @return array of detected target info.
      */
-    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+    private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
     {
         if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        //use filter function
-        return tensorFlow.getDetectedTargetsInfo(label, filter);
+        FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
+        if (detectedTargets != null)
+        {
+            Arrays.sort(detectedTargets, this::compareConfidence);
+        }
+
+        return detectedTargets;
     }   //getDetectedTargetsInfo
 
     /**
@@ -505,7 +535,7 @@ public class Vision
      * @param target specifies the target to be validated.
      * @return true if target is valid, false if false positive.
      */
-    public boolean validateDuck(Recognition target)
+    private boolean validateDuck(Recognition target)
     {
         FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
         boolean valid = target.getLabel().equals(LABEL_DUCK);
@@ -525,45 +555,109 @@ public class Vision
     }   //validateDuck
 
     /**
-     * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found) and remembers it.
+     * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found).
      *
      * @param targetInfo specifies the detected duck's target info.
+     * @return duck's barcode position.
      */
-    public void determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
+    private int determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
     {
-        duckPosition = 0;   //add code to determine duck position.
-        if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+        int pos = 0;
+
+        if (targetInfo != null)
         {
-            switch (duckPosition)
+            // Put proper code here to determine duck position.
+            if (targetInfo.distanceFromCenter.x < 0.0)
             {
-                default:
-                case 0:
-                    robot.blinkin.reset();
-                    break;
+                pos = 1;
+            }
+            else if (targetInfo.distanceFromCenter.x == 0.0)
+            {
+                pos = 2;
+            }
+            else
+            {
+                pos = 3;
+            }
 
-                case 1:
-                    robot.blinkin.setPatternState(duckPos1, true);
-                    break;
+            if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+            {
+                // Turn off previous detection indication.
+                robot.blinkin.setPatternState(duckPos1, false);
+                robot.blinkin.setPatternState(duckPos2, false);
+                robot.blinkin.setPatternState(duckPos3, false);
 
-                case 2:
-                    robot.blinkin.setPatternState(duckPos2, true);
-                    break;
+                switch (pos)
+                {
+                    case 1:
+                        robot.blinkin.setPatternState(duckPos1, true);
+                        break;
 
-                case 3:
-                    robot.blinkin.setPatternState(duckPos3, true);
-                    break;
+                    case 2:
+                        robot.blinkin.setPatternState(duckPos2, true);
+                        break;
+
+                    case 3:
+                        robot.blinkin.setPatternState(duckPos3, true);
+                        break;
+                }
             }
         }
+
+        return pos;
     }   //determineDuckPosition
 
     /**
-     * This method returns the duck position determined before autonomous was started.
+     * This method calls vision to detect all the ducks and returns their barcode positions in an array.
      *
-     * @return duck barcode position 1, 2, or 3 (0 if no valid duck found).
+     * @return duck barcode position array 1, 2, or 3, null if none found.
      */
-    public int getDuckPosition()
+    public int[] getCurrentDuckPositions()
     {
-        return duckPosition;
-    }   //getDuckPosition
+        int[] duckPositions = null;
+        FtcTensorFlow.TargetInfo[] targetInfo =
+            robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
+
+        if (targetInfo != null && targetInfo.length > 0)
+        {
+            duckPositions = new int[targetInfo.length];
+            //
+            // Target array is sorted with highest confidence first. Therefore, we process the array backward so
+            // that the highest confidence target will be processed last. Therefore, the LED state will show the
+            // highest confidence target position.
+            //
+            for (int i = targetInfo.length - 1; i >= 0; i--)
+            {
+                duckPositions[i] = robot.vision.determineDuckPosition(targetInfo[i]);
+                // We don't have unlimited display lines, so only display the first three in the array.
+                if (i < 3)
+                {
+                    robot.dashboard.displayPrintf(11 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
+                }
+            }
+
+            if (targetInfo.length < 3)
+            {
+                for (int i = targetInfo.length; i < 3; i++)
+                {
+                    robot.dashboard.displayPrintf(11 + i, "");
+                }
+            }
+
+            lastDuckPositions = duckPositions;
+        }
+
+        return duckPositions;
+    }   //getCurrentDuckPositions
+
+    /**
+     * This method returns the last detected duck barcode position.
+     *
+     * @return last detected duck barcode position, 0 if no duck detected.
+     */
+    public int getLastDuckPosition()
+    {
+        return lastDuckPositions != null? lastDuckPositions[0]: 0;
+    }   //getLastDuckPosition
 
 }   //class Vision

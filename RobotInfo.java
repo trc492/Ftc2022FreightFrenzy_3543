@@ -41,12 +41,11 @@ public class RobotInfo
     static final String HWNAME_ARM                              = "arm";
     static final String HWNAME_INTAKE                           = "intakeMotor";
     static final String HWNAME_SPINNER                          = "spinnerMotor";
-    static final String HWNAME_WRIST                            = "wristServo";
     //
     // Robot base odometry.
     //
-    static final double ROBOT_LENGTH                            = 18.0;
-    static final double ROBOT_WIDTH                             = 18.0;
+    static final double ROBOT_LENGTH                            = 17.0;
+    static final double ROBOT_WIDTH                             = 17.0;
     static final double QUAD_FIELD_INCHES                       = 36.0;
     static final double HALF_FIELD_INCHES                       = 72.0;
     static final double STARTPOS_FROM_FIELDCENTER_Y             = HALF_FIELD_INCHES - ROBOT_LENGTH/2.0;
@@ -60,9 +59,8 @@ public class RobotInfo
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     static final TrcPose2D STARTPOS_BLUE_2                      =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
-
-
-    //coordinates for Autonomous
+    //
+    // Coordinates for Autonomous
     //
     static final TrcPose2D SHIPPING_HUB_LOCATION = null;
     static final TrcPose2D CAROUSEL_LOCATION     = null;
@@ -74,7 +72,7 @@ public class RobotInfo
     static final boolean LEFT_WHEEL_INVERTED                    = true;
     static final boolean RIGHT_WHEEL_INVERTED                   = false;
     static final boolean DRIVE_WHEEL_BRAKE_MODE                 = true;
-    static final double TURN_POWER_LIMIT                        = 0.5;
+//    static final double TURN_POWER_LIMIT                        = 0.5;
     static final double SLOW_DRIVE_POWER_SCALE                  = 0.5;
     static final double X_ODOMETRY_OFFSET                       = 8.0;  //8 inches in front of centroid
     //
@@ -137,28 +135,28 @@ public class RobotInfo
     // Vision subsystem.
     //
     static final String TRACKABLE_IMAGES_FILE                   = "FreightFrenzy";
-    static final double CAMERA_FRONT_OFFSET                     = 5.0;  //Camera offset from front of robot in inches
-    static final double CAMERA_HEIGHT_OFFSET                    = 12.0; //Camera offset from floor in inches
-    static final double CAMERA_LEFT_OFFSET                      = 8.5;  //Camera offset from left of robot in inches
+    static final double CAMERA_FRONT_OFFSET                     = 7.5;  //Camera offset from front of robot in inches
+    static final double CAMERA_HEIGHT_OFFSET                    = 16.0; //Camera offset from floor in inches
+    static final double CAMERA_LEFT_OFFSET                      = 8.875;//Camera offset from left of robot in inches
 
-    static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
-    static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 360.0;
-    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 1280.0;
-    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_Y            = 360.0;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_X          = 0.0;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y          = 720.0;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X         = 1280.0;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y         = 720.0;
-    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
-    // Measurement unit: inches
-    static final double HOMOGRAPHY_WORLD_TOPLEFT_X              = -61.0;
-    static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 83.0;
-    static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 33.0;
-    static final double HOMOGRAPHY_WORLD_TOPRIGHT_Y             = 83.0;
-    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_X           = -39.5;
-    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_Y           = 19.0;
-    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_X          = 12.0;
-    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 19.0;
+//    static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
+//    static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 360.0;
+//    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 1280.0;
+//    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_Y            = 360.0;
+//    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_X          = 0.0;
+//    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y          = 720.0;
+//    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X         = 1280.0;
+//    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y         = 720.0;
+//    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
+//    // Measurement unit: inches
+//    static final double HOMOGRAPHY_WORLD_TOPLEFT_X              = -61.0;
+//    static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 83.0;
+//    static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 33.0;
+//    static final double HOMOGRAPHY_WORLD_TOPRIGHT_Y             = 83.0;
+//    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_X           = -39.5;
+//    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_Y           = 19.0;
+//    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_X          = 12.0;
+//    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 19.0;
     //
     // Arm subsystem.
     //
@@ -173,16 +171,17 @@ public class RobotInfo
     static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
     static final double ARM_OFFSET                              = 31.0;
     static final double ARM_MIN_POS                             = 30.0;
-    static final double ARM_MAX_POS                             = 150.0;
+    static final double ARM_MAX_POS                             = 148.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
     static final boolean ARM_HAS_UPPER_LIMIT_SWITCH             = true;
     static final boolean ARM_UPPER_LIMIT_INVERTED               = false;
-    static final double ARM_CAL_POWER                           = 0.3;
+    static final double ARM_CAL_POWER                           = 0.5;
     static final double ARM_STALL_MIN_POWER                     = 0.3;
     static final double ARM_STALL_TIMEOUT                       = 1.0;
     static final double ARM_RESET_TIMEOUT                       = 0.5;
+    static final double[] ARM_PRESET_LEVELS                     = new double[] {ARM_MIN_POS, 51.6, 76.2, 107};
     //
     // Intake subsystem.
     //
@@ -191,13 +190,8 @@ public class RobotInfo
     //
     // Spinner subsystem.
     //
-    static final double SPINNER_POWER_RED                       = -0.5;
-    static final double SPINNER_POWER_BLUE                      = 0.5;
-    static final double SPINNER_TIME                            = 2.0;
-    //
-    // Wrist subsystem.
-    //
-    static final double WRIST_UP_POS                            = 0.0;
-    static final double WRIST_DOWN_POS                          = 1.0;
+    static final double SPINNER_POWER_RED                       = 1.0;
+    static final double SPINNER_POWER_BLUE                      = -1.0;
+    static final double SPINNER_TIME                            = 3.0;
 
 }   //class RobotInfo

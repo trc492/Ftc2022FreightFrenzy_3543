@@ -44,7 +44,6 @@ import TrcFtcLib.ftclib.FtcRevBlinkin;
 import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
-import TrcFtcLib.ftclib.FtcServo;
 
 import java.util.Locale;
 
@@ -127,8 +126,7 @@ public class Robot
     public FtcMotorActuator arm = null;
     public FtcDcMotor intake = null;
     public FtcDcMotor spinner = null;
-    public FtcServo wrist = null;
-    public FtcServo odometryWheelDeployer = null;
+//    public FtcServo odometryWheelDeployer = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -157,6 +155,11 @@ public class Robot
 
             if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
             {
+                if (Preferences.hasBlinkin)
+                {
+                    blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
+                }
+
                 if (Preferences.useVuforia)
                 {
                     vision.initVuforia();
@@ -164,6 +167,7 @@ public class Robot
 
                 if (Preferences.useTensorFlow)
                 {
+                    System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
                     vision.initTensorFlow();
                 }
             }
@@ -182,7 +186,7 @@ public class Robot
                 battery = new FtcRobotBattery();
             }
 
-            if (Preferences.hasBlinkin)
+            if (Preferences.hasBlinkin && blinkin == null)
             {
                 blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
             }
@@ -211,14 +215,13 @@ public class Robot
                             RobotInfo.ARM_UPPER_LIMIT_INVERTED, RobotInfo.ARM_CAL_POWER)
                         .setStallProtectionParams(
                             RobotInfo.ARM_STALL_MIN_POWER, RobotInfo.ARM_STALL_TIMEOUT,
-                            RobotInfo.ARM_RESET_TIMEOUT);
+                            RobotInfo.ARM_RESET_TIMEOUT)
+                        .setPosPresets(RobotInfo.ARM_PRESET_LEVELS);
                     arm = new FtcMotorActuator(RobotInfo.HWNAME_ARM, armParams);
                     arm.zeroCalibrate();
                 }
                 intake = new FtcDcMotor(RobotInfo.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotInfo.HWNAME_SPINNER);
-                wrist = new FtcServo(RobotInfo.HWNAME_WRIST);
-                wrist.setPosition(RobotInfo.WRIST_UP_POS);
             }
         }
     }   //Robot
@@ -438,7 +441,7 @@ public class Robot
         gyroPidCtrl = new TrcPidController(
             "gyroPidCtrl", turnPidCoeff, RobotInfo.GYRO_TOLERANCE, driveBase::getHeading);
         gyroPidCtrl.setAbsoluteSetPoint(true);
-        gyroPidCtrl.setOutputLimit(RobotInfo.TURN_POWER_LIMIT);
+//        gyroPidCtrl.setOutputLimit(RobotInfo.TURN_POWER_LIMIT);
 
         pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroPidCtrl);
         pidDrive.setAbsoluteTargetModeEnabled(true);

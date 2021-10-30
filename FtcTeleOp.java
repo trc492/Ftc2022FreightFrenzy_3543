@@ -168,10 +168,6 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
-        if (robot.wrist != null)
-        {
-            robot.dashboard.displayPrintf(6, "Wrist: Pos=%.1f", robot.wrist.getPosition());
-        }
     }   //runPeriodic
 
     //
@@ -283,16 +279,16 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
-                if (robot.wrist != null && pressed)
+                if (robot.arm != null && pressed)
                 {
-                    robot.wrist.setPosition(RobotInfo.WRIST_UP_POS);
+                    robot.arm.levelUp();
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_DOWN:
-                if (robot.wrist != null && pressed)
+                if (robot.arm != null && pressed)
                 {
-                    robot.wrist.setPosition(RobotInfo.WRIST_DOWN_POS);
+                    robot.arm.levelDown();
                 }
                 break;
 

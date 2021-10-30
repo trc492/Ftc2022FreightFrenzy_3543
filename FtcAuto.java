@@ -38,7 +38,6 @@ import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcMatchInfo;
 import TrcFtcLib.ftclib.FtcMenu;
 import TrcFtcLib.ftclib.FtcOpMode;
-import TrcFtcLib.ftclib.FtcTensorFlow;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -308,13 +307,7 @@ public class FtcAuto extends FtcOpMode
     {
         if (robot.vision != null && robot.vision.isTensorFlowInitialized())
         {
-            FtcTensorFlow.TargetInfo[] targets =
-                robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
-
-            if (targets != null && targets.length == 1)
-            {
-                robot.vision.determineDuckPosition(targets[0]);
-            }
+            robot.vision.getCurrentDuckPositions();
         }
     }   //initPeriodic
 
