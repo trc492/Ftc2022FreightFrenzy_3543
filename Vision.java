@@ -144,9 +144,9 @@ public class Vision
     //
     // Height of the center of the target image above the floor.
     private static final float mmTargetHeight = 6.0f * (float)TrcUtil.MM_PER_INCH;
-    private static final float halfField = (float)(70.5 * TrcUtil.MM_PER_INCH);
-    private static final float fullTile = (float)(23.75 * TrcUtil.MM_PER_INCH);
-    private static final float halfTile = (float)(fullTile/2.0);
+    private static final float halfField = (float)(RobotInfo.HALF_FIELD_INCHES * TrcUtil.MM_PER_INCH);
+    private static final float fullTile = (float)(RobotInfo.FULL_TILE_INCHES * TrcUtil.MM_PER_INCH);
+    private static final float halfTile = (float)(RobotInfo.HALF_TILE_INCHES * TrcUtil.MM_PER_INCH);
     private static final float oneAndHalfTile = (float)(fullTile*1.5);
 
     private boolean vuforiaInitialized = false;
@@ -572,19 +572,19 @@ public class Vision
 
         if (targetInfo != null)
         {
-            // Put proper code here to determine duck position.
+            double oneSixthImageWidth = targetInfo.imageWidth/6.0;
 
-            if (targetInfo.distanceFromCenter.x <= targetInfo.imageWidth/3.0)
+            if (targetInfo.distanceFromCenter.x <= -oneSixthImageWidth)
             {
                 pos = 1;
             }
-            else if (targetInfo.distanceFromCenter.x <=targetInfo.imageWidth*2.0/3.0)
+            else if (targetInfo.distanceFromCenter.x >= oneSixthImageWidth)
             {
-                pos = 2;
+                pos = 3;
             }
             else
             {
-                pos = 3;
+                pos = 2;
             }
 
             if (robot.blinkin != null)
