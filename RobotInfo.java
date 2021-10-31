@@ -46,11 +46,17 @@ public class RobotInfo
     //
     static final double ROBOT_LENGTH                            = 17.0;
     static final double ROBOT_WIDTH                             = 17.0;
-    static final double QUAD_FIELD_INCHES                       = 36.0;
-    static final double HALF_FIELD_INCHES                       = 72.0;
+
+    static final double FULL_FIELD_INCHES                       = 141.0;
+    static final double HALF_FIELD_INCHES                       = FULL_FIELD_INCHES/2.0;
+    static final double QUAD_FIELD_INCHES                       = FULL_FIELD_INCHES/4.0;
+    static final double FULL_TILE_INCHES                        = 23.75;
+    static final double HALF_TILE_INCHES                        = FULL_TILE_INCHES/2.0;
+
     static final double STARTPOS_FROM_FIELDCENTER_Y             = HALF_FIELD_INCHES - ROBOT_LENGTH/2.0;
     static final double STARTPOS_FROM_FIELDCENTER_X1            = QUAD_FIELD_INCHES;
-    static final double STARTPOS_FROM_FIELDCENTER_X2            = 12.0;
+    static final double STARTPOS_FROM_FIELDCENTER_X2            = HALF_TILE_INCHES;
+
     static final TrcPose2D STARTPOS_RED_1                       =
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, -STARTPOS_FROM_FIELDCENTER_Y, 0.0);
     static final TrcPose2D STARTPOS_RED_2                       =
@@ -59,12 +65,28 @@ public class RobotInfo
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     static final TrcPose2D STARTPOS_BLUE_2                      =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
+
+    static final TrcPose2D RED_ALLIANCE_HUB_LOCATION            =
+        new TrcPose2D(-HALF_TILE_INCHES, -FULL_TILE_INCHES, 0.0);
+    static final TrcPose2D BLUE_ALLIANCE_HUB_LOCATION           =
+        new TrcPose2D(-HALF_TILE_INCHES, FULL_TILE_INCHES, 180.0);
+    static final TrcPose2D RED_CAROUSEL_LOCATION                =
+        new TrcPose2D(-(HALF_FIELD_INCHES - 2.5), -(HALF_FIELD_INCHES - 2.5), 0.0);
+    static final TrcPose2D BLUE_CAROUSEL_LOCATION               =
+        new TrcPose2D(-(HALF_FIELD_INCHES - 2.5), HALF_FIELD_INCHES - 2.5, 180.0);
+    static final TrcPose2D RED_STORAGE_UNIT_LOCATION            =
+        new TrcPose2D(-(HALF_FIELD_INCHES - HALF_TILE_INCHES), -QUAD_FIELD_INCHES, 0.0);
+    static final TrcPose2D BLUE_STORAGE_UNIT_LOCATION           =
+        new TrcPose2D(-(HALF_FIELD_INCHES - HALF_TILE_INCHES), QUAD_FIELD_INCHES, 0.0);
+    static final TrcPose2D SHARED_HUB_LOCATION                  =
+        new TrcPose2D(FULL_TILE_INCHES*2.0, 0.0, 0.0);
     //
-    // Coordinates for Autonomous
+    // Motor Odometries.
     //
-    static final TrcPose2D SHIPPING_HUB_LOCATION = null;
-    static final TrcPose2D CAROUSEL_LOCATION     = null;
-    static final TrcPose2D STORAGE_UNIT_LOCATION = null;
+    static final double GOBILDA_5203_312_ENCODER_PPR            = ((((1.0 + (46.0/17.0)))*(1.0 + (46.0/11.0)))*28.0);
+    static final double GOBILDA_5203_312_RPM                    = 312.0;
+    static final double GOBILDA_5203_312_MAX_VELOCITY           =
+        GOBILDA_5203_312_ENCODER_PPR*GOBILDA_5203_312_RPM/60.0; // encoder count per second.
     //
     // DriveBase subsystem.
     //
@@ -78,19 +100,21 @@ public class RobotInfo
     //
     // Velocity controlled constants.
     //
-    static final double MOTOR_MAX_VELOCITY                      = 2800;     //encoder counts/second
+    static final double DRIVE_WHEEL_GEAR_RATIO                  = 1.0;
+    static final double DRIVE_WHEEL_DIAMETER                    = 4.0;  //inches
+    static final double DRIVE_MOTOR_MAX_VELOCITY                = GOBILDA_5203_312_MAX_VELOCITY;    // unit: PPS
 
     static final double ENCODER_X_KP                            = 0.095;
     static final double ENCODER_X_KI                            = 0.0;
     static final double ENCODER_X_KD                            = 0.001;
     static final double ENCODER_X_TOLERANCE                     = 1.0;
-    static final double ENCODER_X_INCHES_PER_COUNT              = 0.0163125145666872;
+    static final double ENCODER_X_INCHES_PER_COUNT              = 0.01924724265461924299065420560748;
 
     static final double ENCODER_Y_KP                            = 0.06;
     static final double ENCODER_Y_KI                            = 0.0;
     static final double ENCODER_Y_KD                            = 0.002;
     static final double ENCODER_Y_TOLERANCE                     = 1.0;
-    static final double ENCODER_Y_INCHES_PER_COUNT              = 0.0174484434975099;
+    static final double ENCODER_Y_INCHES_PER_COUNT              = 0.02166184604662450653409090909091;
 
     static final double GYRO_KP                                 = 0.009;
     static final double GYRO_KI                                 = 0.0;
@@ -101,15 +125,13 @@ public class RobotInfo
     //
     // Pure Pursuit parameters.
     //
-    // Neverest 40 motor, max shaft speed = 160 RPM
-    // motor-to-wheel tooth ratio = 24:16 = 3:2
-    // wheel max angular speed = (3 / 2) * 160 RPM
-    // max tangential speed of wheel (in/s) = wheel max angular speed * 2 * pi * radius / 60.0
-    // = (3 / 2) * (160 RPM) * 2 * 3.1415926 * (2 in.) / 60.0
-    // = 50.2654816 in./sec.
-    static final double ROBOT_MAX_VELOCITY                      = 50.2654816;
+    // goBILDA 5203-312 motor, max shaft speed = 312 RPM
+    // motor-to-wheel gear ratio = 1:1
+    // max wheel speed = pi * wheel diameter * motor RPM * wheel gear ratio / 60.0
+    // = 3.1415926 * 4 in. * 312.0 / 60.0
+    // = 65.345127 in./sec.
+    static final double ROBOT_MAX_VELOCITY                      = Math.PI*DRIVE_WHEEL_DIAMETER*GOBILDA_5203_312_RPM/60.0;
     static final double ROBOT_MAX_ACCELERATION                  = 24.0;
-
     static final double ROBOT_VEL_KP                            = 0.0;
     static final double ROBOT_VEL_KI                            = 0.0;
     static final double ROBOT_VEL_KD                            = 0.0;
@@ -165,13 +187,13 @@ public class RobotInfo
     static final double ARM_KD                                  = 0.0;
     static final double ARM_TOLERANCE                           = 0.5;
     // https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/
-    static final double ARM_ENCODER_PPR                         = ((((1.0 + (46.0/17.0)))*(1.0 + (46.0/11.0)))*28.0);
+    static final double ARM_ENCODER_PPR                         = GOBILDA_5203_312_ENCODER_PPR;
     // https://www.gobilda.com/super-duty-worm-drive-pan-kit-28-1-ratio/
     static final double ARM_GEAR_RATIO                          = 28.0;
     static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
-    static final double ARM_OFFSET                              = 31.0;
-    static final double ARM_MIN_POS                             = 30.0;
-    static final double ARM_MAX_POS                             = 148.0;
+    static final double ARM_OFFSET                              = 33.0;
+    static final double ARM_MIN_POS                             = 33.0;
+    static final double ARM_MAX_POS                             = 142.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
@@ -182,6 +204,7 @@ public class RobotInfo
     static final double ARM_STALL_TIMEOUT                       = 1.0;
     static final double ARM_RESET_TIMEOUT                       = 0.5;
     static final double[] ARM_PRESET_LEVELS                     = new double[] {ARM_MIN_POS, 51.6, 76.2, 107};
+    static final double ARM_SLOW_POWER_SCALE                    = 0.5;
     //
     // Intake subsystem.
     //

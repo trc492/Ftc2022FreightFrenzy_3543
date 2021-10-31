@@ -34,7 +34,6 @@ import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPose2D;
-import TrcCommonLib.trclib.TrcRevBlinkin;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
 import TrcFtcLib.ftclib.FtcBNO055Imu;
@@ -60,13 +59,12 @@ public class Robot
         static boolean visionOnly = false;
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = false;
-        static boolean hasArm = true;
-        static boolean hasBlinkin = true;
+        static boolean useArm = true;
+        static boolean useBlinkin = true;
         static boolean useVuforia = false;
         static boolean showVuforiaView = false;
         static boolean useTensorFlow = true;
         static boolean showTensorFlowView = true;
-        static boolean useBlinkinFlashLight = false;
         static boolean useTraceLog = true;
         static boolean useBatteryMonitor = true;
         static boolean useLoopPerformanceMonitor = true;
@@ -147,6 +145,14 @@ public class Robot
                 .findViewById(com.qualcomm.ftcrobotcontroller.R.id.textOpMode));
         globalTracer = TrcDbgTrace.getGlobalTracer();
         //
+        // Vision may use blinkin, so we must instantiate it before vision. However, if we are doing vision only, we
+        // don't have robot hardware thus no blinkin either.
+        //
+        if (Preferences.useBlinkin && !Preferences.visionOnly)
+        {
+            blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
+        }
+        //
         // Initialize vision subsystems.
         //
         if (Preferences.useVuforia || Preferences.useTensorFlow)
@@ -155,11 +161,6 @@ public class Robot
 
             if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
             {
-                if (Preferences.hasBlinkin)
-                {
-                    blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
-                }
-
                 if (Preferences.useVuforia)
                 {
                     vision.initVuforia();
@@ -170,8 +171,14 @@ public class Robot
                     System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
                     vision.initTensorFlow();
                 }
+
+                if (Preferences.useBlinkin && blinkin != null)
+                {
+                    vision.setupBlinkin();
+                }
             }
         }
+
         //
         // If visionOnly is true, the robot controller is disconnected from the robot for testing vision.
         // In this case, we should not instantiate any robot hardware.
@@ -186,10 +193,6 @@ public class Robot
                 battery = new FtcRobotBattery();
             }
 
-            if (Preferences.hasBlinkin && blinkin == null)
-            {
-                blinkin = new FtcRevBlinkin(RobotInfo.HWNAME_BLINKIN);
-            }
             imu = new FtcBNO055Imu(RobotInfo.HWNAME_IMU);
             gyro = imu.gyro;
             //
@@ -201,7 +204,7 @@ public class Robot
             //
             if (Preferences.initSubsystems)
             {
-                if (Preferences.hasArm)
+                if (Preferences.useArm)
                 {
                     final FtcMotorActuator.Parameters armParams = new FtcMotorActuator.Parameters()
                         .setPosRange(RobotInfo.ARM_MIN_POS, RobotInfo.ARM_MAX_POS)
@@ -218,7 +221,13 @@ public class Robot
                             RobotInfo.ARM_RESET_TIMEOUT)
                         .setPosPresets(RobotInfo.ARM_PRESET_LEVELS);
                     arm = new FtcMotorActuator(RobotInfo.HWNAME_ARM, armParams);
-                    arm.zeroCalibrate();
+                    //
+                    // Don't zero calibrate the arm. Some tests may want the arm up a bit.
+                    //
+                    if (runMode != TrcRobot.RunMode.TEST_MODE)
+                    {
+                        arm.zeroCalibrate();
+                    }
                 }
                 intake = new FtcDcMotor(RobotInfo.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotInfo.HWNAME_SPINNER);
@@ -355,20 +364,6 @@ public class Robot
     }   //stopMode
 
     /**
-     * This method turns the flashlight ON or OFF for the vision subsystem.
-     *
-     * @param blinkinFlashOn specifies true to turn on the Blinkin LED, false to turn off.
-     */
-    public void setFlashLightOn(boolean blinkinFlashOn)
-    {
-        if (blinkin != null && Preferences.useBlinkinFlashLight)
-        {
-            blinkin.setPattern(
-                blinkinFlashOn? TrcRevBlinkin.LEDPattern.SolidWhite: TrcRevBlinkin.LEDPattern.SolidBlack);
-        }
-    }   //setFlashLightOn
-
-    /**
      * This method creates and initializes the drive base related components.
      */
     private void initDriveBase()
@@ -385,10 +380,10 @@ public class Robot
 
         if (Preferences.useVelocityControl)
         {
-            leftFrontWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            rightFrontWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            leftBackWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            rightBackWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
+            leftFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
+            rightFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
+            leftBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
+            rightBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
         }
 
         leftFrontWheel.setInverted(RobotInfo.LEFT_WHEEL_INVERTED);

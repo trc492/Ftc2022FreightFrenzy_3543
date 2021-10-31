@@ -33,6 +33,7 @@ import TrcCommonLib.trclib.TrcElapsedTimer;
 import TrcCommonLib.trclib.TrcGameController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcUtil;
 import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcGamepad;
@@ -54,6 +55,7 @@ public class FtcTest extends FtcTeleOp
     {
         SENSORS_TEST,
         SUBSYSTEMS_TEST,
+        DRIVE_SPEED_TEST,
         DRIVE_MOTORS_TEST,
         X_TIMED_DRIVE,
         Y_TIMED_DRIVE,
@@ -83,6 +85,10 @@ public class FtcTest extends FtcTeleOp
     private double drivePower = 0.0;
 
     private TrcRobot.RobotCommand testCommand = null;
+    private double maxDriveVelocity = 0.0;
+    private double maxDriveAcceleration = 0.0;
+    private double prevTime = 0.0;
+    private double prevVelocity = 0.0;
 
     //
     // Overrides FtcOpMode abstract method.
@@ -209,11 +215,7 @@ public class FtcTest extends FtcTeleOp
     {
         super.startMode(prevMode, nextMode);
 
-        if (test == Test.SENSORS_TEST || test == Test.SUBSYSTEMS_TEST)
-        {
-            robot.setFlashLightOn(true);
-        }
-        else if (test == Test.PURE_PURSUIT_DRIVE)
+        if (test == Test.PURE_PURSUIT_DRIVE)
         {
             //
             // Doing an infinity.
@@ -246,11 +248,6 @@ public class FtcTest extends FtcTeleOp
             testCommand.cancel();
         }
 
-        if (test == Test.SENSORS_TEST || test == Test.SUBSYSTEMS_TEST)
-        {
-            robot.setFlashLightOn(false);
-        }
-
         super.stopMode(prevMode, nextMode);
     }   //stopMode
 
@@ -265,6 +262,9 @@ public class FtcTest extends FtcTeleOp
     {
         if (shouldDoTeleOp())
         {
+            //
+            // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
+            //
             super.runPeriodic(elapsedTime);
         }
 
@@ -272,9 +272,6 @@ public class FtcTest extends FtcTeleOp
         {
             case SENSORS_TEST:
             case SUBSYSTEMS_TEST:
-                //
-                // Allow TeleOp to run so we can control the robot in sensors test mode.
-                //
                 doSensorsTest();
                 doVisionTest();
                 break;
@@ -322,6 +319,37 @@ public class FtcTest extends FtcTeleOp
 
         switch (test)
         {
+            case DRIVE_SPEED_TEST:
+                if (!Robot.Preferences.visionOnly)
+                {
+                    double currTime = TrcUtil.getCurrentTime();
+                    TrcPose2D velPose = robot.driveBase.getFieldVelocity();
+                    double velocity = TrcUtil.magnitude(velPose.x, velPose.y);
+                    double acceleration = 0.0;
+
+                    if (prevTime != 0.0)
+                    {
+                        acceleration = (velocity - prevVelocity)/(currTime - prevTime);
+                    }
+
+                    if (velocity > maxDriveVelocity)
+                    {
+                        maxDriveVelocity = velocity;
+                    }
+
+                    if (acceleration > maxDriveAcceleration)
+                    {
+                        maxDriveAcceleration = acceleration;
+                    }
+
+                    prevTime = currTime;
+                    prevVelocity = velocity;
+
+                    robot.dashboard.displayPrintf(9, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
+                    robot.dashboard.displayPrintf(10, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
+                }
+                break;
+
             case X_TIMED_DRIVE:
             case Y_TIMED_DRIVE:
                 if (!Robot.Preferences.visionOnly)
@@ -516,6 +544,7 @@ public class FtcTest extends FtcTeleOp
         //
         testMenu.addChoice("Sensors test", Test.SENSORS_TEST, true);
         testMenu.addChoice("Subsystems test", Test.SUBSYSTEMS_TEST, false);
+        testMenu.addChoice("Drive speed test", Test.DRIVE_SPEED_TEST, false);
         testMenu.addChoice("Motors test", Test.DRIVE_MOTORS_TEST, false);
         testMenu.addChoice("X Timed drive", Test.X_TIMED_DRIVE, false, driveTimeMenu);
         testMenu.addChoice("Y Timed drive", Test.Y_TIMED_DRIVE, false, driveTimeMenu);
@@ -607,7 +636,7 @@ public class FtcTest extends FtcTeleOp
      */
     private boolean shouldDoTeleOp()
     {
-        return !Robot.Preferences.visionOnly && test == Test.SUBSYSTEMS_TEST;
+        return !Robot.Preferences.visionOnly && (test == Test.SUBSYSTEMS_TEST || test == Test.DRIVE_SPEED_TEST);
     }   //shouldDoTeleOp
 
 }   //class FtcTest

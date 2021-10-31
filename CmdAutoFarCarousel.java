@@ -82,7 +82,6 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.setFlashLightOn(false);
         if (robot.pidDrive.isActive())
         {
             robot.pidDrive.cancel();

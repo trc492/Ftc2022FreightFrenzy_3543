@@ -39,6 +39,7 @@ public class FtcTeleOp extends FtcOpMode
     protected FtcGamepad driverGamepad;
     protected FtcGamepad operatorGamepad;
     private double drivePowerScale = 1.0;
+    private double armPowerScale = 1.0;
     private boolean invertedDrive = false;
 
     //
@@ -154,7 +155,7 @@ public class FtcTeleOp extends FtcOpMode
         {
             double armPower = operatorGamepad.getRightStickY(true);
 
-            robot.arm.setPower(armPower);
+            robot.arm.setPower(armPower*armPowerScale);
             robot.dashboard.displayPrintf(
                 3, "Arm: Power=%.1f,Pos=%.1f,LimitSwitches=[%b, %b]",
                 armPower, robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(),
@@ -272,12 +273,16 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_LBUMPER:
+                if (robot.arm != null)
+                {
+                    robot.arm.setManualOverride(pressed);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_RBUMPER:
                 if (robot.arm != null)
                 {
-                    robot.arm.setManualOverride(pressed);
+                    armPowerScale = pressed? RobotInfo.ARM_SLOW_POWER_SCALE: 1.0;
                 }
                 break;
 

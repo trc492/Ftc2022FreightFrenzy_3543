@@ -120,6 +120,18 @@ public class Vision
         vuforia = new FtcVuforia(vuforiaParams);
     }   //Vision
 
+    /**
+     * This method sets up the Blinkin with a priority pattern list and a pattern name map.
+     */
+    public void setupBlinkin()
+    {
+        if (robot.blinkin != null)
+        {
+            robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
+            robot.blinkin.setPatternPriorities(ledPatternPriorities);
+        }
+    }   //setupBlinkin
+
     //
     // Vuforia Vision.
     //
@@ -223,12 +235,6 @@ public class Vision
                 vuforiaImageTargets[i] = vuforia.getTarget(imageTargetsInfo[i].name);
             }
 
-            if (robot.blinkin != null)
-            {
-                robot.blinkin.setPatternPriorities(ledPatternPriorities);
-                robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
-            }
-
             vuforiaInitialized = true;
         }
     }   //initVuforia
@@ -303,7 +309,7 @@ public class Vision
         {
             robotLocation = vuforia.getRobotLocation(target);
 
-            if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+            if (robot.blinkin != null)
             {
                 if (robotLocation != null)
                 {
@@ -362,7 +368,7 @@ public class Vision
             }
         }
 
-        if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+        if (robot.blinkin != null)
         {
             if (robotLocation != null)
             {
@@ -411,7 +417,7 @@ public class Vision
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
-    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
+    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7; //4000 to 22000
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
 
     private FtcTensorFlow tensorFlow = null;
@@ -451,12 +457,6 @@ public class Vision
 //            tensorFlow = new FtcTensorFlow(
 //                vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect, tracer);
             tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
-
-            if (robot.blinkin != null)
-            {
-                robot.blinkin.setPatternPriorities(ledPatternPriorities);
-                robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
-            }
         }
     }   //initTensorFlow
 
@@ -580,7 +580,7 @@ public class Vision
                 pos = 3;
             }
 
-            if (robot.blinkin != null && !Robot.Preferences.useBlinkinFlashLight)
+            if (robot.blinkin != null)
             {
                 // Turn off previous detection indication.
                 robot.blinkin.setPatternState(duckPos1, false);

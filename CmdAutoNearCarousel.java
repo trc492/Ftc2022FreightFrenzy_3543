@@ -90,7 +90,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.setFlashLightOn(false);
         if (robot.pidDrive.isActive())
         {
             robot.pidDrive.cancel();
@@ -130,6 +129,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     if(robot.vision!=null&&robot.vision.isTensorFlowInitialized()){
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
+                        //BUGBUG: need to move outside if...
                         if (duckPosition == 0) duckPosition = 2;
                     }
                     //
@@ -147,8 +147,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         break;
                     }
                 case DRIVE_TO_CAROUSEL:
-                    yTarget= RobotInfo.CAROUSEL_LOCATION.y- robot.pidDrive.getAbsoluteTargetPose().y;
-                    xTarget = RobotInfo.CAROUSEL_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget= RobotInfo.RED_CAROUSEL_LOCATION.y- robot.pidDrive.getAbsoluteTargetPose().y;
+                    xTarget = RobotInfo.RED_CAROUSEL_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
                     State nextState=null;
                     robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event,State.SPIN_CAROUSEL);
@@ -165,8 +165,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     //rotate arm to the right level while driving, i think it is equal to duckLevel-currentLevel
                     robot.arm.setPosition(RobotInfo.ARM_PRESET_LEVELS[duckPosition]);
                     //move to the shipping hub location
-                    xTarget = RobotInfo.SHIPPING_HUB_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget = RobotInfo.SHIPPING_HUB_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
+                    xTarget = RobotInfo.RED_ALLIANCE_HUB_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget = RobotInfo.RED_ALLIANCE_HUB_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
                     robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     break;
@@ -178,8 +178,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
                 case DRIVE_STORAGE_UNIT:
                     //find distance to drive from current position to target position o
-                    xTarget = RobotInfo.STORAGE_UNIT_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget = RobotInfo.STORAGE_UNIT_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
+                    xTarget = RobotInfo.RED_STORAGE_UNIT_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget = RobotInfo.RED_STORAGE_UNIT_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
                     robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event, State.DONE);
 
