@@ -84,6 +84,7 @@ public class FtcAuto extends FtcOpMode
         Alliance alliance = Alliance.RED_ALLIANCE;
         double startDelay = 0.0;
         Carousel doCarousel = Carousel.NO_CAROUSEL;
+        //before doing carousel in cmd near auto check if it did carousel
         Parking parking = Parking.NO_PARKING;
         double xTarget = 0.0;
         double yTarget = 0.0;

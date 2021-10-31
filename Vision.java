@@ -417,8 +417,14 @@ public class Vision
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
-    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7; //4000 to 22000
+    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
+    // Target size is area of target rect.
+    private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
+    private static final double TARGET_SIZE_TOLERANCE_UPPER = 22000.0;
+
+    //tolerance for distance from center of screen to the target y
+
 
     private FtcTensorFlow tensorFlow = null;
     private int[] lastDuckPositions = null;
@@ -531,6 +537,10 @@ public class Vision
 
     /**
      * This method is called to validate the detected target as a duck.
+     * To valid a valid duck, it must have:
+     *  - correct aspect ratio
+     *  - correct size
+     *  - at expected location(s).
      *
      * @param target specifies the target to be validated.
      * @return true if target is valid, false if false positive.
@@ -538,20 +548,16 @@ public class Vision
     private boolean validateDuck(Recognition target)
     {
         FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
-        boolean valid = target.getLabel().equals(LABEL_DUCK);
-        //
-        // Ways to validate a target.
-        // - Correct aspect ratio.
-        // - Correct size.
-        // - At expected location(s).
-        // - ...
-        //
-        if (valid)
-        {
+        double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
+        double area = targetInfo.rect.width*targetInfo.rect.height;
+        double distanceYTolerance = targetInfo.imageHeight/6.0;
 
-        }
-
-        return valid;
+        return targetInfo.label.equals(LABEL_DUCK) &&
+               aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+               aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+               area <= TARGET_SIZE_TOLERANCE_UPPER &&
+               area >= TARGET_SIZE_TOLERANCE_LOWER &&
+               Math.abs(targetInfo.distanceFromCenter.y) <= distanceYTolerance;
     }   //validateDuck
 
     /**
@@ -567,11 +573,12 @@ public class Vision
         if (targetInfo != null)
         {
             // Put proper code here to determine duck position.
-            if (targetInfo.distanceFromCenter.x < 0.0)
+
+            if (targetInfo.distanceFromCenter.x <= targetInfo.imageWidth/3.0)
             {
                 pos = 1;
             }
-            else if (targetInfo.distanceFromCenter.x == 0.0)
+            else if (targetInfo.distanceFromCenter.x <=targetInfo.imageWidth*2.0/3.0)
             {
                 pos = 2;
             }

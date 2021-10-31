@@ -126,12 +126,13 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     //
                     // Do start delay if any.
                     //call vision
-                    if(robot.vision!=null&&robot.vision.isTensorFlowInitialized()){
+                    if(robot.vision != null && robot.vision.isTensorFlowInitialized())
+                    {
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
                         //BUGBUG: need to move outside if...
-                        if (duckPosition == 0) duckPosition = 2;
                     }
+                    if (duckPosition == 0) duckPosition = 2;
                     //
                     if (autoChoices.startDelay == 0.0)
                     {
