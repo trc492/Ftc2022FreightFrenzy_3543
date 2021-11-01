@@ -41,6 +41,9 @@ public class RobotInfo
     static final String HWNAME_ARM                              = "arm";
     static final String HWNAME_INTAKE                           = "intakeMotor";
     static final String HWNAME_SPINNER                          = "spinnerMotor";
+    static final String HWNAME_YLEFT_ODW_DEPLOYOR               = "yLeftOdwServo";
+    static final String HWNAME_YRIGHT_ODW_DEPLOYOR              = "yRightOdwServo";
+    static final String HWNAME_X_ODW_DEPLOYOR                   = "xOdwServo";
     //
     // Robot base odometry.
     //
@@ -216,5 +219,16 @@ public class RobotInfo
     static final double SPINNER_POWER_RED                       = 1.0;
     static final double SPINNER_POWER_BLUE                      = -1.0;
     static final double SPINNER_TIME                            = 3.0;
+    //
+    // Odometry Wheel Deployer subsystem.
+    //
+    static final double ODWHEEL_YLEFT_RETRACT_POS               = 0.3;
+    static final double ODWHEEL_YLEFT_EXTEND_POS                = 0.78;
+    static final double ODWHEEL_YRIGHT_RETRACT_POS              = 0.3;
+    static final double ODWHEEL_YRIGHT_EXTEND_POS               = 0.78;
+    static final double ODWHEEL_X_RETRACT_POS                   = 0.3;
+    static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
+    static final double ODWHEEL_X_INCHES_PER_COUNT              = 1.0;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 1.0;
 
 }   //class RobotInfo

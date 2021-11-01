@@ -345,8 +345,8 @@ public class FtcTest extends FtcTeleOp
                     prevTime = currTime;
                     prevVelocity = velocity;
 
-                    robot.dashboard.displayPrintf(9, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
-                    robot.dashboard.displayPrintf(10, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
+                    robot.dashboard.displayPrintf(8, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
+                    robot.dashboard.displayPrintf(9, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
                 }
                 break;
 
@@ -354,12 +354,12 @@ public class FtcTest extends FtcTeleOp
             case Y_TIMED_DRIVE:
                 if (!Robot.Preferences.visionOnly)
                 {
-                    robot.dashboard.displayPrintf(9, "Timed Drive: %.0f sec", driveTime);
+                    robot.dashboard.displayPrintf(8, "Timed Drive: %.0f sec", driveTime);
                     robot.dashboard.displayPrintf(
-                        10, "xPos=%.1f,yPos=%.1f,heading=%.1f",
+                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f",
                         robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading());
                     robot.dashboard.displayPrintf(
-                        11, "raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
+                        10, "raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
                         robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
                         robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
                 }
@@ -372,25 +372,25 @@ public class FtcTest extends FtcTeleOp
                 if (!Robot.Preferences.visionOnly)
                 {
                     robot.dashboard.displayPrintf(
-                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
+                        8, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
                         robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
                         robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
                         robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
                     if (robot.encoderXPidCtrl != null)
                     {
-                        robot.encoderXPidCtrl.displayPidInfo(10);
+                        robot.encoderXPidCtrl.displayPidInfo(9);
                     }
-                    robot.encoderYPidCtrl.displayPidInfo(12);
-                    robot.gyroPidCtrl.displayPidInfo(14);
+                    robot.encoderYPidCtrl.displayPidInfo(11);
+                    robot.gyroPidCtrl.displayPidInfo(13);
                 }
                 break;
 
             case PURE_PURSUIT_DRIVE:
                 if (!Robot.Preferences.visionOnly)
                 {
-                    robot.dashboard.displayPrintf(9, "Pure Pursuit Drive: %.0f sec", driveTime);
+                    robot.dashboard.displayPrintf(8, "Pure Pursuit Drive: %.0f sec", driveTime);
                     robot.dashboard.displayPrintf(
-                        10, "xPos=%.1f,yPos=%.1f,heading=%.1f",
+                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f",
                         robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading());
                 }
                 break;
@@ -400,7 +400,7 @@ public class FtcTest extends FtcTeleOp
         {
             elapsedTimer.recordPeriodTime();
             robot.dashboard.displayPrintf(
-                6, "Period: %.3f(%.3f/%.3f)",
+                15, "Period: %.3f(%.3f/%.3f)",
                 elapsedTimer.getAverageElapsedTime(), elapsedTimer.getMinElapsedTime(),
                 elapsedTimer.getMaxElapsedTime());
         }
@@ -606,6 +606,13 @@ public class FtcTest extends FtcTeleOp
                 9, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
                 robot.gyro.getZRotationRate().value, robot.gyro.getZHeading().value);
         }
+
+        if (robot.arm != null)
+        {
+            robot.dashboard.displayPrintf(
+                10, LABEL_WIDTH, "Arm: ", "pos=%.0f,lowLimit=%s,upLimit=%s",
+                robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(), robot.arm.isUpperLimitSwitchActive());
+        }
     }   //doSensorsTest
 
     /**
@@ -618,7 +625,7 @@ public class FtcTest extends FtcTeleOp
             if (robot.vision.isVuforiaInitialized())
             {
                 TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
-                robot.dashboard.displayPrintf(10, "RobotLocation %s: %s",
+                robot.dashboard.displayPrintf(11, "RobotLocation %s: %s",
                                               robot.vision.getLastSeenVuforiaImageName(), robotPose);
             }
 

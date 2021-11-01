@@ -39,8 +39,8 @@ public class FtcTeleOp extends FtcOpMode
     protected FtcGamepad driverGamepad;
     protected FtcGamepad operatorGamepad;
     private double drivePowerScale = 1.0;
-    private double armPowerScale = 1.0;
     private boolean invertedDrive = false;
+    private double armPowerScale = 1.0;
 
     //
     // Implements FtcOpMode abstract method.
@@ -123,25 +123,37 @@ public class FtcTeleOp extends FtcOpMode
             switch (robot.driveMode)
             {
                 case TANK_MODE:
-                    double leftPower = driverGamepad.getLeftStickY(true) * drivePowerScale;
-                    double rightPower = driverGamepad.getRightStickY(true) * drivePowerScale;
+                {
+                    double leftPower = driverGamepad.getLeftStickY(true)*drivePowerScale;
+                    double rightPower = driverGamepad.getRightStickY(true)*drivePowerScale;
                     robot.driveBase.tankDrive(leftPower, rightPower, invertedDrive);
                     robot.dashboard.displayPrintf(1, "Tank:left=%.1f,right=%.1f,inv=%s",
                                                   leftPower, rightPower, Boolean.toString(invertedDrive));
                     break;
-                //this one
-                case HOLONOMIC_MODE:
-                    //change code so that left stick only changes rotation
-                    //and right stick makes it go forward and backwards and sideways
+                }
 
-                    double x = driverGamepad.getLeftStickX(true) * drivePowerScale;
-                    double y = driverGamepad.getRightStickY(true) * drivePowerScale;
-                    double rot = (driverGamepad.getRightTrigger(true) - driverGamepad.getLeftTrigger(true)) *
+                case HOLONOMIC_MODE:
+                {
+                    double x = driverGamepad.getLeftStickX(true)*drivePowerScale;
+                    double y = driverGamepad.getRightStickY(true)*drivePowerScale;
+                    double rot = (driverGamepad.getRightTrigger(true) - driverGamepad.getLeftTrigger(true))*
                                  drivePowerScale;
                     robot.driveBase.holonomicDrive(x, y, rot, invertedDrive);
                     robot.dashboard.displayPrintf(1, "Holonomic:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
                                                   x, y, rot, Boolean.toString(invertedDrive));
                     break;
+                }
+
+                case TIM_MODE:
+                {
+                    double x = driverGamepad.getRightStickX(true)*drivePowerScale;
+                    double y = driverGamepad.getRightStickY(true)*drivePowerScale;
+                    double rot = driverGamepad.getLeftStickX(true)*drivePowerScale;
+                    robot.driveBase.holonomicDrive(x, y, rot, invertedDrive);
+                    robot.dashboard.displayPrintf(1, "Tim:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
+                                                  x, y, rot, Boolean.toString(invertedDrive));
+                    break;
+                }
             }
 
             robot.dashboard.displayPrintf(2, "DriveBase: x=%.2f,y=%.2f,heading=%.2f",
@@ -172,6 +184,10 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
+        if (robot.odwDeployer != null)
+        {
+            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s", robot.odwDeployer.isDeployed());
+        }
     }   //runPeriodic
 
     //
@@ -188,7 +204,7 @@ public class FtcTeleOp extends FtcOpMode
     public void driverButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
         robot.dashboard.displayPrintf(
-            7, "%s: %04x->%s", gamepad.toString(), button, pressed? "Pressed": "Released");
+            7, "%s: %04x->%s", gamepad, button, pressed? "Pressed": "Released");
 
         switch (button)
         {
@@ -218,9 +234,17 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
+                if (robot.odwDeployer != null && pressed)
+                {
+                    robot.odwDeployer.retract();
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_DOWN:
+                if (robot.odwDeployer != null && pressed)
+                {
+                    robot.odwDeployer.deploy();
+                }
                 break;
         }
     }   //driverButtonEvent
@@ -235,7 +259,7 @@ public class FtcTeleOp extends FtcOpMode
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
         robot.dashboard.displayPrintf(
-            7, "%s: %04x->%s", gamepad.toString(), button, pressed? "Pressed": "Released");
+            7, "%s: %04x->%s", gamepad, button, pressed? "Pressed": "Released");
 
         switch (button)
         {
@@ -247,9 +271,6 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_B:
-                // Code Review: Operator shouldn't be burdened to determine which direction spinner should spin.
-                // In other words, we should use just one button and the code should determine the correct direction.
-                // How??? Alternatively, we use RED and BLUE buttons so the operator can easily tell.
                 if (robot.spinner != null && pressed)
                 {
                     // Spin the red carousel for set amount of time.

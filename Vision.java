@@ -639,7 +639,7 @@ public class Vision
                 // We don't have unlimited display lines, so only display the first three in the array.
                 if (i < 3)
                 {
-                    robot.dashboard.displayPrintf(11 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
+                    robot.dashboard.displayPrintf(12 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
                 }
             }
 
@@ -647,7 +647,7 @@ public class Vision
             {
                 for (int i = targetInfo.length; i < 3; i++)
                 {
-                    robot.dashboard.displayPrintf(11 + i, "");
+                    robot.dashboard.displayPrintf(12 + i, "");
                 }
             }
 

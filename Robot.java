@@ -75,6 +75,7 @@ public class Robot
     {
         TANK_MODE,
         HOLONOMIC_MODE,
+        TIM_MODE
     }   //enum DriveMode
 
     //
@@ -105,7 +106,7 @@ public class Robot
     public FtcDcMotor rightBackWheel = null;
 
     public TrcDriveBase driveBase = null;
-    public DriveMode driveMode = DriveMode.HOLONOMIC_MODE;
+    public DriveMode driveMode = DriveMode.TIM_MODE;
     public TrcPidController encoderXPidCtrl = null;
     public TrcPidController encoderYPidCtrl = null;
     public TrcPidController gyroPidCtrl = null;
@@ -124,7 +125,7 @@ public class Robot
     public FtcMotorActuator arm = null;
     public FtcDcMotor intake = null;
     public FtcDcMotor spinner = null;
-//    public FtcServo odometryWheelDeployer = null;
+    public OdometryWheelDeployer odwDeployer = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -231,6 +232,10 @@ public class Robot
                 }
                 intake = new FtcDcMotor(RobotInfo.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotInfo.HWNAME_SPINNER);
+                if (Preferences.useExternalOdometry)
+                {
+                    odwDeployer = new OdometryWheelDeployer();
+                }
             }
         }
     }   //Robot
@@ -414,8 +419,12 @@ public class Robot
             // Set the drive base to use the external odometry device overriding the built-in one.
             //
             driveBase.setDriveBaseOdometry(driveBaseOdometry);
+            driveBase.setOdometryScales(RobotInfo.ODWHEEL_X_INCHES_PER_COUNT, RobotInfo.ODWHEEL_Y_INCHES_PER_COUNT);
         }
-        driveBase.setOdometryScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
+        else
+        {
+            driveBase.setOdometryScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
+        }
         driveMode = DriveMode.HOLONOMIC_MODE;
         //
         // Initialize PID drive.
