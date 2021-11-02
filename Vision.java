@@ -417,7 +417,7 @@ public class Vision
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
-    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.7;
+    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.65;
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
     // Target size is area of target rect.
     private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
@@ -436,16 +436,6 @@ public class Vision
     {
         if (tensorFlow == null)
         {
-//            TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
-//                RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
-//                RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
-//                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
-//                RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
-//            TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
-//                RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_Y,
-//                RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
-//                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
-//                RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
             FtcOpMode opMode = FtcOpMode.getInstance();
             int tfodMonitorViewId = !Robot.Preferences.showTensorFlowView ? -1 :
                 opMode.hardwareMap.appContext.getResources().getIdentifier(
@@ -459,10 +449,6 @@ public class Vision
             tfodParams.minResultConfidence = TFOD_MIN_CONFIDENCE;
             tfodParams.isModelTensorFlow2 = true;
             tfodParams.inputSize = 320;
-
-//            tensorFlow = new FtcTensorFlow(
-//                vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect, tracer);
-            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
         }
     }   //initTensorFlow
 

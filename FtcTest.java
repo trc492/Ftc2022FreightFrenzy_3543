@@ -227,9 +227,7 @@ public class FtcTest extends FtcTeleOp
                 new TrcPose2D(-24.0, 0, 45.0),
                 new TrcPose2D(-24.0, 48.0, 135.0),
                 new TrcPose2D(24.0, 48.0, 225.0),
-                new TrcPose2D(0.0, 46.0, 270.0),
-                new TrcPose2D(0.0, 0.0, 0.0),
-                new TrcPose2D(-23.0, 47.0, 225.0),
+                new TrcPose2D(24.0, 0.0, 270.0),
                 new TrcPose2D(0.0, 0.0, 0.0));
         }
     }   //startMode

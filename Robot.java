@@ -113,9 +113,12 @@ public class Robot
     public TrcPidDrive pidDrive = null;
 
     // Pure Pursuit PID controllers.
-    public TrcPidController.PidCoefficients xPosPidCoeff = null;
-    public TrcPidController.PidCoefficients yPosPidCoeff = null;
-    public TrcPidController.PidCoefficients turnPidCoeff = null;
+    public TrcPidController.PidCoefficients xPosPidCoeff =
+        new TrcPidController.PidCoefficients(RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD);
+    public TrcPidController.PidCoefficients yPosPidCoeff =
+        new TrcPidController.PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD);
+    public TrcPidController.PidCoefficients turnPidCoeff =
+        new TrcPidController.PidCoefficients(RobotInfo.GYRO_KP, RobotInfo.GYRO_KI, RobotInfo.GYRO_KD);
     public TrcPidController.PidCoefficients velPidCoeff = null;
 
     public TrcPidController.PidCoefficients tunePidCoeff = new TrcPidController.PidCoefficients();
@@ -179,7 +182,6 @@ public class Robot
                 }
             }
         }
-
         //
         // If visionOnly is true, the robot controller is disconnected from the robot for testing vision.
         // In this case, we should not instantiate any robot hardware.
@@ -385,10 +387,10 @@ public class Robot
 
         if (Preferences.useVelocityControl)
         {
-            leftFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
-            rightFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
-            leftBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
-            rightBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY);
+            leftFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY_PPS);
+            rightFrontWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY_PPS);
+            leftBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY_PPS);
+            rightBackWheel.enableVelocityMode(RobotInfo.DRIVE_MOTOR_MAX_VELOCITY_PPS);
         }
 
         leftFrontWheel.setInverted(RobotInfo.LEFT_WHEEL_INVERTED);
@@ -410,10 +412,10 @@ public class Robot
             // odometry.
             //
             TrcDriveBaseOdometry driveBaseOdometry = new TrcDriveBaseOdometry(
-                new TrcDriveBaseOdometry.AxisSensor(leftFrontWheel, RobotInfo.X_ODOMETRY_OFFSET),
+                new TrcDriveBaseOdometry.AxisSensor(rightBackWheel, RobotInfo.X_ODOMETRY_WHEEL_OFFSET),
                 new TrcDriveBaseOdometry.AxisSensor[] {
-                    new TrcDriveBaseOdometry.AxisSensor(leftBackWheel),
-                    new TrcDriveBaseOdometry.AxisSensor(rightBackWheel)},
+                    new TrcDriveBaseOdometry.AxisSensor(leftFrontWheel, RobotInfo.Y_LEFT_ODOMETRY_WHEEL_OFFSET),
+                    new TrcDriveBaseOdometry.AxisSensor(rightFrontWheel, RobotInfo.Y_RIGHT_ODOMETRY_WHEEL_OFFSET)},
                 gyro);
             //
             // Set the drive base to use the external odometry device overriding the built-in one.
