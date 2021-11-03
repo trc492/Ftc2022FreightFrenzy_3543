@@ -29,20 +29,18 @@ import TrcCommonLib.trclib.TrcTimer;
 
 class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 {
+    private static final String moduleName = "CmdAutoNearCarousel";
+
     private enum State
     {
-        //assume duckie is preloaded
         START_DELAY,
         DRIVE_TO_CAROUSEL,
         SPIN_CAROUSEL,
         DRIVE_TO_SHIPPING_HUB,
         DUMP_FREIGHT,
         DRIVE_STORAGE_UNIT,
-
         DONE
     }   //enum State
-
-    private static final String moduleName = "CmdAutoNearCarousel";
 
     private final Robot robot;
     private final FtcAuto.AutoChoices autoChoices;
@@ -90,10 +88,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        if (robot.pidDrive.isActive())
-        {
-            robot.pidDrive.cancel();
-        }
+        robot.robotDrive.cancel();
         sm.stop();
     }   //cancel
 
@@ -125,12 +120,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case START_DELAY:
                     //
                     // Do start delay if any.
+                    //
                     //call vision
                     if(robot.vision != null && robot.vision.isTensorFlowInitialized())
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
-                        //BUGBUG: need to move outside if...
                     }
                     if (duckPosition == 0) duckPosition = 2;
                     //
@@ -148,40 +143,44 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         break;
                     }
                 case DRIVE_TO_CAROUSEL:
-                    yTarget= RobotInfo.RED_CAROUSEL_LOCATION.y- robot.pidDrive.getAbsoluteTargetPose().y;
-                    xTarget = RobotInfo.RED_CAROUSEL_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget= RobotParams.RED_CAROUSEL_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
+                    xTarget = RobotParams.RED_CAROUSEL_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
                     State nextState=null;
-                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event,State.SPIN_CAROUSEL);
                     break;
                 case SPIN_CAROUSEL:
                     robot.spinner.set(
                             autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                                    RobotInfo.SPINNER_POWER_RED: RobotInfo.SPINNER_POWER_BLUE,
-                            RobotInfo.SPINNER_TIME, event);
+                                    RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
+                            RobotParams.SPINNER_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_SHIPPING_HUB);
                     break;
 
                 case DRIVE_TO_SHIPPING_HUB:
                     //rotate arm to the right level while driving, i think it is equal to duckLevel-currentLevel
-                    robot.arm.setPosition(RobotInfo.ARM_PRESET_LEVELS[duckPosition]);
+                    robot.arm.setPosition(RobotParams.ARM_PRESET_LEVELS[duckPosition]);
                     //move to the shipping hub location
-                    xTarget = RobotInfo.RED_ALLIANCE_HUB_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget = RobotInfo.RED_ALLIANCE_HUB_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
-                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    xTarget =
+                        RobotParams.RED_ALLIANCE_HUB_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget =
+                        RobotParams.RED_ALLIANCE_HUB_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
+                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     break;
 
                 case DUMP_FREIGHT:
                     //dumps the block for 2 seconds, when done signals event and goes to next state
-                    robot.intake.set(RobotInfo.INTAKE_POWER_DUMP, 2, event);
+                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 2, event);
                     sm.waitForSingleEvent(event, State.DRIVE_STORAGE_UNIT);
                     break;
                 case DRIVE_STORAGE_UNIT:
                     //find distance to drive from current position to target position o
-                    xTarget = RobotInfo.RED_STORAGE_UNIT_LOCATION.x - robot.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget = RobotInfo.RED_STORAGE_UNIT_LOCATION.y - robot.pidDrive.getAbsoluteTargetPose().y;
-                    robot.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
+                    xTarget =
+                        RobotParams.RED_STORAGE_UNIT_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
+                    yTarget =
+                        RobotParams.RED_STORAGE_UNIT_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
+                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
                     sm.waitForSingleEvent(event, State.DONE);
 
                 case DONE:

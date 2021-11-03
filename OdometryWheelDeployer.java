@@ -26,32 +26,32 @@ import TrcFtcLib.ftclib.FtcServo;
 
 class OdometryWheelDeployer
 {
-    private FtcServo yLeftDeployer;
-    private FtcServo yRightDeployer;
-    private FtcServo xDeployer;
+    private final FtcServo yLeftDeployer;
+    private final FtcServo yRightDeployer;
+    private final FtcServo xDeployer;
     private boolean deployed = false;
 
     public OdometryWheelDeployer()
     {
-        yLeftDeployer = new FtcServo(RobotInfo.HWNAME_YLEFT_ODW_DEPLOYOR);
-        yRightDeployer = new FtcServo(RobotInfo.HWNAME_YRIGHT_ODW_DEPLOYOR);
-        xDeployer = new FtcServo(RobotInfo.HWNAME_X_ODW_DEPLOYOR);
+        yLeftDeployer = new FtcServo(RobotParams.HWNAME_YLEFT_ODW_DEPLOYOR);
+        yRightDeployer = new FtcServo(RobotParams.HWNAME_YRIGHT_ODW_DEPLOYOR);
+        xDeployer = new FtcServo(RobotParams.HWNAME_X_ODW_DEPLOYOR);
         retract();
     }   //OdometryWheelDeployer
 
     public void retract()
     {
-        yLeftDeployer.setPosition(RobotInfo.ODWHEEL_YLEFT_RETRACT_POS);
-        yRightDeployer.setPosition(RobotInfo.ODWHEEL_YRIGHT_RETRACT_POS);
-        xDeployer.setPosition(RobotInfo.ODWHEEL_X_RETRACT_POS);
+        yLeftDeployer.setPosition(RobotParams.ODWHEEL_YLEFT_RETRACT_POS);
+        yRightDeployer.setPosition(RobotParams.ODWHEEL_YRIGHT_RETRACT_POS);
+        xDeployer.setPosition(RobotParams.ODWHEEL_X_RETRACT_POS);
         deployed = false;
     }   //retract
 
     public void deploy()
     {
-        yLeftDeployer.setPosition(RobotInfo.ODWHEEL_YLEFT_EXTEND_POS);
-        yRightDeployer.setPosition(RobotInfo.ODWHEEL_YRIGHT_EXTEND_POS);
-        xDeployer.setPosition(RobotInfo.ODWHEEL_X_EXTEND_POS);
+        yLeftDeployer.setPosition(RobotParams.ODWHEEL_YLEFT_EXTEND_POS);
+        yRightDeployer.setPosition(RobotParams.ODWHEEL_YRIGHT_EXTEND_POS);
+        xDeployer.setPosition(RobotParams.ODWHEEL_X_EXTEND_POS);
         deployed = true;
     }   //deploy
 

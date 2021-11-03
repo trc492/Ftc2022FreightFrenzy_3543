@@ -22,12 +22,42 @@
 
 package Ftc2022FreightFrenzy_3543;
 
+import android.os.Environment;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+import org.opencv.core.Point;
 
 import TrcCommonLib.trclib.TrcPose2D;
 
-public class RobotInfo
+public class RobotParams
 {
+    public static class Preferences
+    {
+        static boolean visionOnly = false;
+        static boolean initSubsystems = true;
+        static boolean useExternalOdometry = false;
+        static boolean useArm = true;
+        static boolean useBlinkin = true;
+        static boolean useVuforia = false;
+        static boolean showVuforiaView = false;
+        static boolean useTensorFlow = true;
+        static boolean showTensorFlowView = true;
+        static boolean useTraceLog = true;
+        static boolean useBatteryMonitor = true;
+        static boolean useLoopPerformanceMonitor = true;
+        static boolean useVelocityControl = false;
+    }   //class Preferences
+
+    public enum DriveMode
+    {
+        TANK_MODE,
+        HOLONOMIC_MODE,
+        TIM_MODE
+    }   //enum DriveMode
+
+    static final String LOG_PATH_FOLDER                         =
+        Environment.getExternalStorageDirectory().getPath() + "/FIRST/ftc3543";
     //
     // Hardware names.
     //
@@ -72,21 +102,22 @@ public class RobotInfo
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     static final TrcPose2D STARTPOS_BLUE_2                      =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
-
-    static final TrcPose2D RED_ALLIANCE_HUB_LOCATION            =
-        new TrcPose2D(-HALF_TILE_INCHES, -FULL_TILE_INCHES, 0.0);
-    static final TrcPose2D BLUE_ALLIANCE_HUB_LOCATION           =
-        new TrcPose2D(-HALF_TILE_INCHES, FULL_TILE_INCHES, 180.0);
-    static final TrcPose2D RED_CAROUSEL_LOCATION                =
-        new TrcPose2D(-(HALF_FIELD_INCHES - 2.5), -(HALF_FIELD_INCHES - 2.5), 0.0);
-    static final TrcPose2D BLUE_CAROUSEL_LOCATION               =
-        new TrcPose2D(-(HALF_FIELD_INCHES - 2.5), HALF_FIELD_INCHES - 2.5, 180.0);
-    static final TrcPose2D RED_STORAGE_UNIT_LOCATION            =
-        new TrcPose2D(-(HALF_FIELD_INCHES - HALF_TILE_INCHES), -QUAD_FIELD_INCHES, 0.0);
-    static final TrcPose2D BLUE_STORAGE_UNIT_LOCATION           =
-        new TrcPose2D(-(HALF_FIELD_INCHES - HALF_TILE_INCHES), QUAD_FIELD_INCHES, 0.0);
-    static final TrcPose2D SHARED_HUB_LOCATION                  =
-        new TrcPose2D(FULL_TILE_INCHES*2.0, 0.0, 0.0);
+    //
+    // Locations of various game elements in the unit of floor tiles.
+    //
+    static final Point RED_ALLIANCE_HUB_LOCATION                = new Point(-0.5, -2.0);
+    static final Point BLUE_ALLIANCE_HUB_LOCATION               = new Point(-0.5, 2.0);
+    static final Point RED_CAROUSEL_LOCATION                    = new Point(-2.5, -2.0);
+    static final Point BLUE_CAROUSEL_LOCATION                   = new Point(-2.5, 2.0);
+    static final Point RED_STORAGE_UNIT_LOCATION                = new Point(-2.5, -1.5);
+    static final Point BLUE_STORAGE_UNIT_LOCATION               = new Point(-2.5, 1.5);
+    static final Point RED_WAREHOUSE_LOCATION_1                 = new Point(2.5, -1.5);
+    static final Point BLUE_WAREHOUSE_LOCATION_1                = new Point(2.5, 1.5);
+    static final Point RED_WAREHOUSE_LOCATION_2                 = new Point(1.5, -1.5);
+    static final Point BLUE_WAREHOUSE_LOCATION_2                = new Point(1.5, 1.5);
+    static final Point RED_WAREHOUSE_LOCATION_3                 = new Point(1.5, -2.5);
+    static final Point BLUE_WAREHOUSE_LOCATION_3                = new Point(1.5, 2.5);
+    static final Point SHARED_HUB_LOCATION                      = new Point(2.0, 0.0);
     //
     // Motor Odometries.
     //
@@ -98,11 +129,12 @@ public class RobotInfo
     //
     // DriveBase subsystem.
     //
+    static final DriveMode ROBOT_DRIVE_MODE                     = DriveMode.TIM_MODE;
     static final DcMotor.RunMode DRIVE_MOTOR_MODE               = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
     static final boolean LEFT_WHEEL_INVERTED                    = true;
     static final boolean RIGHT_WHEEL_INVERTED                   = false;
     static final boolean DRIVE_WHEEL_BRAKE_MODE                 = true;
-//    static final double TURN_POWER_LIMIT                        = 0.5;
+    static final double TURN_POWER_LIMIT                        = 0.5;
     static final double SLOW_DRIVE_POWER_SCALE                  = 0.5;
     static final double X_ODOMETRY_WHEEL_OFFSET                 = -4.625;  //4 5/8 inches behind robot centroid
     static final double Y_LEFT_ODOMETRY_WHEEL_OFFSET            = -7.5;

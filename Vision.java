@@ -104,7 +104,7 @@ public class Vision
             "Tv5wocDs949Gkh6lRt5rAxATYYO9esmyKyfyzfFLMMpfq7/uvQQrSibNBqa13hJRmmHoM2v0Gfk8TCTTfP044/XsOm54u8k" +
             "dv0HfeMBC91uQ/NvWHVV5XCh8pZAzmL5sry1YwG8FSRNVlSAZ1zN/m6jAe98q6IxpwQxP0da/TpJoqDI7x4RGjOs1Areunf";
         FtcOpMode opMode = FtcOpMode.getInstance();
-        int cameraViewId = !Robot.Preferences.showVuforiaView ? -1 :
+        int cameraViewId = !RobotParams.Preferences.showVuforiaView ? -1 :
             opMode.hardwareMap.appContext.getResources().getIdentifier(
                 "cameraMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
         //
@@ -114,7 +114,7 @@ public class Vision
             cameraViewId == -1? new VuforiaLocalizer.Parameters(): new VuforiaLocalizer.Parameters(cameraViewId);
 
         vuforiaParams.vuforiaLicenseKey = VUFORIA_LICENSE_KEY;
-        vuforiaParams.cameraName = opMode.hardwareMap.get(WebcamName.class, RobotInfo.HWNAME_WEBCAM);
+        vuforiaParams.cameraName = opMode.hardwareMap.get(WebcamName.class, RobotParams.HWNAME_WEBCAM);
         vuforiaParams.useExtendedTracking = false;
         vuforiaParams.cameraMonitorFeedback = VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
         vuforia = new FtcVuforia(vuforiaParams);
@@ -144,9 +144,9 @@ public class Vision
     //
     // Height of the center of the target image above the floor.
     private static final float mmTargetHeight = 6.0f * (float)TrcUtil.MM_PER_INCH;
-    private static final float halfField = (float)(RobotInfo.HALF_FIELD_INCHES * TrcUtil.MM_PER_INCH);
-    private static final float fullTile = (float)(RobotInfo.FULL_TILE_INCHES * TrcUtil.MM_PER_INCH);
-    private static final float halfTile = (float)(RobotInfo.HALF_TILE_INCHES * TrcUtil.MM_PER_INCH);
+    private static final float halfField = (float)(RobotParams.HALF_FIELD_INCHES*TrcUtil.MM_PER_INCH);
+    private static final float fullTile = (float)(RobotParams.FULL_TILE_INCHES*TrcUtil.MM_PER_INCH);
+    private static final float halfTile = (float)(RobotParams.HALF_TILE_INCHES*TrcUtil.MM_PER_INCH);
     private static final float oneAndHalfTile = (float)(fullTile*1.5);
 
     private boolean vuforiaInitialized = false;
@@ -181,11 +181,11 @@ public class Vision
              *      In this example, it is centered on the robot (left-to-right and front-to-back), and 6 inches above ground level.
              */
             final float CAMERA_FORWARD_DISPLACEMENT =
-                (float)((RobotInfo.ROBOT_LENGTH/2.0 - RobotInfo.CAMERA_FRONT_OFFSET)* TrcUtil.MM_PER_INCH);
+                (float)((RobotParams.ROBOT_LENGTH/2.0 - RobotParams.CAMERA_FRONT_OFFSET)*TrcUtil.MM_PER_INCH);
             final float CAMERA_VERTICAL_DISPLACEMENT =
-                (float)(RobotInfo.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
+                (float)(RobotParams.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
             final float CAMERA_LEFT_DISPLACEMENT =
-                (float)((RobotInfo.ROBOT_WIDTH/2.0 - RobotInfo.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
+                (float)((RobotParams.ROBOT_WIDTH/2.0 - RobotParams.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
             OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
@@ -227,7 +227,7 @@ public class Vision
                 new FtcVuforia.TargetInfo(2, redStorageName, false, redStorageLocation),
                 new FtcVuforia.TargetInfo(3, redAllianceWallName, false, redAllianceWallLocation)
             };
-            vuforia.addTargetList(RobotInfo.TRACKABLE_IMAGES_FILE, imageTargetsInfo, cameraLocationOnRobot);
+            vuforia.addTargetList(RobotParams.TRACKABLE_IMAGES_FILE, imageTargetsInfo, cameraLocationOnRobot);
 
             vuforiaImageTargets = new VuforiaTrackable[imageTargetsInfo.length];
             for (int i = 0; i < vuforiaImageTargets.length; i++)
@@ -437,7 +437,7 @@ public class Vision
         if (tensorFlow == null)
         {
             FtcOpMode opMode = FtcOpMode.getInstance();
-            int tfodMonitorViewId = !Robot.Preferences.showTensorFlowView ? -1 :
+            int tfodMonitorViewId = !RobotParams.Preferences.showTensorFlowView ? -1 :
                 opMode.hardwareMap.appContext.getResources().getIdentifier(
                     "tfodMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
             //
@@ -449,6 +449,8 @@ public class Vision
             tfodParams.minResultConfidence = TFOD_MIN_CONFIDENCE;
             tfodParams.isModelTensorFlow2 = true;
             tfodParams.inputSize = 320;
+
+            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
         }
     }   //initTensorFlow
 
@@ -607,6 +609,7 @@ public class Vision
      */
     public int[] getCurrentDuckPositions()
     {
+        final String funcName = "getCurrentDuckPositions";
         int[] duckPositions = null;
         FtcTensorFlow.TargetInfo[] targetInfo =
             robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
@@ -622,6 +625,11 @@ public class Vision
             for (int i = targetInfo.length - 1; i >= 0; i--)
             {
                 duckPositions[i] = robot.vision.determineDuckPosition(targetInfo[i]);
+                if (tracer != null)
+                {
+                    tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d",
+                                     i, targetInfo[i], duckPositions[i]);
+                }
                 // We don't have unlimited display lines, so only display the first three in the array.
                 if (i < 3)
                 {

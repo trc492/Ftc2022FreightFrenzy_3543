@@ -118,17 +118,17 @@ public class FtcTeleOp extends FtcOpMode
         //
         // DriveBase subsystem.
         //
-        if (robot.driveBase != null)
+        if (robot.robotDrive != null)
         {
-            switch (robot.driveMode)
+            switch (RobotParams.ROBOT_DRIVE_MODE)
             {
                 case TANK_MODE:
                 {
                     double leftPower = driverGamepad.getLeftStickY(true)*drivePowerScale;
                     double rightPower = driverGamepad.getRightStickY(true)*drivePowerScale;
-                    robot.driveBase.tankDrive(leftPower, rightPower, invertedDrive);
+                    robot.robotDrive.driveBase.tankDrive(leftPower, rightPower, invertedDrive);
                     robot.dashboard.displayPrintf(1, "Tank:left=%.1f,right=%.1f,inv=%s",
-                                                  leftPower, rightPower, Boolean.toString(invertedDrive));
+                                                  leftPower, rightPower, invertedDrive);
                     break;
                 }
 
@@ -138,9 +138,9 @@ public class FtcTeleOp extends FtcOpMode
                     double y = driverGamepad.getRightStickY(true)*drivePowerScale;
                     double rot = (driverGamepad.getRightTrigger(true) - driverGamepad.getLeftTrigger(true))*
                                  drivePowerScale;
-                    robot.driveBase.holonomicDrive(x, y, rot, invertedDrive);
+                    robot.robotDrive.driveBase.holonomicDrive(x, y, rot, invertedDrive);
                     robot.dashboard.displayPrintf(1, "Holonomic:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
-                                                  x, y, rot, Boolean.toString(invertedDrive));
+                                                  x, y, rot, invertedDrive);
                     break;
                 }
 
@@ -149,16 +149,17 @@ public class FtcTeleOp extends FtcOpMode
                     double x = driverGamepad.getRightStickX(true)*drivePowerScale;
                     double y = driverGamepad.getRightStickY(true)*drivePowerScale;
                     double rot = driverGamepad.getLeftStickX(true)*drivePowerScale;
-                    robot.driveBase.holonomicDrive(x, y, rot, invertedDrive);
+                    robot.robotDrive.driveBase.holonomicDrive(x, y, rot, invertedDrive);
                     robot.dashboard.displayPrintf(1, "Tim:x=%.1f,y=%.1f,rot=%.1f,inv=%s",
-                                                  x, y, rot, Boolean.toString(invertedDrive));
+                                                  x, y, rot, invertedDrive);
                     break;
                 }
             }
 
             robot.dashboard.displayPrintf(2, "DriveBase: x=%.2f,y=%.2f,heading=%.2f",
-                                          robot.driveBase.getXPosition(), robot.driveBase.getYPosition(),
-                                          robot.driveBase.getHeading());
+                                          robot.robotDrive.driveBase.getXPosition(),
+                                          robot.robotDrive.driveBase.getYPosition(),
+                                          robot.robotDrive.driveBase.getHeading());
         }
         //
         // Other subsystems.
@@ -230,7 +231,7 @@ public class FtcTeleOp extends FtcOpMode
 
             case FtcGamepad.GAMEPAD_RBUMPER:
                 // Press and hold for slow drive.
-                drivePowerScale = pressed? RobotInfo.SLOW_DRIVE_POWER_SCALE: 1.0;
+                drivePowerScale = pressed? RobotParams.SLOW_DRIVE_POWER_SCALE: 1.0;
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_UP:
@@ -266,7 +267,7 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_A:
                 if (robot.intake != null)
                 {
-                    robot.intake.set(pressed? RobotInfo.INTAKE_POWER_PICKUP: 0.0);
+                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
                 }
                 break;
 
@@ -274,7 +275,7 @@ public class FtcTeleOp extends FtcOpMode
                 if (robot.spinner != null && pressed)
                 {
                     // Spin the red carousel for set amount of time.
-                    robot.spinner.set(RobotInfo.SPINNER_POWER_RED, RobotInfo.SPINNER_TIME);
+                    robot.spinner.set(RobotParams.SPINNER_POWER_RED, RobotParams.SPINNER_TIME);
                 }
                 break;
 
@@ -282,14 +283,14 @@ public class FtcTeleOp extends FtcOpMode
                 if (robot.spinner != null && pressed)
                 {
                     // Spin the blue carousel for set amount of time.
-                    robot.spinner.set(RobotInfo.SPINNER_POWER_BLUE, RobotInfo.SPINNER_TIME);
+                    robot.spinner.set(RobotParams.SPINNER_POWER_BLUE, RobotParams.SPINNER_TIME);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
                 if (robot.intake != null)
                 {
-                    robot.intake.set(pressed? RobotInfo.INTAKE_POWER_DUMP: 0.0);
+                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
                 }
                 break;
 
@@ -303,7 +304,7 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_RBUMPER:
                 if (robot.arm != null)
                 {
-                    armPowerScale = pressed? RobotInfo.ARM_SLOW_POWER_SCALE: 1.0;
+                    armPowerScale = pressed? RobotParams.ARM_SLOW_POWER_SCALE: 1.0;
                 }
                 break;
 

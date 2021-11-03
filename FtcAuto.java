@@ -50,7 +50,10 @@ public class FtcAuto extends FtcOpMode
     {
         AUTO_NEAR_CAROUSEL,
         AUTO_FAR_CAROUSEL,
-        PURE_PURSUIT_DRIVE,
+        PARK_AT_WAREHOUSE1,
+        PARK_AT_WAREHOUSE2,
+        PARK_AT_WAREHOUSE3,
+        PARK_AT_STORAGE_UNIT,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
@@ -61,6 +64,12 @@ public class FtcAuto extends FtcOpMode
         RED_ALLIANCE,
         BLUE_ALLIANCE
     }   //enum Alliance
+
+    public enum FreightDelivery
+    {
+        DO_DELIVERY,
+        NO_DELIVERY
+    }   //enum FreightDelivery
 
     public enum Carousel
     {
@@ -80,12 +89,13 @@ public class FtcAuto extends FtcOpMode
      */
     public static class AutoChoices
     {
-        AutoStrategy strategy = AutoStrategy.DO_NOTHING;
-        Alliance alliance = Alliance.RED_ALLIANCE;
         double startDelay = 0.0;
-        Carousel doCarousel = Carousel.NO_CAROUSEL;
+        Alliance alliance = Alliance.RED_ALLIANCE;
+        AutoStrategy strategy = AutoStrategy.AUTO_NEAR_CAROUSEL;
+        FreightDelivery freightDelivery = FreightDelivery.DO_DELIVERY;
+        Carousel doCarousel = Carousel.DO_CAROUSEL;
         //before doing carousel in cmd near auto check if it did carousel
-        Parking parking = Parking.NO_PARKING;
+        Parking parking = Parking.WAREHOUSE_PARKING;
         double xTarget = 0.0;
         double yTarget = 0.0;
         double turnTarget = 0.0;
@@ -97,9 +107,10 @@ public class FtcAuto extends FtcOpMode
         {
             return String.format(
                 Locale.US,
-                "strategy=\"%s\" " +
-                "alliance=\"%s\" " +
                 "startDelay=%.0f " +
+                "alliance=\"%s\" " +
+                "strategy=\"%s\" " +
+                "freightDelivery=\"%s\" " +
                 "doCarousel=\"%s\" " +
                 "parking=\"%s\" " +
                 "xTarget=%.1f " +
@@ -107,9 +118,10 @@ public class FtcAuto extends FtcOpMode
                 "turnTarget=%.0f " +
                 "driveTime=%.0f " +
                 "drivePower=%.1f",
-                strategy, alliance, startDelay, doCarousel, parking,
+                startDelay, alliance, strategy, freightDelivery, doCarousel, parking,
                 xTarget, yTarget, turnTarget, driveTime, drivePower);
         }   //toString
+
     }   //class AutoChoices
 
     private static final String moduleName = "FtcAuto";
@@ -142,11 +154,11 @@ public class FtcAuto extends FtcOpMode
         //
         // Open trace log.
         //
-        if (Robot.Preferences.useTraceLog)
+        if (RobotParams.Preferences.useTraceLog)
         {
             matchInfo = FtcMatchInfo.getMatchInfo();
             String filePrefix = String.format(Locale.US, "%s%02d", matchInfo.matchType, matchInfo.matchNumber);
-            robot.globalTracer.openTraceLog("/sdcard/FIRST/tracelog", filePrefix);
+            robot.globalTracer.openTraceLog(RobotParams.LOG_PATH_FOLDER, filePrefix);
         }
         //
         // Create and run choice menus.
@@ -154,58 +166,63 @@ public class FtcAuto extends FtcOpMode
         doAutoChoicesMenus();
         //now know ur alliance, ternary if statements
 
-        robot.driveBase.setFieldPosition(
+        robot.robotDrive.driveBase.setFieldPosition(
             autoChoices.alliance == Alliance.RED_ALLIANCE &&
             autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
-                RobotInfo.STARTPOS_RED_1:
+                RobotParams.STARTPOS_RED_1:
             autoChoices.alliance == Alliance.RED_ALLIANCE &&
             autoChoices.strategy == AutoStrategy.AUTO_FAR_CAROUSEL?
-                RobotInfo.STARTPOS_RED_2:
+                RobotParams.STARTPOS_RED_2:
             autoChoices.alliance == Alliance.BLUE_ALLIANCE &&
             autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
-                RobotInfo.STARTPOS_BLUE_1: RobotInfo.STARTPOS_BLUE_2);
-
+                RobotParams.STARTPOS_BLUE_1:
+                RobotParams.STARTPOS_BLUE_2);
         //
         // Create autonomous command according to chosen strategy.
         //create statemachine, timer, etc
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
                 }
                 break;
 
             case AUTO_FAR_CAROUSEL:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdAutoFarCarousel(robot, autoChoices);
                 }
                 break;
 
-            case PURE_PURSUIT_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+            case PARK_AT_WAREHOUSE1:
+            case PARK_AT_WAREHOUSE2:
+            case PARK_AT_WAREHOUSE3:
+            case PARK_AT_STORAGE_UNIT:
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPurePursuitDrive(
-                        robot.driveBase, robot.xPosPidCoeff, robot.yPosPidCoeff, robot.turnPidCoeff, robot.velPidCoeff);
+                        robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
+                        robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
                 }
                 break;
 
             case PID_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, autoChoices.startDelay, autoChoices.drivePower, null,
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.startDelay,
+                        autoChoices.drivePower, null,
                         new TrcPose2D(autoChoices.xTarget*12.0, autoChoices.yTarget*12.0, autoChoices.turnTarget));
                 }
                 break;
 
             case TIMED_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdTimedDrive(
-                        robot.driveBase, autoChoices.startDelay, autoChoices.driveTime,
+                        robot.robotDrive.driveBase, autoChoices.startDelay, autoChoices.driveTime,
                         0.0, autoChoices.drivePower, 0.0);
                 }
                 break;
@@ -234,7 +251,7 @@ public class FtcAuto extends FtcOpMode
     {
         robot.dashboard.clearDisplay();
 
-        if (Robot.Preferences.useTraceLog)
+        if (RobotParams.Preferences.useTraceLog)
         {
             robot.globalTracer.setTraceLogEnabled(true);
         }
@@ -253,14 +270,40 @@ public class FtcAuto extends FtcOpMode
         {
             robot.battery.setEnabled(true);
         }
-
-        if (autoChoices.strategy == AutoStrategy.PURE_PURSUIT_DRIVE)
+        //
+        // PurePursuitDrive requires start initialization to provide a drive path.
+        //
+        if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE1)
         {
-            //
-            // PurePursuitDrive requires start initialization to provide a drive path.
-            //
             ((CmdPurePursuitDrive)autoCommand).start(
-                robot.driveBase.getFieldPosition(), true, RobotInfo.PURE_PURSUIT_PATH);
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                autoChoices.alliance == Alliance.RED_ALLIANCE?
+                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_1, 90.0):
+                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_1, 90.0));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE2)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                autoChoices.alliance == Alliance.RED_ALLIANCE?
+                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_2, 90.0):
+                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_2, 90.0));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE3)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                autoChoices.alliance == Alliance.RED_ALLIANCE?
+                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_3, 90.0):
+                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_3, 90.0));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_STORAGE_UNIT)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                autoChoices.alliance == Alliance.RED_ALLIANCE?
+                    robot.robotDrive.pathToTarget(RobotParams.RED_STORAGE_UNIT_LOCATION, -90.0):
+                    robot.robotDrive.pathToTarget(RobotParams.BLUE_STORAGE_UNIT_LOCATION, -90.0));
         }
     }   //startMode
 
@@ -329,7 +372,7 @@ public class FtcAuto extends FtcOpMode
             //
             autoCommand.cmdPeriodic(elapsedTime);
 
-            if (robot.pidDrive.isActive() && (logEvents || debugXPid || debugYPid || debugTurnPid))
+            if (robot.robotDrive.pidDrive.isActive() && (logEvents || debugXPid || debugYPid || debugTurnPid))
             {
                 if (robot.battery != null)
                 {
@@ -340,22 +383,22 @@ public class FtcAuto extends FtcOpMode
                 if (logEvents)
                 {
                     robot.globalTracer.logEvent(moduleName, "RobotPose", "pose=\"%s\"",
-                                                robot.driveBase.getFieldPosition().toString());
+                                                robot.robotDrive.driveBase.getFieldPosition());
                 }
 
-                if (debugXPid && robot.encoderXPidCtrl != null)
+                if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
                 {
-                    robot.encoderXPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugYPid && robot.encoderYPidCtrl != null)
+                if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
                 {
-                    robot.encoderYPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugTurnPid && robot.gyroPidCtrl != null)
+                if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
                 {
-                    robot.gyroPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
                 }
             }
         }
@@ -369,11 +412,12 @@ public class FtcAuto extends FtcOpMode
         //
         // Construct menus.
         //
-        FtcChoiceMenu<AutoStrategy> strategyMenu = new FtcChoiceMenu<>("Auto Strategies:", null);
-        FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", strategyMenu);
         FtcValueMenu startDelayMenu = new FtcValueMenu(
-            "Start delay time:", allianceMenu, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
-        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", startDelayMenu);
+            "Start delay time:", null, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
+        FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", startDelayMenu);
+        FtcChoiceMenu<AutoStrategy> strategyMenu = new FtcChoiceMenu<>("Auto Strategies:", allianceMenu);
+        FtcChoiceMenu<FreightDelivery> freightDeliveryMenu = new FtcChoiceMenu<>("Freight Delivery:", strategyMenu);
+        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", freightDeliveryMenu);
         FtcChoiceMenu<Parking>parkingMenu=new FtcChoiceMenu<>("Parking:", carouselMenu);
 
         FtcValueMenu xTargetMenu = new FtcValueMenu(
@@ -387,7 +431,7 @@ public class FtcAuto extends FtcOpMode
         FtcValueMenu drivePowerMenu = new FtcValueMenu(
             "Drive power:", strategyMenu, -1.0, 1.0, 0.1, 0.5, " %.1f");
 
-        startDelayMenu.setChildMenu(carouselMenu);
+        startDelayMenu.setChildMenu(allianceMenu);
         xTargetMenu.setChildMenu(yTargetMenu);
         yTargetMenu.setChildMenu(turnTargetMenu);
         turnTargetMenu.setChildMenu(drivePowerMenu);
@@ -395,15 +439,20 @@ public class FtcAuto extends FtcOpMode
         //
         // Populate choice menus.
         //
-        strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, allianceMenu);
-        strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, allianceMenu);
-        strategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PURE_PURSUIT_DRIVE, false);
+        allianceMenu.addChoice("Red", Alliance.RED_ALLIANCE, true, strategyMenu);
+        allianceMenu.addChoice("Blue", Alliance.BLUE_ALLIANCE, false, strategyMenu);
+
+        strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
+        strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
+        strategyMenu.addChoice("Park at Warehouse 1", AutoStrategy.PARK_AT_WAREHOUSE1, false);
+        strategyMenu.addChoice("Park at Warehouse 2", AutoStrategy.PARK_AT_WAREHOUSE2, false);
+        strategyMenu.addChoice("Park at Warehouse 3", AutoStrategy.PARK_AT_WAREHOUSE3, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, true);
 
-        allianceMenu.addChoice("Red", Alliance.RED_ALLIANCE, true, startDelayMenu);
-        allianceMenu.addChoice("Blue", Alliance.BLUE_ALLIANCE, false, startDelayMenu);
+        freightDeliveryMenu.addChoice("Do Delivery", FreightDelivery.DO_DELIVERY, true, carouselMenu);
+        freightDeliveryMenu.addChoice("No Delivery", FreightDelivery.NO_DELIVERY, false, carouselMenu);
 
         carouselMenu.addChoice("Do Carousel", Carousel.DO_CAROUSEL, true, parkingMenu);
         carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
@@ -414,13 +463,14 @@ public class FtcAuto extends FtcOpMode
         //
         // Traverse menus.
         //
-        FtcMenu.walkMenuTree(strategyMenu);
+        FtcMenu.walkMenuTree(startDelayMenu);
         //
         // Fetch choices.
         //
-        autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
-        autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
         autoChoices.startDelay = startDelayMenu.getCurrentValue();
+        autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
+        autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
+        autoChoices.freightDelivery = freightDeliveryMenu.getCurrentChoiceObject();
         autoChoices.doCarousel = carouselMenu.getCurrentChoiceObject();
         autoChoices.parking = parkingMenu.getCurrentChoiceObject();
         autoChoices.xTarget = xTargetMenu.getCurrentValue();

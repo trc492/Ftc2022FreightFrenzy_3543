@@ -29,13 +29,13 @@ import TrcCommonLib.trclib.TrcTimer;
 
 class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 {
+    private static final String moduleName = "CmdAutoFarCarousel";
+
     private enum State
     {
         START_DELAY,
         DONE
     }   //enum State
-
-    private static final String moduleName = "CmdAutoFarCarousel";
 
     private final Robot robot;
     private final FtcAuto.AutoChoices autoChoices;
@@ -82,10 +82,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        if (robot.pidDrive.isActive())
-        {
-            robot.pidDrive.cancel();
-        }
+        robot.robotDrive.cancel();
         sm.stop();
     }   //cancel
 
