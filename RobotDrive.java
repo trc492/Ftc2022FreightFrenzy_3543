@@ -182,16 +182,31 @@ public class RobotDrive
     }   //setOdometryEnabled
 
     /**
-     * This method creates a path to the given target for PurePursuitDrive.
+     * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
+     *
+     * @param xTargetLocation specifies the target location in field reference frame.
+     * @param yTargetLocation specifies the target location in field reference frame.
+     * @param heading specifies the robot end heading.
+     * @return path point to be used in PurePursuitDrive.
+     */
+    public TrcPose2D pathPoint(double xTargetLocation, double yTargetLocation, double heading)
+    {
+        return new TrcPose2D(
+            xTargetLocation*RobotParams.FULL_TILE_INCHES,
+            yTargetLocation*RobotParams.FULL_TILE_INCHES,
+            heading);
+    }   //pathPoint
+
+    /**
+     * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
      *
      * @param targetLocation specifies the target location in field reference frame.
      * @param heading specifies the robot end heading.
-     * @return path to be used in PurePursuitDrive.
+     * @return path point to be used in PurePursuitDrive.
      */
-    public TrcPose2D[] pathToTarget(Point targetLocation, double heading)
+    public TrcPose2D pathPoint(Point targetLocation, double heading)
     {
-        return new TrcPose2D[] {new TrcPose2D(
-            targetLocation.x*RobotParams.FULL_TILE_INCHES, targetLocation.y*RobotParams.FULL_TILE_INCHES, heading)};
-    }   //pathToTarget
+        return pathPoint(targetLocation.x, targetLocation.y, heading);
+    }   //pathPoint
 
 }   //class RobotDrive

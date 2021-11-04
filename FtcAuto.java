@@ -50,10 +50,11 @@ public class FtcAuto extends FtcOpMode
     {
         AUTO_NEAR_CAROUSEL,
         AUTO_FAR_CAROUSEL,
-        PARK_AT_WAREHOUSE1,
-        PARK_AT_WAREHOUSE2,
-        PARK_AT_WAREHOUSE3,
-        PARK_AT_STORAGE_UNIT,
+        PARK_AT_RED_STORAGE_UNIT,
+        PARK_AT_BLUE_STORAGE_UNIT,
+        PARK_AT_RED_CAROUSEL,
+        PARK_AT_BLUE_CAROUSEL,
+        TAKE_A_TOUR,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
@@ -196,10 +197,11 @@ public class FtcAuto extends FtcOpMode
                 }
                 break;
 
-            case PARK_AT_WAREHOUSE1:
-            case PARK_AT_WAREHOUSE2:
-            case PARK_AT_WAREHOUSE3:
-            case PARK_AT_STORAGE_UNIT:
+            case PARK_AT_RED_STORAGE_UNIT:
+            case PARK_AT_BLUE_STORAGE_UNIT:
+            case PARK_AT_RED_CAROUSEL:
+            case PARK_AT_BLUE_CAROUSEL:
+            case TAKE_A_TOUR:
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPurePursuitDrive(
@@ -273,37 +275,42 @@ public class FtcAuto extends FtcOpMode
         //
         // PurePursuitDrive requires start initialization to provide a drive path.
         //
-        if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE1)
+        robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_1);
+        TrcPose2D robotPos = robot.robotDrive.driveBase.getFieldPosition();
+        robot.arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
+        if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_STORAGE_UNIT)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                autoChoices.alliance == Alliance.RED_ALLIANCE?
-                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_1, 90.0):
-                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_1, 90.0));
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0));
         }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE2)
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                autoChoices.alliance == Alliance.RED_ALLIANCE?
-                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_2, 90.0):
-                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_2, 90.0));
+                robot.robotDrive.pathPoint(RobotParams.BLUE_STORAGE_UNIT_LOCATION, 0.0));
         }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_WAREHOUSE3)
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_CAROUSEL)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                autoChoices.alliance == Alliance.RED_ALLIANCE?
-                    robot.robotDrive.pathToTarget(RobotParams.RED_WAREHOUSE_LOCATION_3, 90.0):
-                    robot.robotDrive.pathToTarget(RobotParams.BLUE_WAREHOUSE_LOCATION_3, 90.0));
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0));
         }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_STORAGE_UNIT)
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_CAROUSEL)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                autoChoices.alliance == Alliance.RED_ALLIANCE?
-                    robot.robotDrive.pathToTarget(RobotParams.RED_STORAGE_UNIT_LOCATION, -90.0):
-                    robot.robotDrive.pathToTarget(RobotParams.BLUE_STORAGE_UNIT_LOCATION, -90.0));
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 0.0));
+        }
+        else if (autoChoices.strategy == AutoStrategy.TAKE_A_TOUR)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0),
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 180.0),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 180.0),
+                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0));
         }
     }   //startMode
 
@@ -444,9 +451,11 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
-        strategyMenu.addChoice("Park at Warehouse 1", AutoStrategy.PARK_AT_WAREHOUSE1, false);
-        strategyMenu.addChoice("Park at Warehouse 2", AutoStrategy.PARK_AT_WAREHOUSE2, false);
-        strategyMenu.addChoice("Park at Warehouse 3", AutoStrategy.PARK_AT_WAREHOUSE3, false);
+        strategyMenu.addChoice("Park at Red Storage", AutoStrategy.PARK_AT_RED_STORAGE_UNIT, false);
+        strategyMenu.addChoice("Park at Blue Storage", AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT, false);
+        strategyMenu.addChoice("Park at Red Carousel", AutoStrategy.PARK_AT_RED_CAROUSEL, false);
+        strategyMenu.addChoice("Park at Blue Carousel", AutoStrategy.PARK_AT_BLUE_CAROUSEL, false);
+        strategyMenu.addChoice("Take a tour", AutoStrategy.TAKE_A_TOUR, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, true);
