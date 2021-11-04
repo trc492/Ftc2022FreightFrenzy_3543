@@ -27,16 +27,15 @@ import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
 
-class CmdAuto implements TrcRobot.RobotCommand
+class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 {
+    private static final String moduleName = "CmdAutoFarCarousel";
+
     private enum State
     {
-        BEGIN,
         START_DELAY,
         DONE
     }   //enum State
-
-    private static final String moduleName = "CmdAuto";
 
     private final Robot robot;
     private final FtcAuto.AutoChoices autoChoices;
@@ -50,7 +49,7 @@ class CmdAuto implements TrcRobot.RobotCommand
      * @param robot specifies the robot object for providing access to various global objects.
      * @param autoChoices specifies all the choices from the autonomous menus.
      */
-    CmdAuto(Robot robot, FtcAuto.AutoChoices autoChoices)
+    CmdAutoFarCarousel(Robot robot, FtcAuto.AutoChoices autoChoices)
     {
         robot.globalTracer.traceInfo(moduleName, ">>> robot=%s, choices=%s", robot, autoChoices);
 
@@ -59,8 +58,11 @@ class CmdAuto implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        sm.start(State.BEGIN);
-    }   //CmdAutoLoadingZone3543
+        robot.robotDrive.driveBase.setFieldPosition(
+            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                RobotParams.STARTPOS_RED_2: RobotParams.STARTPOS_BLUE_2);
+        sm.start(State.START_DELAY);
+    }   //CmdAutoFarCarousel
 
     //
     // Implements the TrcRobot.RobotCommand interface.
@@ -83,11 +85,7 @@ class CmdAuto implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.setFlashLightOn(false);
-        if (robot.pidDrive.isActive())
-        {
-            robot.pidDrive.cancel();
-        }
+        robot.robotDrive.cancel();
         sm.stop();
     }   //cancel
 
@@ -114,9 +112,6 @@ class CmdAuto implements TrcRobot.RobotCommand
 
             switch (state)
             {
-                case BEGIN:
-                    break;
-
                 case START_DELAY:
                     //
                     // Do start delay if any.
@@ -153,4 +148,4 @@ class CmdAuto implements TrcRobot.RobotCommand
         return !sm.isEnabled();
     }   //cmdPeriodic
 
-}   //class CmdAuto
+}   //class CmdAutoFarCarousel

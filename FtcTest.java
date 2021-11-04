@@ -24,6 +24,8 @@ package Ftc2022FreightFrenzy_3543;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import java.util.Locale;
+
 import TrcCommonLib.command.CmdDriveMotorsTest;
 import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdPurePursuitDrive;
@@ -31,12 +33,15 @@ import TrcCommonLib.command.CmdTimedDrive;
 
 import TrcCommonLib.trclib.TrcElapsedTimer;
 import TrcCommonLib.trclib.TrcGameController;
+import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcUtil;
 import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcMenu;
+import TrcFtcLib.ftclib.FtcPidCoeffCache;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -54,6 +59,7 @@ public class FtcTest extends FtcTeleOp
     {
         SENSORS_TEST,
         SUBSYSTEMS_TEST,
+        DRIVE_SPEED_TEST,
         DRIVE_MOTORS_TEST,
         X_TIMED_DRIVE,
         Y_TIMED_DRIVE,
@@ -64,25 +70,47 @@ public class FtcTest extends FtcTeleOp
         PURE_PURSUIT_DRIVE
     }   //enum Test
 
+    /**
+     * This class stores the test menu choices.
+     */
+    private static class TestChoices
+    {
+        Test test = Test.SENSORS_TEST;
+        double xTarget = 0.0;
+        double yTarget = 0.0;
+        double turnTarget = 0.0;
+        double driveTime = 0.0;
+        double drivePower = 0.0;
+        TrcPidController.PidCoefficients tunePidCoeff = null;
+
+        @Override
+        public String toString()
+        {
+            return String.format(
+                Locale.US,
+                "test=\"%s\" " +
+                "xTarget=%.1f " +
+                "yTarget=%.1f " +
+                "turnTarget=%1f " +
+                "driveTime=%.1f " +
+                "drivePower=%.1f " +
+                "tunePidCoeff=%s",
+                test, xTarget, yTarget, turnTarget, driveTime, drivePower, tunePidCoeff);
+        }   //toString
+
+    }   //class TestChoices
+
+    private final FtcPidCoeffCache pidCoeffCache =
+        new FtcPidCoeffCache("PIDTuning", RobotParams.LOG_PATH_FOLDER);
+    private final TestChoices testChoices = new TestChoices();
     private TrcElapsedTimer elapsedTimer = null;
-    //
-    // Made the following menus static so their values will persist across different runs of PID tuning.
-    //
-    private static FtcValueMenu tuneKpMenu = null;
-    private static FtcValueMenu tuneKiMenu = null;
-    private static FtcValueMenu tuneKdMenu = null;
-    private static FtcValueMenu tuneKfMenu = null;
-    //
-    // Menu choices.
-    //
-    private Test test = Test.SENSORS_TEST;
-    private double xTarget = 0.0;
-    private double yTarget = 0.0;
-    private double turnTarget = 0.0;
-    private double driveTime = 0.0;
-    private double drivePower = 0.0;
+    private FtcChoiceMenu<Test> testMenu = null;
 
     private TrcRobot.RobotCommand testCommand = null;
+    private double maxDriveVelocity = 0.0;
+    private double maxDriveAcceleration = 0.0;
+    private double prevTime = 0.0;
+    private double prevVelocity = 0.0;
 
     //
     // Overrides FtcOpMode abstract method.
@@ -99,7 +127,7 @@ public class FtcTest extends FtcTeleOp
         // TeleOp initialization.
         //
         super.initRobot();
-        if (Robot.Preferences.useLoopPerformanceMonitor)
+        if (RobotParams.Preferences.useLoopPerformanceMonitor)
         {
             elapsedTimer = new TrcElapsedTimer("TestLoopMonitor", 2.0);
         }
@@ -107,87 +135,92 @@ public class FtcTest extends FtcTeleOp
         // Test menus.
         //
         doTestMenus();
-
-        switch (test)
+        //
+        // Create the robot command for the tests that need one.
+        //
+        switch (testChoices.test)
         {
             case DRIVE_MOTORS_TEST:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdDriveMotorsTest(
-                        new FtcDcMotor[] {robot.leftFrontWheel, robot.rightFrontWheel,
-                                          robot.leftBackWheel, robot.rightBackWheel},
+                        new FtcDcMotor[] {robot.robotDrive.leftFrontWheel, robot.robotDrive.rightFrontWheel,
+                                          robot.robotDrive.leftBackWheel, robot.robotDrive.rightBackWheel},
                         5.0, 0.5);
                 }
                 break;
 
             case X_TIMED_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdTimedDrive(
-                        robot.driveBase, 0.0, driveTime, drivePower, 0.0, 0.0);
+                        robot.robotDrive.driveBase, 0.0, testChoices.driveTime,
+                        testChoices.drivePower, 0.0, 0.0);
                 }
                 break;
 
             case Y_TIMED_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdTimedDrive(
-                        robot.driveBase, 0.0, driveTime, 0.0, drivePower, 0.0);
+                        robot.robotDrive.driveBase, 0.0, testChoices.driveTime,
+                        0.0, testChoices.drivePower, 0.0);
                 }
                 break;
 
             case PID_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, 0.0, drivePower, null,
-                        new TrcPose2D(xTarget*12.0, yTarget*12.0, turnTarget));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower, null,
+                        new TrcPose2D(testChoices.xTarget*12.0, testChoices.yTarget*12.0, testChoices.turnTarget));
                 }
                 break;
 
             case TUNE_X_PID:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, 0.0, drivePower, robot.tunePidCoeff,
-                        new TrcPose2D(xTarget*12.0, 0.0, 0.0));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(testChoices.xTarget*12.0, 0.0, 0.0));
                 }
                 break;
 
             case TUNE_Y_PID:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, 0.0, drivePower, robot.tunePidCoeff,
-                        new TrcPose2D(0.0, yTarget*12.0, 0.0));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(0.0, testChoices.yTarget*12.0, 0.0));
                 }
                 break;
 
             case TUNE_TURN_PID:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, 0.0, drivePower, robot.tunePidCoeff,
-                        new TrcPose2D(0.0, 0.0, turnTarget));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(0.0, 0.0, testChoices.turnTarget));
                 }
                 break;
 
             case PURE_PURSUIT_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPurePursuitDrive(
-                        robot.driveBase, robot.xPosPidCoeff, robot.yPosPidCoeff, robot.turnPidCoeff, robot.velPidCoeff);
+                        robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
+                        robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
                 }
                 break;
         }
         //
         // Only SENSORS_TEST and SUBSYSTEMS_TEST need TensorFlow, shut it down for all other tests.
         //
-        if (robot.tensorFlowVision != null && test != Test.SENSORS_TEST && test != Test.SUBSYSTEMS_TEST)
+        if (robot.vision != null && robot.vision.isTensorFlowInitialized() &&
+            testChoices.test != Test.SENSORS_TEST && testChoices.test != Test.SUBSYSTEMS_TEST)
         {
             robot.globalTracer.traceInfo("TestInit", "Shutting down TensorFlow.");
-            robot.tensorFlowVision.shutdown();
-            robot.tensorFlowVision = null;
+            robot.vision.tensorFlowShutdown();
         }
     }   //initRobot
 
@@ -195,34 +228,41 @@ public class FtcTest extends FtcTeleOp
     // Overrides TrcRobot.RobotMode methods.
     //
 
+    /**
+     * This method is called before test mode is about to start so it can initialize appropriate subsystems for the
+     * test.
+     *
+     * @param prevMode specifies the previous RunMode it is coming from (always null for FTC).
+     * @param nextMode specifies the next RunMode it is going into.
+     */
     @Override
     public void startMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
         super.startMode(prevMode, nextMode);
 
-        if (test == Test.SENSORS_TEST || test == Test.SUBSYSTEMS_TEST)
-        {
-            robot.setFlashLightOn(true);
-        }
-        else if (test == Test.PURE_PURSUIT_DRIVE)
+        if (testChoices.test == Test.PURE_PURSUIT_DRIVE)
         {
             //
             // Doing an infinity.
             //
             // Set the current position as the absolute field origin so the path can be an absolute path.
-            robot.driveBase.setFieldPosition(new TrcPose2D(0.0, 0.0, 0.0));
+            robot.robotDrive.driveBase.setFieldPosition(new TrcPose2D(0.0, 0.0, 0.0));
             ((CmdPurePursuitDrive)testCommand).start(
-                robot.driveBase.getFieldPosition(), false,
+                robot.robotDrive.driveBase.getFieldPosition(), false,
                 new TrcPose2D(-24.0, 0, 45.0),
                 new TrcPose2D(-24.0, 48.0, 135.0),
                 new TrcPose2D(24.0, 48.0, 225.0),
-                new TrcPose2D(0.0, 46.0, 270.0),
-                new TrcPose2D(0.0, 0.0, 0.0),
-                new TrcPose2D(-23.0, 47.0, 225.0),
+                new TrcPose2D(24.0, 0.0, 270.0),
                 new TrcPose2D(0.0, 0.0, 0.0));
         }
     }   //startMode
 
+    /**
+     * This method is called before test mode is about to exit so it can do appropriate cleanup.
+     *
+     * @param prevMode specifies the previous RunMode it is coming from.
+     * @param nextMode specifies the next RunMode it is going into (always null for FTC).
+     */
     @Override
     public void stopMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
@@ -231,35 +271,41 @@ public class FtcTest extends FtcTeleOp
             testCommand.cancel();
         }
 
-        if (test == Test.SENSORS_TEST || test == Test.SUBSYSTEMS_TEST)
-        {
-            robot.setFlashLightOn(false);
-        }
-
         super.stopMode(prevMode, nextMode);
     }   //stopMode
 
+    /**
+     * This method is called periodically during test mode to perform low frequency tasks such as teleop control or
+     * displaying status or test results.
+     *
+     * @param elapsedTime specifies the elapsed time since the mode started.
+     */
     @Override
     public void runPeriodic(double elapsedTime)
     {
         if (shouldDoTeleOp())
         {
+            //
+            // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
+            //
             super.runPeriodic(elapsedTime);
         }
 
-        switch (test)
+        switch (testChoices.test)
         {
             case SENSORS_TEST:
             case SUBSYSTEMS_TEST:
-                //
-                // Allow TeleOp to run so we can control the robot in sensors test mode.
-                //
                 doSensorsTest();
                 doVisionTest();
                 break;
         }
     }   //runPeriodic
 
+    /**
+     * This method is called continuously during test mode to execute the test command.
+     *
+     * @param elapsedTime specifies the elapsed time since the mode started.
+     */
     @Override
     public void runContinuous(double elapsedTime)
     {
@@ -267,7 +313,7 @@ public class FtcTest extends FtcTeleOp
         {
             testCommand.cmdPeriodic(elapsedTime);
 
-            if (robot.pidDrive.isActive() && (debugXPid || debugYPid || debugTurnPid))
+            if (robot.robotDrive.pidDrive.isActive() && (debugXPid || debugYPid || debugTurnPid))
             {
                 if (robot.battery != null)
                 {
@@ -275,39 +321,71 @@ public class FtcTest extends FtcTeleOp
                                                  robot.battery.getVoltage(), robot.battery.getLowestVoltage());
                 }
 
-                robot.globalTracer.traceInfo(moduleName, "RobotPose: %s", robot.driveBase.getFieldPosition());
+                robot.globalTracer.traceInfo(moduleName, "RobotPose: %s", robot.robotDrive.driveBase.getFieldPosition());
 
-                if (debugXPid && robot.encoderXPidCtrl != null)
+                if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
                 {
-                    robot.encoderXPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugYPid && robot.encoderYPidCtrl != null)
+                if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
                 {
-                    robot.encoderYPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugTurnPid && robot.gyroPidCtrl != null)
+                if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
                 {
-                    robot.gyroPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
                 }
             }
         }
 
-        switch (test)
+        switch (testChoices.test)
         {
+            case DRIVE_SPEED_TEST:
+                if (!RobotParams.Preferences.visionOnly)
+                {
+                    double currTime = TrcUtil.getCurrentTime();
+                    TrcPose2D velPose = robot.robotDrive.driveBase.getFieldVelocity();
+                    double velocity = TrcUtil.magnitude(velPose.x, velPose.y);
+                    double acceleration = 0.0;
+
+                    if (prevTime != 0.0)
+                    {
+                        acceleration = (velocity - prevVelocity)/(currTime - prevTime);
+                    }
+
+                    if (velocity > maxDriveVelocity)
+                    {
+                        maxDriveVelocity = velocity;
+                    }
+
+                    if (acceleration > maxDriveAcceleration)
+                    {
+                        maxDriveAcceleration = acceleration;
+                    }
+
+                    prevTime = currTime;
+                    prevVelocity = velocity;
+
+                    robot.dashboard.displayPrintf(8, "Drive Vel: (%.1f/%.1f)", velocity, maxDriveVelocity);
+                    robot.dashboard.displayPrintf(9, "Drive Accel: (%.1f/%.1f)", acceleration, maxDriveAcceleration);
+                }
+                break;
+
             case X_TIMED_DRIVE:
             case Y_TIMED_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
-                    robot.dashboard.displayPrintf(9, "Timed Drive: %.0f sec", driveTime);
+                    robot.dashboard.displayPrintf(8, "Timed Drive: %.0f sec", testChoices.driveTime);
                     robot.dashboard.displayPrintf(
-                        10, "xPos=%.1f,yPos=%.1f,heading=%.1f",
-                        robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading());
+                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f",
+                        robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(),
+                        robot.robotDrive.driveBase.getHeading());
                     robot.dashboard.displayPrintf(
-                        11, "raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
-                        robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
-                        robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
+                        10, "raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
+                        robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
+                        robot.robotDrive.leftBackWheel.getPosition(), robot.robotDrive.rightBackWheel.getPosition());
                 }
                 break;
 
@@ -315,29 +393,31 @@ public class FtcTest extends FtcTeleOp
             case TUNE_X_PID:
             case TUNE_Y_PID:
             case TUNE_TURN_PID:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     robot.dashboard.displayPrintf(
-                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
-                        robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
-                        robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
-                        robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
-                    if (robot.encoderXPidCtrl != null)
+                        8, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
+                        robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(),
+                        robot.robotDrive.driveBase.getHeading(),
+                        robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
+                        robot.robotDrive.leftBackWheel.getPosition(), robot.robotDrive.rightBackWheel.getPosition());
+                    if (robot.robotDrive.encoderXPidCtrl != null)
                     {
-                        robot.encoderXPidCtrl.displayPidInfo(10);
+                        robot.robotDrive.encoderXPidCtrl.displayPidInfo(9);
                     }
-                    robot.encoderYPidCtrl.displayPidInfo(12);
-                    robot.gyroPidCtrl.displayPidInfo(14);
+                    robot.robotDrive.encoderYPidCtrl.displayPidInfo(11);
+                    robot.robotDrive.gyroPidCtrl.displayPidInfo(13);
                 }
                 break;
 
             case PURE_PURSUIT_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
-                    robot.dashboard.displayPrintf(9, "Pure Pursuit Drive: %.0f sec", driveTime);
+                    robot.dashboard.displayPrintf(8, "Pure Pursuit Drive: %.0f sec", testChoices.driveTime);
                     robot.dashboard.displayPrintf(
-                        10, "xPos=%.1f,yPos=%.1f,heading=%.1f",
-                        robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading());
+                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f",
+                        robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(),
+                        robot.robotDrive.driveBase.getHeading());
                 }
                 break;
         }
@@ -346,7 +426,7 @@ public class FtcTest extends FtcTeleOp
         {
             elapsedTimer.recordPeriodTime();
             robot.dashboard.displayPrintf(
-                6, "Period: %.3f(%.3f/%.3f)",
+                15, "Period: %.3f(%.3f/%.3f)",
                 elapsedTimer.getAverageElapsedTime(), elapsedTimer.getMinElapsedTime(),
                 elapsedTimer.getMaxElapsedTime());
         }
@@ -356,6 +436,13 @@ public class FtcTest extends FtcTeleOp
     // Overrides TrcGameController.ButtonHandler in TeleOp.
     //
 
+    /**
+     * This method is called when a driver gamepad button event occurs.
+     *
+     * @param gamepad specifies the game controller object that generated the event.
+     * @param button specifies the button ID that generates the event
+     * @param pressed specifies true if the button is pressed, false otherwise.
+     */
     @Override
     public void driverButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
@@ -367,7 +454,7 @@ public class FtcTest extends FtcTeleOp
             // FtcTeleOp gamepad actions.
             //
             robot.dashboard.displayPrintf(
-                7, "%s: %04x->%s", gamepad.toString(), button, pressed ? "Pressed" : "Released");
+                7, "%s: %04x->%s", gamepad, button, pressed ? "Pressed" : "Released");
             switch (button)
             {
                 case FtcGamepad.GAMEPAD_DPAD_UP:
@@ -392,6 +479,13 @@ public class FtcTest extends FtcTeleOp
         }
     }   //driverButtonEvent
 
+    /**
+     * This method is called when an operator gamepad button event occurs.
+     *
+     * @param gamepad specifies the game controller object that generated the event.
+     * @param button specifies the button ID that generates the event
+     * @param pressed specifies true if the button is pressed, false otherwise.
+     */
     @Override
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
@@ -403,7 +497,7 @@ public class FtcTest extends FtcTeleOp
             // FtcTeleOp gamepad actions.
             //
             robot.dashboard.displayPrintf(
-                7, "%s: %04x->%s", gamepad.toString(), button, pressed ? "Pressed" : "Released");
+                7, "%s: %04x->%s", gamepad, button, pressed ? "Pressed" : "Released");
             switch (button)
             {
                 case FtcGamepad.GAMEPAD_DPAD_UP:
@@ -428,12 +522,15 @@ public class FtcTest extends FtcTeleOp
         }
     }   //operatorButtonEvent
 
+    /**
+     * This method creates and displays the test menus and record the selected choices.
+     */
     private void doTestMenus()
     {
         //
         // Create menus.
         //
-        FtcChoiceMenu<Test> testMenu = new FtcChoiceMenu<>("Tests:", null);
+        testMenu = new FtcChoiceMenu<>("Tests:", null);
         FtcValueMenu xTargetMenu = new FtcValueMenu(
             "xTarget:", testMenu, -10.0, 10.0, 0.5, 0.0, " %.1f ft");
         FtcValueMenu yTargetMenu = new FtcValueMenu(
@@ -445,35 +542,20 @@ public class FtcTest extends FtcTeleOp
         FtcValueMenu drivePowerMenu = new FtcValueMenu(
             "Drive power:", testMenu, -1.0, 1.0, 0.1, 0.5, " %.1f");
 
-        if (tuneKpMenu == null)
-        {
-            tuneKpMenu = new FtcValueMenu(
-                "Kp:", testMenu, 0.0, 1.0, 0.001, robot.tunePidCoeff.kP, " %f");
-        }
-
-        if (tuneKiMenu == null)
-        {
-            tuneKiMenu = new FtcValueMenu(
-                "Ki:", testMenu, 0.0, 1.0, 0.0001, robot.tunePidCoeff.kI, " %f");
-        }
-
-        if (tuneKdMenu == null)
-        {
-            tuneKdMenu = new FtcValueMenu(
-                "Kd:", testMenu, 0.0, 1.0, 0.0001, robot.tunePidCoeff.kD, " %f");
-        }
-
-        if (tuneKfMenu == null)
-        {
-            tuneKfMenu = new FtcValueMenu(
-                "Kf:", testMenu, 0.0, 1.0, 0.001, robot.tunePidCoeff.kF, " %f");
-        }
-
+        FtcValueMenu tuneKpMenu = new FtcValueMenu(
+            "Kp:", testMenu, 0.0, 1.0, 0.001, this::getTuneKp, " %f");
+        FtcValueMenu tuneKiMenu = new FtcValueMenu(
+            "Ki:", testMenu, 0.0, 1.0, 0.0001, this::getTuneKi, " %f");
+        FtcValueMenu tuneKdMenu = new FtcValueMenu(
+            "Kd:", testMenu, 0.0, 1.0, 0.0001, this::getTuneKd, " %f");
+        FtcValueMenu tuneKfMenu = new FtcValueMenu(
+            "Kf:", testMenu, 0.0, 1.0, 0.001, this::getTuneKf, " %f");
         //
         // Populate menus.
         //
         testMenu.addChoice("Sensors test", Test.SENSORS_TEST, true);
         testMenu.addChoice("Subsystems test", Test.SUBSYSTEMS_TEST, false);
+        testMenu.addChoice("Drive speed test", Test.DRIVE_SPEED_TEST, false);
         testMenu.addChoice("Motors test", Test.DRIVE_MOTORS_TEST, false);
         testMenu.addChoice("X Timed drive", Test.X_TIMED_DRIVE, false, driveTimeMenu);
         testMenu.addChoice("Y Timed drive", Test.Y_TIMED_DRIVE, false, driveTimeMenu);
@@ -490,7 +572,6 @@ public class FtcTest extends FtcTeleOp
         tuneKpMenu.setChildMenu(tuneKiMenu);
         tuneKiMenu.setChildMenu(tuneKdMenu);
         tuneKdMenu.setChildMenu(tuneKfMenu);
-
         //
         // Traverse menus.
         //
@@ -498,17 +579,133 @@ public class FtcTest extends FtcTeleOp
         //
         // Fetch choices.
         //
-        test = testMenu.getCurrentChoiceObject();
-        xTarget = xTargetMenu.getCurrentValue();
-        yTarget = yTargetMenu.getCurrentValue();
-        turnTarget = turnTargetMenu.getCurrentValue();
-        driveTime = driveTimeMenu.getCurrentValue();
-        drivePower = drivePowerMenu.getCurrentValue();
+        testChoices.test = testMenu.getCurrentChoiceObject();
+        testChoices.xTarget = xTargetMenu.getCurrentValue();
+        testChoices.yTarget = yTargetMenu.getCurrentValue();
+        testChoices.turnTarget = turnTargetMenu.getCurrentValue();
+        testChoices.driveTime = driveTimeMenu.getCurrentValue();
+        testChoices.drivePower = drivePowerMenu.getCurrentValue();
+        testChoices.tunePidCoeff = new TrcPidController.PidCoefficients(
+            tuneKpMenu.getCurrentValue(), tuneKiMenu.getCurrentValue(),
+            tuneKdMenu.getCurrentValue(),tuneKfMenu.getCurrentValue());
+
+        TrcPidController tunePidCtrl = getTunePidController(testChoices.test);
+        if (tunePidCtrl != null)
+        {
+            //
+            // Write the user input PID coefficients to a cache file so tune PID menu can read them as default value
+            // next time.
+            //
+            pidCoeffCache.writeCachedPidCoeff(tunePidCtrl, testChoices.tunePidCoeff);
+        }
         //
         // Show choices.
         //
-        robot.dashboard.displayPrintf(0, "Test: %s", testMenu.getCurrentChoiceText());
+        robot.dashboard.displayPrintf(0, "Test Choices: %s", testChoices);
     }   //doTestMenus
+
+    /**
+     * This method returns the PID controller for the tune test.
+     *
+     * @param test specifies the selected test.
+     * @return tune PID controller.
+     */
+    private TrcPidController getTunePidController(Test test)
+    {
+        TrcPidController pidCtrl;
+
+        switch (test)
+        {
+            case TUNE_X_PID:
+                pidCtrl = robot.robotDrive.encoderXPidCtrl;
+                break;
+
+            case TUNE_Y_PID:
+                pidCtrl = robot.robotDrive.encoderYPidCtrl;
+                break;
+
+            case TUNE_TURN_PID:
+                pidCtrl = robot.robotDrive.gyroPidCtrl;
+                break;
+
+            default:
+                pidCtrl = null;
+        }
+
+        return pidCtrl;
+    }   //getTunePidController
+
+    /**
+     * This method is called by the tuneKpMenu to get the default value to be displayed as the starting value.
+     *
+     * @return current Kp of the X PID controller.
+     */
+    private double getTuneKp()
+    {
+        double value = 0.0;
+        TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
+
+        if (tunePidCtrl != null)
+        {
+            value = pidCoeffCache.getCachedPidCoeff(tunePidCtrl).kP;
+        }
+
+        return value;
+    }   //getTuneKp
+
+    /**
+     * This method is called by the tuneKiMenu to get the default value to be displayed as the starting value.
+     *
+     * @return current Ki of the X PID controller.
+     */
+    double getTuneKi()
+    {
+        double value = 0.0;
+        TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
+
+        if (tunePidCtrl != null)
+        {
+            value = pidCoeffCache.getCachedPidCoeff(tunePidCtrl).kI;
+        }
+
+        return value;
+    }   //getTuneKi
+
+    /**
+     * This method is called by the tuneKdMenu to get the default value to be displayed as the starting value.
+     *
+     * @return current Kd of the X PID controller.
+     */
+    double getTuneKd()
+    {
+        double value = 0.0;
+        TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
+
+        if (tunePidCtrl != null)
+        {
+            value = pidCoeffCache.getCachedPidCoeff(tunePidCtrl).kD;
+        }
+
+        return value;
+    }   //getTuneKd
+
+    /**
+     * This method is called by the tuneKfMenu to get the default value to be displayed as the starting value.
+     *
+     * @return current Kf of the X PID controller.
+     */
+    double getTuneKf()
+    {
+        double value = 0.0;
+        TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
+
+        if (tunePidCtrl != null)
+        {
+            value = pidCoeffCache.getCachedPidCoeff(tunePidCtrl).kF;
+        }
+
+        return value;
+    }   //getTuneKF
 
     /**
      * This method reads all sensors and prints out their values. This is a very useful diagnostic tool to check
@@ -522,48 +719,59 @@ public class FtcTest extends FtcTeleOp
         // Read all sensors and display on the dashboard.
         // Drive the robot around to sample different locations of the field.
         //
-        if (!Robot.Preferences.visionOnly)
+        if (!RobotParams.Preferences.visionOnly)
         {
             robot.dashboard.displayPrintf(
-                9, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
-                robot.leftFrontWheel.getPosition(), robot.rightFrontWheel.getPosition(),
-                robot.leftBackWheel.getPosition(), robot.rightBackWheel.getPosition());
+                8, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
+                robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
+                robot.robotDrive.leftBackWheel.getPosition(), robot.robotDrive.rightBackWheel.getPosition());
         }
 
-        if (robot.gyro != null)
+        if (robot.robotDrive.gyro != null)
         {
             robot.dashboard.displayPrintf(
-                10, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
-                robot.gyro.getZRotationRate().value, robot.gyro.getZHeading().value);
+                9, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
+                robot.robotDrive.gyro.getZRotationRate().value, robot.robotDrive.gyro.getZHeading().value);
+        }
+
+        if (robot.arm != null)
+        {
+            robot.dashboard.displayPrintf(
+                10, LABEL_WIDTH, "Arm: ", "pos=%.0f,lowLimit=%s,upLimit=%s",
+                robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(), robot.arm.isUpperLimitSwitchActive());
         }
     }   //doSensorsTest
 
+    /**
+     * This method calls vision code to detect target objects and display their info.
+     */
     private void doVisionTest()
     {
-        if (robot.vuforiaVision != null)
+        if (robot.vision != null)
         {
-            TrcPose2D robotPose = robot.vuforiaVision.getRobotPose(null, false);
-            robot.dashboard.displayPrintf(12, "RobotLocation %s: %s",
-                                          robot.vuforiaVision.getLastSeenImageName(), robotPose);
-        }
-
-        if (robot.tensorFlowVision != null)
-        {
-            TensorFlowVision.TargetInfo[] targetInfo = robot.tensorFlowVision.getDetectedTargetsInfo(null);
-            if (targetInfo != null && targetInfo.length > 0)
+            if (robot.vision.isVuforiaInitialized())
             {
-                for (int i = 0; i < targetInfo.length; i++)
-                {
-                    robot.dashboard.displayPrintf(
-                        12 + i, "%s", targetInfo[i]);
-                }
+                TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
+                robot.dashboard.displayPrintf(11, "RobotLocation %s: %s",
+                                              robot.vision.getLastSeenVuforiaImageName(), robotPose);
+            }
+
+            if (robot.vision.isTensorFlowInitialized())
+            {
+                robot.vision.getCurrentDuckPositions();
             }
         }
     }   //doVisionTest
 
+    /**
+     * This method is called to determine if Test mode is allowed to do teleop control of the robot.
+     *
+     * @return true to allow and false otherwise.
+     */
     private boolean shouldDoTeleOp()
     {
-        return !Robot.Preferences.visionOnly && test == Test.SUBSYSTEMS_TEST;
+        return !RobotParams.Preferences.visionOnly &&
+               (testChoices.test == Test.SUBSYSTEMS_TEST || testChoices.test == Test.DRIVE_SPEED_TEST);
     }   //shouldDoTeleOp
 
 }   //class FtcTest

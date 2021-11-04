@@ -30,12 +30,12 @@ import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 
-import java.util.Date;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcFtcLib.ftclib.FtcChoiceMenu;
+import TrcFtcLib.ftclib.FtcMatchInfo;
 import TrcFtcLib.ftclib.FtcMenu;
 import TrcFtcLib.ftclib.FtcOpMode;
 import TrcFtcLib.ftclib.FtcValueMenu;
@@ -46,34 +46,15 @@ import TrcFtcLib.ftclib.FtcValueMenu;
 @Autonomous(name="FtcAutonomous", group="Ftc3543")
 public class FtcAuto extends FtcOpMode
 {
-    public enum MatchType
-    {
-        PRACTICE,
-        QUALIFICATION,
-        SEMI_FINAL,
-        FINAL
-    }   //enum MatchType
-
-    /**
-     * This class stores the match info.
-     */
-    public static class MatchInfo
-    {
-        Date matchDate;
-        MatchType matchType;
-        int matchNumber;
-
-        public String toString()
-        {
-            return String.format(
-                Locale.US, "date=\"%s\" type=\"%s\" number=%d", matchDate, matchType, matchNumber);
-        }   //toString
-    }   //class MatchInfo
-
     public enum AutoStrategy
     {
-        DO_AUTONOMOUS,
-        PURE_PURSUIT_DRIVE,
+        AUTO_NEAR_CAROUSEL,
+        AUTO_FAR_CAROUSEL,
+        PARK_AT_RED_STORAGE_UNIT,
+        PARK_AT_BLUE_STORAGE_UNIT,
+        PARK_AT_RED_CAROUSEL,
+        PARK_AT_BLUE_CAROUSEL,
+        TAKE_A_TOUR,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
@@ -85,11 +66,11 @@ public class FtcAuto extends FtcOpMode
         BLUE_ALLIANCE
     }   //enum Alliance
 
-    public enum StartPos
+    public enum FreightDelivery
     {
-        CLOSE_TO_CAROUSEL,
-        FAR_FROM_CAROUSEL
-    }   //enum StartPos
+        DO_DELIVERY,
+        NO_DELIVERY
+    }   //enum FreightDelivery
 
     public enum Carousel
     {
@@ -109,12 +90,13 @@ public class FtcAuto extends FtcOpMode
      */
     public static class AutoChoices
     {
-        AutoStrategy strategy = AutoStrategy.DO_NOTHING;
-        Alliance alliance = Alliance.RED_ALLIANCE;
         double startDelay = 0.0;
-        StartPos startPos = StartPos.CLOSE_TO_CAROUSEL;
-        Carousel doCarousel = Carousel.NO_CAROUSEL;
-        Parking parking = Parking.NO_PARKING;
+        Alliance alliance = Alliance.RED_ALLIANCE;
+        AutoStrategy strategy = AutoStrategy.AUTO_NEAR_CAROUSEL;
+        FreightDelivery freightDelivery = FreightDelivery.DO_DELIVERY;
+        Carousel doCarousel = Carousel.DO_CAROUSEL;
+        //before doing carousel in cmd near auto check if it did carousel
+        Parking parking = Parking.WAREHOUSE_PARKING;
         double xTarget = 0.0;
         double yTarget = 0.0;
         double turnTarget = 0.0;
@@ -126,10 +108,10 @@ public class FtcAuto extends FtcOpMode
         {
             return String.format(
                 Locale.US,
-                "strategy=\"%s\" " +
-                "alliance=\"%s\" " +
                 "startDelay=%.0f " +
-                "startPos=\"%s\" " +
+                "alliance=\"%s\" " +
+                "strategy=\"%s\" " +
+                "freightDelivery=\"%s\" " +
                 "doCarousel=\"%s\" " +
                 "parking=\"%s\" " +
                 "xTarget=%.1f " +
@@ -137,9 +119,10 @@ public class FtcAuto extends FtcOpMode
                 "turnTarget=%.0f " +
                 "driveTime=%.0f " +
                 "drivePower=%.1f",
-                strategy, alliance, startDelay, startPos, doCarousel, parking,
+                startDelay, alliance, strategy, freightDelivery, doCarousel, parking,
                 xTarget, yTarget, turnTarget, driveTime, drivePower);
         }   //toString
+
     }   //class AutoChoices
 
     private static final String moduleName = "FtcAuto";
@@ -149,7 +132,7 @@ public class FtcAuto extends FtcOpMode
     private static final boolean debugTurnPid = true;
 
     private Robot robot;
-    private MatchInfo matchInfo;
+    private FtcMatchInfo matchInfo;
     private final AutoChoices autoChoices = new AutoChoices();
     private TrcRobot.RobotCommand autoCommand = null;
 
@@ -167,65 +150,69 @@ public class FtcAuto extends FtcOpMode
     {
         //
         // Create and initialize robot object.
-        //
+        // calls hardware, subsystems, etc.
         robot = new Robot(TrcRobot.getRunMode());
         //
         // Open trace log.
         //
-        if (Robot.Preferences.useTraceLog)
+        if (RobotParams.Preferences.useTraceLog)
         {
-            matchInfo = new MatchInfo();
-            doMatchInfoMenus();
+            matchInfo = FtcMatchInfo.getMatchInfo();
             String filePrefix = String.format(Locale.US, "%s%02d", matchInfo.matchType, matchInfo.matchNumber);
-            robot.globalTracer.openTraceLog("/sdcard/FIRST/tracelog", filePrefix);
+            robot.globalTracer.openTraceLog(RobotParams.LOG_PATH_FOLDER, filePrefix);
         }
         //
         // Create and run choice menus.
         //
         doAutoChoicesMenus();
 
-        robot.driveBase.setFieldPosition(
-            autoChoices.alliance == Alliance.RED_ALLIANCE && autoChoices.startPos == StartPos.CLOSE_TO_CAROUSEL?
-                RobotInfo.STARTPOS_RED_1:
-            autoChoices.alliance == Alliance.RED_ALLIANCE && autoChoices.startPos == StartPos.FAR_FROM_CAROUSEL?
-                RobotInfo.STARTPOS_RED_2:
-            autoChoices.alliance == Alliance.BLUE_ALLIANCE && autoChoices.startPos == StartPos.CLOSE_TO_CAROUSEL?
-                RobotInfo.STARTPOS_BLUE_1: RobotInfo.STARTPOS_BLUE_2);
-
         //
         // Create autonomous command according to chosen strategy.
         //
         switch (autoChoices.strategy)
         {
-            case DO_AUTONOMOUS:
-                if (!Robot.Preferences.visionOnly)
+            case AUTO_NEAR_CAROUSEL:
+                if (!RobotParams.Preferences.visionOnly)
                 {
-                    autoCommand = new CmdAuto(robot, autoChoices);
+                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
                 }
                 break;
 
-            case PURE_PURSUIT_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+            case AUTO_FAR_CAROUSEL:
+                if (!RobotParams.Preferences.visionOnly)
+                {
+                    autoCommand = new CmdAutoFarCarousel(robot, autoChoices);
+                }
+                break;
+
+            case PARK_AT_RED_STORAGE_UNIT:
+            case PARK_AT_BLUE_STORAGE_UNIT:
+            case PARK_AT_RED_CAROUSEL:
+            case PARK_AT_BLUE_CAROUSEL:
+            case TAKE_A_TOUR:
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPurePursuitDrive(
-                        robot.driveBase, robot.xPosPidCoeff, robot.yPosPidCoeff, robot.turnPidCoeff, robot.velPidCoeff);
+                        robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
+                        robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
                 }
                 break;
 
             case PID_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPidDrive(
-                        robot.driveBase, robot.pidDrive, autoChoices.startDelay, autoChoices.drivePower, null,
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.startDelay,
+                        autoChoices.drivePower, null,
                         new TrcPose2D(autoChoices.xTarget*12.0, autoChoices.yTarget*12.0, autoChoices.turnTarget));
                 }
                 break;
 
             case TIMED_DRIVE:
-                if (!Robot.Preferences.visionOnly)
+                if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdTimedDrive(
-                        robot.driveBase, autoChoices.startDelay, autoChoices.driveTime,
+                        robot.robotDrive.driveBase, autoChoices.startDelay, autoChoices.driveTime,
                         0.0, autoChoices.drivePower, 0.0);
                 }
                 break;
@@ -254,7 +241,7 @@ public class FtcAuto extends FtcOpMode
     {
         robot.dashboard.clearDisplay();
 
-        if (Robot.Preferences.useTraceLog)
+        if (RobotParams.Preferences.useTraceLog)
         {
             robot.globalTracer.setTraceLogEnabled(true);
         }
@@ -273,14 +260,44 @@ public class FtcAuto extends FtcOpMode
         {
             robot.battery.setEnabled(true);
         }
-
-        if (autoChoices.strategy == AutoStrategy.PURE_PURSUIT_DRIVE)
+        //
+        // PurePursuitDrive requires start initialization to provide a drive path.
+        //
+        robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_1);
+        robot.arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
+        if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_STORAGE_UNIT)
         {
-            //
-            // PurePursuitDrive requires start initialization to provide a drive path.
-            //
             ((CmdPurePursuitDrive)autoCommand).start(
-                robot.driveBase.getFieldPosition(), true, RobotInfo.PURE_PURSUIT_PATH);
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.BLUE_STORAGE_UNIT_LOCATION, 0.0, true));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_CAROUSEL)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true));
+        }
+        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_CAROUSEL)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 0.0, true));
+        }
+        else if (autoChoices.strategy == AutoStrategy.TAKE_A_TOUR)
+        {
+            ((CmdPurePursuitDrive)autoCommand).start(
+                robot.robotDrive.driveBase.getFieldPosition(), false,
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true),
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 180.0, true),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 180.0, true),
+                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0, true));
         }
     }   //startMode
 
@@ -320,6 +337,19 @@ public class FtcAuto extends FtcOpMode
     }   //stopMode
 
     /**
+     * This method is called periodically after initRobot() is called but before competition starts. For this season,
+     * we are detecting the duck's barcode position before the match starts.
+     */
+    @Override
+    public void initPeriodic()
+    {
+        if (robot.vision != null && robot.vision.isTensorFlowInitialized())
+        {
+            robot.vision.getCurrentDuckPositions();
+        }
+    }   //initPeriodic
+
+    /**
      * This method is called periodically as fast as the control system allows. Typically, you put code that requires
      * servicing at a higher frequency here. To make the robot as responsive and as accurate as possible especially
      * in autonomous mode, you will typically put that code here.
@@ -336,7 +366,7 @@ public class FtcAuto extends FtcOpMode
             //
             autoCommand.cmdPeriodic(elapsedTime);
 
-            if (robot.pidDrive.isActive() && (logEvents || debugXPid || debugYPid || debugTurnPid))
+            if (robot.robotDrive.pidDrive.isActive() && (logEvents || debugXPid || debugYPid || debugTurnPid))
             {
                 if (robot.battery != null)
                 {
@@ -347,59 +377,26 @@ public class FtcAuto extends FtcOpMode
                 if (logEvents)
                 {
                     robot.globalTracer.logEvent(moduleName, "RobotPose", "pose=\"%s\"",
-                                                robot.driveBase.getFieldPosition().toString());
+                                                robot.robotDrive.driveBase.getFieldPosition());
                 }
 
-                if (debugXPid && robot.encoderXPidCtrl != null)
+                if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
                 {
-                    robot.encoderXPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugYPid && robot.encoderYPidCtrl != null)
+                if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
                 {
-                    robot.encoderYPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
                 }
 
-                if (debugTurnPid && robot.gyroPidCtrl != null)
+                if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
                 {
-                    robot.gyroPidCtrl.printPidInfo(robot.globalTracer);
+                    robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
                 }
             }
         }
     }   //runContinuous
-
-    /**
-     * This method creates the MatchInfo menus, displays them and stores the choices.
-     */
-    private void doMatchInfoMenus()
-    {
-        if (matchInfo != null)
-        {
-            //
-            // Construct menus.
-            //
-            FtcChoiceMenu<MatchType> matchTypeMenu = new FtcChoiceMenu<>("Match type:", null);
-            FtcValueMenu matchNumberMenu = new FtcValueMenu(
-                "Match number:", matchTypeMenu, 1.0, 50.0, 1.0, 1.0, "%.0f");
-            //
-            // Populate choice menus.
-            //
-            matchTypeMenu.addChoice("Practice", MatchType.PRACTICE, true, matchNumberMenu);
-            matchTypeMenu.addChoice("Qualification", MatchType.QUALIFICATION, false, matchNumberMenu);
-            matchTypeMenu.addChoice("Semi-final", MatchType.SEMI_FINAL, false, matchNumberMenu);
-            matchTypeMenu.addChoice("Final", MatchType.FINAL, false, matchNumberMenu);
-            //
-            // Traverse menus.
-            //
-            FtcMenu.walkMenuTree(matchTypeMenu);
-            //
-            // Fetch choices.
-            //
-            matchInfo.matchDate = new Date();
-            matchInfo.matchType = matchTypeMenu.getCurrentChoiceObject();
-            matchInfo.matchNumber = (int)matchNumberMenu.getCurrentValue();
-        }
-    }   //doMatchInfoMenus
 
     /**
      * This method creates the autonomous menus, displays them and stores the choices.
@@ -409,12 +406,12 @@ public class FtcAuto extends FtcOpMode
         //
         // Construct menus.
         //
-        FtcChoiceMenu<AutoStrategy> strategyMenu = new FtcChoiceMenu<>("Auto Strategies:", null);
-        FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", strategyMenu);
         FtcValueMenu startDelayMenu = new FtcValueMenu(
-            "Start delay time:", allianceMenu, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
-        FtcChoiceMenu<StartPos>startPosMenu=new FtcChoiceMenu<>("Start Position:", startDelayMenu);
-        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", startPosMenu);
+            "Start delay time:", null, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
+        FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", startDelayMenu);
+        FtcChoiceMenu<AutoStrategy> strategyMenu = new FtcChoiceMenu<>("Auto Strategies:", allianceMenu);
+        FtcChoiceMenu<FreightDelivery> freightDeliveryMenu = new FtcChoiceMenu<>("Freight Delivery:", strategyMenu);
+        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", freightDeliveryMenu);
         FtcChoiceMenu<Parking>parkingMenu=new FtcChoiceMenu<>("Parking:", carouselMenu);
 
         FtcValueMenu xTargetMenu = new FtcValueMenu(
@@ -428,7 +425,7 @@ public class FtcAuto extends FtcOpMode
         FtcValueMenu drivePowerMenu = new FtcValueMenu(
             "Drive power:", strategyMenu, -1.0, 1.0, 0.1, 0.5, " %.1f");
 
-        startDelayMenu.setChildMenu(startPosMenu);
+        startDelayMenu.setChildMenu(allianceMenu);
         xTargetMenu.setChildMenu(yTargetMenu);
         yTargetMenu.setChildMenu(turnTargetMenu);
         turnTargetMenu.setChildMenu(drivePowerMenu);
@@ -436,17 +433,22 @@ public class FtcAuto extends FtcOpMode
         //
         // Populate choice menus.
         //
-        strategyMenu.addChoice("Do Autonomous", AutoStrategy.DO_AUTONOMOUS, true, allianceMenu);
-        strategyMenu.addChoice("Pure Pursuit Drive", AutoStrategy.PURE_PURSUIT_DRIVE, false);
+        allianceMenu.addChoice("Red", Alliance.RED_ALLIANCE, true, strategyMenu);
+        allianceMenu.addChoice("Blue", Alliance.BLUE_ALLIANCE, false, strategyMenu);
+
+        strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
+        strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
+        strategyMenu.addChoice("Park at Red Storage", AutoStrategy.PARK_AT_RED_STORAGE_UNIT, false);
+        strategyMenu.addChoice("Park at Blue Storage", AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT, false);
+        strategyMenu.addChoice("Park at Red Carousel", AutoStrategy.PARK_AT_RED_CAROUSEL, false);
+        strategyMenu.addChoice("Park at Blue Carousel", AutoStrategy.PARK_AT_BLUE_CAROUSEL, false);
+        strategyMenu.addChoice("Take a tour", AutoStrategy.TAKE_A_TOUR, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, true);
 
-        allianceMenu.addChoice("Red", Alliance.RED_ALLIANCE, true, startDelayMenu);
-        allianceMenu.addChoice("Blue", Alliance.BLUE_ALLIANCE, false, startDelayMenu);
-
-        startPosMenu.addChoice("Close to Carousel", StartPos.CLOSE_TO_CAROUSEL, true, carouselMenu);
-        startPosMenu.addChoice("Far from Carousel", StartPos.FAR_FROM_CAROUSEL, false, carouselMenu);
+        freightDeliveryMenu.addChoice("Do Delivery", FreightDelivery.DO_DELIVERY, true, carouselMenu);
+        freightDeliveryMenu.addChoice("No Delivery", FreightDelivery.NO_DELIVERY, false, carouselMenu);
 
         carouselMenu.addChoice("Do Carousel", Carousel.DO_CAROUSEL, true, parkingMenu);
         carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
@@ -457,14 +459,14 @@ public class FtcAuto extends FtcOpMode
         //
         // Traverse menus.
         //
-        FtcMenu.walkMenuTree(strategyMenu);
+        FtcMenu.walkMenuTree(startDelayMenu);
         //
         // Fetch choices.
         //
-        autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
-        autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
         autoChoices.startDelay = startDelayMenu.getCurrentValue();
-        autoChoices.startPos = startPosMenu.getCurrentChoiceObject();
+        autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
+        autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
+        autoChoices.freightDelivery = freightDeliveryMenu.getCurrentChoiceObject();
         autoChoices.doCarousel = carouselMenu.getCurrentChoiceObject();
         autoChoices.parking = parkingMenu.getCurrentChoiceObject();
         autoChoices.xTarget = xTargetMenu.getCurrentValue();

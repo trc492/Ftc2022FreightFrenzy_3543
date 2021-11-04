@@ -23,38 +23,19 @@
 package Ftc2022FreightFrenzy_3543;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDigitalInput;
-import TrcCommonLib.trclib.TrcDriveBase;
-import TrcCommonLib.trclib.TrcDriveBaseOdometry;
-import TrcCommonLib.trclib.TrcGyro;
-import TrcCommonLib.trclib.TrcHomographyMapper;
-import TrcCommonLib.trclib.TrcMecanumDriveBase;
 import TrcCommonLib.trclib.TrcMotor;
-import TrcCommonLib.trclib.TrcPidController;
-import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPose2D;
-import TrcCommonLib.trclib.TrcRevBlinkin;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
-import TrcCommonLib.trclib.TrcUtil;
-import TrcFtcLib.ftclib.FtcBNO055Imu;
 import TrcFtcLib.ftclib.FtcDashboard;
 import TrcFtcLib.ftclib.FtcOpMode;
 import TrcFtcLib.ftclib.FtcRevBlinkin;
 import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
-import TrcFtcLib.ftclib.FtcVuforia;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import java.util.Locale;
 
@@ -64,45 +45,9 @@ import java.util.Locale;
 public class Robot
 {
     //
-    // Preferences and parameters.
-    //
-    public static class Preferences
-    {
-        static boolean visionOnly = true;
-        static boolean initSubsystems = true;
-        static boolean useExternalOdometry = false;
-        static boolean hasElevator = false;
-        static boolean hasBlinkin = false;
-        static boolean useVuforia = false;
-        static boolean showVuforiaView = false;
-        static boolean useTensorFlow = true;
-        static boolean showTensorFlowView = true;
-        static boolean useBlinkinFlashLight = false;
-        static boolean useTraceLog = true;
-        static boolean useBatteryMonitor = true;
-        static boolean useLoopPerformanceMonitor = true;
-        static boolean useVelocityControl = false;
-    }   //class Preferences
-
-    private static class CameraParameters
-    {
-        static double cameraFrontOffset = RobotInfo.CAMERA_FRONT_OFFSET;
-        static double cameraLeftOffset = RobotInfo.CAMERA_LEFT_OFFSET;
-        static double cameraHeightOffset = RobotInfo.CAMERA_HEIGHT_OFFSET;
-        static boolean extendedTracking = false;
-        static VuforiaLocalizer.Parameters.CameraMonitorFeedback cameraMonitorFeedback =
-            VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
-    }   //class CameraParameters
-
-    public enum DriveMode
-    {
-        TANK_MODE,
-        HOLONOMIC_MODE,
-    }   //enum DriveMode
-
-    //
     // Global objects.
     //
+    private static final String ROBOT_NAME = "Robot3543";
     private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
     public FtcOpMode opMode;
     public FtcDashboard dashboard;
@@ -110,42 +55,20 @@ public class Robot
     //
     // Vision subsystems.
     //
-    public FtcVuforia vuforia;
-    public VuforiaVision vuforiaVision;
-    public TensorFlowVision tensorFlowVision;
+    public Vision vision;
     //
     // Sensors and indicators.
     //
     public FtcRobotBattery battery;
     public FtcRevBlinkin blinkin;
-    public FtcBNO055Imu imu;
-    public TrcGyro gyro;
-    //
-    // DriveBase subsystem.
-    //
-    public FtcDcMotor leftFrontWheel = null;
-    public FtcDcMotor rightFrontWheel = null;
-    public FtcDcMotor leftBackWheel = null;
-    public FtcDcMotor rightBackWheel = null;
-
-    public TrcDriveBase driveBase = null;
-    public DriveMode driveMode = DriveMode.HOLONOMIC_MODE;
-    public TrcPidController encoderXPidCtrl = null;
-    public TrcPidController encoderYPidCtrl = null;
-    public TrcPidController gyroPidCtrl = null;
-    public TrcPidDrive pidDrive = null;
-
-    // Pure Pursuit PID controllers.
-    public TrcPidController.PidCoefficients xPosPidCoeff = null;
-    public TrcPidController.PidCoefficients yPosPidCoeff = null;
-    public TrcPidController.PidCoefficients turnPidCoeff = null;
-    public TrcPidController.PidCoefficients velPidCoeff = null;
-
-    public TrcPidController.PidCoefficients tunePidCoeff = new TrcPidController.PidCoefficients();
     //
     // Subsystems.
     //
-    public FtcMotorActuator elevator = null;
+    public RobotDrive robotDrive = null;
+    public FtcMotorActuator arm = null;
+    public FtcDcMotor intake = null;
+    public FtcDcMotor spinner = null;
+    public OdometryWheelDeployer odwDeployer = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -166,45 +89,36 @@ public class Robot
                 .findViewById(com.qualcomm.ftcrobotcontroller.R.id.textOpMode));
         globalTracer = TrcDbgTrace.getGlobalTracer();
         //
+        // Vision may use blinkin, so we must instantiate it before vision. However, if we are doing vision only, we
+        // don't have robot hardware thus no blinkin either.
+        //
+        if (RobotParams.Preferences.useBlinkin && !RobotParams.Preferences.visionOnly)
+        {
+            blinkin = new FtcRevBlinkin(RobotParams.HWNAME_BLINKIN);
+        }
+        //
         // Initialize vision subsystems.
         //
-        if (Preferences.useVuforia || Preferences.useTensorFlow)
+        if (RobotParams.Preferences.useVuforia || RobotParams.Preferences.useTensorFlow)
         {
-            final String VUFORIA_LICENSE_KEY =
-                "ARbBwjf/////AAABmZijKPKUWEY+uNSzCuTOUFgm7Gr5irDO55gtIOjsOXmhLzLEILJp45qdPrwMfoBV2Yh7F+Wh8iEjnSA" +
-                "NnnRKiJNHy1T9Pr2uufETE40YJth10Twv0sTNSEqxDPhg2t4PJXwRImMaEsTE53fmcm08jT9qMso2+1h9eNk2b4x6DVKgBt" +
-                "Tv5wocDs949Gkh6lRt5rAxATYYO9esmyKyfyzfFLMMpfq7/uvQQrSibNBqa13hJRmmHoM2v0Gfk8TCTTfP044/XsOm54u8k" +
-                "dv0HfeMBC91uQ/NvWHVV5XCh8pZAzmL5sry1YwG8FSRNVlSAZ1zN/m6jAe98q6IxpwQxP0da/TpJoqDI7x4RGjOs1Areunf";
-            int cameraViewId = !Preferences.showVuforiaView ? -1 :
-                opMode.hardwareMap.appContext.getResources().getIdentifier(
-                    "cameraMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
-
-            vuforia = new FtcVuforia(
-                VUFORIA_LICENSE_KEY, cameraViewId, opMode.hardwareMap.get(WebcamName.class, "Webcam 1"),
-                CameraParameters.extendedTracking, CameraParameters.cameraMonitorFeedback);
+            vision = new Vision(this);
 
             if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
             {
-                if (Preferences.useVuforia)
+                if (RobotParams.Preferences.useVuforia)
                 {
-                    initVuforia();
+                    vision.initVuforia();
                 }
 
-                if (Preferences.useTensorFlow)
+                if (RobotParams.Preferences.useTensorFlow)
                 {
-                    TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
-                        RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
+                    System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
+                    vision.initTensorFlow();
+                }
 
-                    TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
-                        RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
-                        RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotInfo.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
-
-                    initTensorFlow(Preferences.showTensorFlowView, cameraRect, worldRect);
+                if (RobotParams.Preferences.useBlinkin && blinkin != null)
+                {
+                    vision.setupBlinkin();
                 }
             }
         }
@@ -212,51 +126,67 @@ public class Robot
         // If visionOnly is true, the robot controller is disconnected from the robot for testing vision.
         // In this case, we should not instantiate any robot hardware.
         //
-        if (!Preferences.visionOnly)
+        if (!RobotParams.Preferences.visionOnly)
         {
             //
-            // Initialize sensors and indicators.
+            // Create and initialize sensors and indicators.
             //
-            if (Preferences.useBatteryMonitor)
+            if (RobotParams.Preferences.useBatteryMonitor)
             {
                 battery = new FtcRobotBattery();
             }
-
-            if (Preferences.hasBlinkin)
+            //
+            // Create and initialize RobotDrive.
+            //
+            robotDrive = new RobotDrive();
+            //
+            // Create and initialize other subsystems.
+            //
+            if (RobotParams.Preferences.initSubsystems)
             {
-                blinkin = new FtcRevBlinkin("blinkin");
-            }
-            imu = new FtcBNO055Imu(RobotInfo.IMU_NAME);
-            gyro = imu.gyro;
-            //
-            // Initialize DriveBase.
-            //
-            initDriveBase();
-            //
-            // Initialize other subsystems.
-            //
-            if (Preferences.initSubsystems)
-            {
-                if (Preferences.hasElevator)
+                if (RobotParams.Preferences.useArm)
                 {
-                    final FtcMotorActuator.Parameters elevatorParams = new FtcMotorActuator.Parameters()
-                        .setPosRange(RobotInfo.ELEVATOR_MIN_HEIGHT, RobotInfo.ELEVATOR_MAX_HEIGHT)
-                        .setScaleOffset(RobotInfo.ELEVATOR_SCALE, RobotInfo.ELEVATOR_OFFSET)
-                        .setPidParams(
-                            RobotInfo.ELEVATOR_KP, RobotInfo.ELEVATOR_KI, RobotInfo.ELEVATOR_KD,
-                            RobotInfo.ELEVATOR_TOLERANCE)
+                    final FtcMotorActuator.Parameters armParams = new FtcMotorActuator.Parameters()
+                        .setPosRange(RobotParams.ARM_MIN_POS, RobotParams.ARM_MAX_POS)
+                        .setScaleOffset(RobotParams.ARM_DEG_PER_COUNT, RobotParams.ARM_OFFSET)
+                        .setPidParams(RobotParams.ARM_KP, RobotParams.ARM_KI, RobotParams.ARM_KD, RobotParams.ARM_TOLERANCE)
                         .setMotorParams(
-                            RobotInfo.ELEVATOR_INVERTED, RobotInfo.ELEVATOR_HAS_LOWER_LIMIT_SWITCH,
-                            RobotInfo.ELEVATOR_HAS_UPPER_LIMIT_SWITCH, RobotInfo.ELEVATOR_CAL_POWER)
+                            RobotParams.ARM_MOTOR_INVERTED,
+                            RobotParams.ARM_HAS_LOWER_LIMIT_SWITCH, RobotParams.ARM_LOWER_LIMIT_INVERTED,
+                            RobotParams.ARM_HAS_UPPER_LIMIT_SWITCH, RobotParams.ARM_UPPER_LIMIT_INVERTED,
+                            RobotParams.ARM_CAL_POWER)
                         .setStallProtectionParams(
-                            RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
-                            RobotInfo.ELEVATOR_RESET_TIMEOUT);
-                    elevator = new FtcMotorActuator("elevator", elevatorParams);
-                    elevator.zeroCalibrate();
+                            RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
+                        .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
+                    arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams);
+                    //
+                    // Don't zero calibrate the arm. Some tests may want the arm up a bit.
+                    //
+                    if (runMode != TrcRobot.RunMode.TEST_MODE)
+                    {
+                        arm.zeroCalibrate();
+                    }
+                }
+                intake = new FtcDcMotor(RobotParams.HWNAME_INTAKE);
+                spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
+                if (RobotParams.Preferences.useExternalOdometry)
+                {
+                    odwDeployer = new OdometryWheelDeployer();
                 }
             }
         }
     }   //Robot
+
+    /**
+     * This method returns the instance name.
+     *
+     * @return instance name.
+     */
+    @Override
+    public String toString()
+    {
+        return ROBOT_NAME;
+    }   //toString
 
     /**
      * This method is call when the robot mode is about to start. It contains code to initialize robot hardware
@@ -266,40 +196,49 @@ public class Robot
      */
     public void startMode(TrcRobot.RunMode runMode)
     {
-        final String funcName = "Robot.startMode";
-        //
-        // Since the IMU gyro is giving us cardinal heading, we need to enable its cardinal to cartesian converter.
-        //
-        if (gyro != null)
+        final String funcName = "startMode";
+
+        if (robotDrive != null)
         {
-            gyro.setEnabled(true);
-        }
-        //
-        // Enable odometry only for autonomous or test modes.
-        //
-        if (driveBase != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
-        {
-            leftFrontWheel.setOdometryEnabled(true);
-            rightFrontWheel.setOdometryEnabled(true);
-            leftBackWheel.setOdometryEnabled(true);
-            rightBackWheel.setOdometryEnabled(true);
-            driveBase.setOdometryEnabled(true);
+            //
+            // Since the IMU gyro is giving us cardinal heading, we need to enable its cardinal to cartesian converter.
+            //
+            if (robotDrive.gyro != null)
+            {
+                robotDrive.gyro.setEnabled(true);
+            }
+            //
+            // Enable odometry only for autonomous or test modes.
+            //
+            if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
+            {
+                robotDrive.setOdometryEnabled(true);
+            }
         }
         //
         // Vision generally will impact performance, so we only enable it if it's needed such as in autonomous.
         //
-        if (vuforiaVision != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
+        if (vision != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
         {
-            globalTracer.traceInfo(funcName, "Enabling Vuforia.");
-            vuforiaVision.setEnabled(true);
+            if (vision.isVuforiaInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Enabling Vuforia.");
+                vision.setVuforiaEnabled(true);
+            }
+
+            if (vision.isTensorFlowInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
+                vision.setTensorFlowEnabled(true);
+            }
         }
         //
         // The following are performance counters, could be disabled for competition if you want.
         // But it might give you some insight if somehow autonomous wasn't performing as expected.
         //
-        if (gyro != null)
+        if (robotDrive != null && robotDrive.gyro != null)
         {
-            gyro.setElapsedTimerEnabled(true);
+            robotDrive.gyro.setElapsedTimerEnabled(true);
         }
         TrcDigitalInput.setElapsedTimerEnabled(true);
         TrcMotor.setElapsedTimerEnabled(true);
@@ -314,14 +253,14 @@ public class Robot
      */
     public void stopMode(TrcRobot.RunMode runMode)
     {
-        final String funcName = "Robot.stopMode";
+        final String funcName = "stopMode";
         //
         // Print all performance counters if there are any.
         //
-        if (gyro != null)
+        if (robotDrive != null && robotDrive.gyro != null)
         {
-            gyro.printElapsedTime(globalTracer);
-            gyro.setElapsedTimerEnabled(false);
+            robotDrive.gyro.printElapsedTime(globalTracer);
+            robotDrive.gyro.setElapsedTimerEnabled(false);
         }
         TrcDigitalInput.printElapsedTime(globalTracer);
         TrcDigitalInput.setElapsedTimerEnabled(false);
@@ -332,213 +271,68 @@ public class Robot
         //
         // Disable vision.
         //
-        if (vuforiaVision != null)
+        if (vision != null)
         {
-            globalTracer.traceInfo(funcName, "Disabling Vuforia.");
-            vuforiaVision.setEnabled(false);
+            if (vision.isVuforiaInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Disabling Vuforia.");
+                vision.setVuforiaEnabled(false);
+            }
+
+            if (vision.isTensorFlowInitialized())
+            {
+                globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
+                vision.tensorFlowShutdown();
+            }
         }
 
-        if (tensorFlowVision != null)
+        if (robotDrive != null)
         {
-            globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
-            tensorFlowVision.shutdown();
-            tensorFlowVision = null;
-        }
-        //
-        // Disable odometry.
-        //
-        if (driveBase != null)
-        {
-            driveBase.setOdometryEnabled(false);
-            leftFrontWheel.setOdometryEnabled(false);
-            rightFrontWheel.setOdometryEnabled(false);
-            leftBackWheel.setOdometryEnabled(false);
-            rightBackWheel.setOdometryEnabled(false);
-        }
-        //
-        // Disable gyro task.
-        //
-        if (gyro != null)
-        {
-            gyro.setEnabled(false);
+            //
+            // Disable odometry.
+            //
+            robotDrive.setOdometryEnabled(false);
+            //
+            // Disable gyro task.
+            //
+            if (robotDrive.gyro != null)
+            {
+                robotDrive.gyro.setEnabled(false);
+            }
         }
     }   //stopMode
 
     /**
-     * This method turns the flashlight ON or OFF for the vision subsystem.
+     * This method is typically called in the autonomous state machine to log the autonomous state info as a state
+     * event in the trace log file. The logged event can be used to play back autonomous path movement.
      *
-     * @param blinkinFlashOn specifies true to turn on the Blinkin LED, false to turn off.
+     * @param state specifies the current state of the state machine.
      */
-    public void setFlashLightOn(boolean blinkinFlashOn)
-    {
-        if (blinkin != null && Preferences.useBlinkinFlashLight)
-        {
-            blinkin.setPattern(
-                blinkinFlashOn? TrcRevBlinkin.LEDPattern.SolidWhite: TrcRevBlinkin.LEDPattern.SolidBlack);
-        }
-    }   //setFlashLightOn
-
-    private void initVuforia()
-    {
-        /*
-         * Create a transformation matrix describing where the camera is on the robot.
-         *
-         * Info:  The coordinate frame for the robot looks the same as the field.
-         * The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along the Y axis.
-         * Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
-         *
-         * For a WebCam, the default starting orientation of the camera is looking UP (pointing in the Z direction),
-         * with the wide (horizontal) axis of the camera aligned with the X axis, and
-         * the Narrow (vertical) axis of the camera aligned with the Y axis
-         *
-         * But, this example assumes that the camera is actually facing forward out the front of the robot.
-         * So, the "default" camera position requires two rotations to get it oriented correctly.
-         * 1) First it must be rotated +90 degrees around the X axis to get it horizontal (its now facing out the right side of the robot)
-         * 2) Next it must be be rotated +90 degrees (counter-clockwise) around the Z axis to face forward.
-         *
-         * Finally the camera can be translated to its actual mounting position on the robot.
-         *      In this example, it is centered on the robot (left-to-right and front-to-back), and 6 inches above ground level.
-         */
-        final int CAMERA_FORWARD_DISPLACEMENT =
-            (int)((RobotInfo.ROBOT_LENGTH/2.0 - CameraParameters.cameraFrontOffset)* TrcUtil.MM_PER_INCH);
-        final int CAMERA_VERTICAL_DISPLACEMENT =
-            (int)(CameraParameters.cameraHeightOffset*TrcUtil.MM_PER_INCH);
-        final int CAMERA_LEFT_DISPLACEMENT =
-            (int)((RobotInfo.ROBOT_WIDTH/2.0 - CameraParameters.cameraLeftOffset)*TrcUtil.MM_PER_INCH);
-
-        OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
-            .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
-
-        vuforiaVision = new VuforiaVision(this, vuforia, cameraLocationOnRobot);
-    }   //initVuforia
-
-    /**
-     * This method initialize TensorFlow for the vision subsystem.
-     *
-     * @param showTensorFlowView specifies true to show TensorFlow camera view.
-     * @param cameraRect specifies the camera rectangle for Homography Mapper.
-     * @param worldRect specifies the world rectangle for Homography Mapper.
-     */
-    private void initTensorFlow(
-        boolean showTensorFlowView, TrcHomographyMapper.Rectangle cameraRect, TrcHomographyMapper.Rectangle worldRect)
-    {
-        final String funcName = "initTensorFlow";
-
-        System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
-
-        int tfodMonitorViewId = !showTensorFlowView ? -1 :
-            opMode.hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
-        tensorFlowVision = new TensorFlowVision(vuforia, tfodMonitorViewId, cameraRect, worldRect, globalTracer);
-        tensorFlowVision.setEnabled(true, Preferences.useBlinkinFlashLight);
-        globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
-    } //initTensorFlow
-
-    /**
-     * This method creates and initializes the drive base related components.
-     */
-    private void initDriveBase()
-    {
-        leftFrontWheel = new FtcDcMotor(RobotInfo.LEFT_FRONT_WHEEL_NAME);
-        rightFrontWheel = new FtcDcMotor(RobotInfo.RIGHT_FRONT_WHEEL_NAME);
-        leftBackWheel = new FtcDcMotor(RobotInfo.LEFT_BACK_WHEEL_NAME);
-        rightBackWheel = new FtcDcMotor(RobotInfo.RIGHT_BACK_WHEEL_NAME);
-
-        leftFrontWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);
-        rightFrontWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);
-        leftBackWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);
-        rightBackWheel.motor.setMode(RobotInfo.DRIVE_MOTOR_MODE);
-
-        if (Preferences.useVelocityControl)
-        {
-            leftFrontWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            rightFrontWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            leftBackWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-            rightBackWheel.enableVelocityMode(RobotInfo.MOTOR_MAX_VELOCITY);
-        }
-
-        leftFrontWheel.setInverted(RobotInfo.LEFT_WHEEL_INVERTED);
-        leftBackWheel.setInverted(RobotInfo.LEFT_WHEEL_INVERTED);
-        rightFrontWheel.setInverted(RobotInfo.RIGHT_WHEEL_INVERTED);
-        rightBackWheel.setInverted(RobotInfo.RIGHT_WHEEL_INVERTED);
-
-        leftFrontWheel.setBrakeModeEnabled(RobotInfo.DRIVE_WHEEL_BRAKE_MODE);
-        leftBackWheel.setBrakeModeEnabled(RobotInfo.DRIVE_WHEEL_BRAKE_MODE);
-        rightFrontWheel.setBrakeModeEnabled(RobotInfo.DRIVE_WHEEL_BRAKE_MODE);
-        rightBackWheel.setBrakeModeEnabled(RobotInfo.DRIVE_WHEEL_BRAKE_MODE);
-
-        driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftBackWheel, rightFrontWheel, rightBackWheel, gyro);
-        if (Preferences.useExternalOdometry)
-        {
-            //
-            // Create the external odometry device that uses the left front encoder port as the X odometry and
-            // the left and right back encoder ports as the Y1 and Y2 odometry. Gyro will serve as the angle
-            // odometry.
-            //
-            TrcDriveBaseOdometry driveBaseOdometry = new TrcDriveBaseOdometry(
-                new TrcDriveBaseOdometry.AxisSensor(leftFrontWheel, RobotInfo.X_ODOMETRY_OFFSET),
-                new TrcDriveBaseOdometry.AxisSensor[] {
-                    new TrcDriveBaseOdometry.AxisSensor(leftBackWheel),
-                    new TrcDriveBaseOdometry.AxisSensor(rightBackWheel)},
-                gyro);
-            //
-            // Set the drive base to use the external odometry device overriding the built-in one.
-            //
-            driveBase.setDriveBaseOdometry(driveBaseOdometry);
-        }
-        driveBase.setOdometryScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
-        driveMode = DriveMode.HOLONOMIC_MODE;
-        //
-        // Initialize PID drive.
-        //
-        xPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD);
-        yPosPidCoeff = new TrcPidController.PidCoefficients(
-            RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD);
-        turnPidCoeff = new TrcPidController.PidCoefficients(
-            RobotInfo.GYRO_KP, RobotInfo.GYRO_KI, RobotInfo.GYRO_KD);
-        velPidCoeff = new TrcPidController.PidCoefficients(
-            RobotInfo.ROBOT_VEL_KP, RobotInfo.ROBOT_VEL_KI, RobotInfo.ROBOT_VEL_KD, RobotInfo.ROBOT_VEL_KF);
-
-        encoderXPidCtrl = new TrcPidController(
-            "encoderXPidCtrl", xPosPidCoeff, RobotInfo.ENCODER_X_TOLERANCE, driveBase::getXPosition);
-        encoderYPidCtrl = new TrcPidController(
-            "encoderYPidCtrl", yPosPidCoeff, RobotInfo.ENCODER_Y_TOLERANCE, driveBase::getYPosition);
-        gyroPidCtrl = new TrcPidController(
-            "gyroPidCtrl", turnPidCoeff, RobotInfo.GYRO_TOLERANCE, driveBase::getHeading);
-        gyroPidCtrl.setAbsoluteSetPoint(true);
-        gyroPidCtrl.setOutputLimit(RobotInfo.TURN_POWER_LIMIT);
-
-        pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroPidCtrl);
-        pidDrive.setAbsoluteTargetModeEnabled(true);
-        pidDrive.setStallTimeout(RobotInfo.PIDDRIVE_STALL_TIMEOUT);
-        pidDrive.setMsgTracer(globalTracer);
-    }   //initDriveBase
-
     public void traceStateInfo(Object state)
     {
-        if (driveBase != null)
+        final String funcName = "traceStateInfo";
+
+        if (robotDrive != null)
         {
             StringBuilder msg = new StringBuilder();
 
             msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", state));
-            if (pidDrive.isActive())
+            if (robotDrive.pidDrive.isActive())
             {
-                TrcPose2D robotPose = driveBase.getFieldPosition();
-                TrcPose2D targetPose = pidDrive.getAbsoluteTargetPose();
+                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
+                TrcPose2D targetPose = robotDrive.pidDrive.getAbsoluteTargetPose();
 
-                if (encoderXPidCtrl != null)
+                if (robotDrive.encoderXPidCtrl != null)
                 {
                     msg.append(String.format(Locale.US, " xPos=%6.2f xTarget=%6.2f", robotPose.x, targetPose.x));
                 }
 
-                if (encoderYPidCtrl != null)
+                if (robotDrive.encoderYPidCtrl != null)
                 {
                     msg.append(String.format(Locale.US, " yPos=%6.2f yTarget=%6.2f", robotPose.y, targetPose.y));
                 }
 
-                if (gyroPidCtrl != null)
+                if (robotDrive.gyroPidCtrl != null)
                 {
                     msg.append(String.format(Locale.US, " heading=%6.2f headingTarget=%6.2f",
                                              robotPose.angle, targetPose.angle));
@@ -551,7 +345,7 @@ public class Robot
                                          " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
             }
 
-            globalTracer.logEvent("Ftc3543", "StateInfo", "%s", msg);
+            globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
         }
     }   //traceStateInfo
 
