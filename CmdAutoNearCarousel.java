@@ -64,6 +64,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
+        robot.robotDrive.driveBase.setFieldPosition(
+            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel
 

@@ -165,22 +165,10 @@ public class FtcAuto extends FtcOpMode
         // Create and run choice menus.
         //
         doAutoChoicesMenus();
-        //now know ur alliance, ternary if statements
 
-        robot.robotDrive.driveBase.setFieldPosition(
-            autoChoices.alliance == Alliance.RED_ALLIANCE &&
-            autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
-                RobotParams.STARTPOS_RED_1:
-            autoChoices.alliance == Alliance.RED_ALLIANCE &&
-            autoChoices.strategy == AutoStrategy.AUTO_FAR_CAROUSEL?
-                RobotParams.STARTPOS_RED_2:
-            autoChoices.alliance == Alliance.BLUE_ALLIANCE &&
-            autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL?
-                RobotParams.STARTPOS_BLUE_1:
-                RobotParams.STARTPOS_BLUE_2);
         //
         // Create autonomous command according to chosen strategy.
-        //create statemachine, timer, etc
+        //
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:
@@ -276,7 +264,6 @@ public class FtcAuto extends FtcOpMode
         // PurePursuitDrive requires start initialization to provide a drive path.
         //
         robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_1);
-        TrcPose2D robotPos = robot.robotDrive.driveBase.getFieldPosition();
         robot.arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
         if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_STORAGE_UNIT)
         {
