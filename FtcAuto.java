@@ -282,35 +282,35 @@ public class FtcAuto extends FtcOpMode
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0));
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true));
         }
         else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RobotParams.BLUE_STORAGE_UNIT_LOCATION, 0.0));
+                robot.robotDrive.pathPoint(RobotParams.BLUE_STORAGE_UNIT_LOCATION, 0.0, true));
         }
         else if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_CAROUSEL)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0));
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true));
         }
         else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_CAROUSEL)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 0.0));
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 0.0, true));
         }
         else if (autoChoices.strategy == AutoStrategy.TAKE_A_TOUR)
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0),
-                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0),
-                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 180.0),
-                robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 180.0),
-                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0));
+                robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true),
+                robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 180.0, true),
+                robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 180.0, true),
+                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0, true));
         }
     }   //startMode
 
