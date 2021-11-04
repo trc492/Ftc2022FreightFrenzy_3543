@@ -22,8 +22,6 @@
 
 package Ftc2022FreightFrenzy_3543;
 
-import android.annotation.SuppressLint;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import TrcCommonLib.command.CmdPidDrive;
@@ -95,7 +93,6 @@ public class FtcAuto extends FtcOpMode
         AutoStrategy strategy = AutoStrategy.AUTO_NEAR_CAROUSEL;
         FreightDelivery freightDelivery = FreightDelivery.DO_DELIVERY;
         Carousel doCarousel = Carousel.DO_CAROUSEL;
-        //before doing carousel in cmd near auto check if it did carousel
         Parking parking = Parking.WAREHOUSE_PARKING;
         double xTarget = 0.0;
         double yTarget = 0.0;
@@ -144,7 +141,6 @@ public class FtcAuto extends FtcOpMode
      * This method is called to initialize the robot. In FTC, this is called when the "Init" button on the Driver
      * Station is pressed.
      */
-    @SuppressLint("SdCardPath")
     @Override
     public void initRobot()
     {
@@ -165,7 +161,6 @@ public class FtcAuto extends FtcOpMode
         // Create and run choice menus.
         //
         doAutoChoicesMenus();
-
         //
         // Create autonomous command according to chosen strategy.
         //

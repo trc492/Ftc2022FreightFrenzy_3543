@@ -32,6 +32,7 @@ import TrcCommonLib.trclib.TrcMecanumDriveBase;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPose2D;
+import TrcCommonLib.trclib.TrcPurePursuitDrive;
 import TrcFtcLib.ftclib.FtcBNO055Imu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 
@@ -61,6 +62,7 @@ public class RobotDrive
     public final TrcPidController encoderYPidCtrl;
     public final TrcPidController gyroPidCtrl;
     public final TrcPidDrive pidDrive;
+    public final TrcPurePursuitDrive purePursuitDrive;
     //
     // Coefficients for PID controllers.
     //
@@ -154,6 +156,11 @@ public class RobotDrive
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotParams.PIDDRIVE_STALL_TIMEOUT);
         pidDrive.setMsgTracer(TrcDbgTrace.getGlobalTracer());
+
+        purePursuitDrive = new TrcPurePursuitDrive(
+            "purePursuitDrive", driveBase,
+            RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
+            xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
     }   //RobotDrive
 
     /**

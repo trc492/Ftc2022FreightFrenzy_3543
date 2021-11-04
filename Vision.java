@@ -417,14 +417,12 @@ public class Vision
     private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
     private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
     private static final float TFOD_MIN_CONFIDENCE = 0.5f;
+
     private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.65;
     private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
     // Target size is area of target rect.
     private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
     private static final double TARGET_SIZE_TOLERANCE_UPPER = 22000.0;
-
-    //tolerance for distance from center of screen to the target y
-
 
     private FtcTensorFlow tensorFlow = null;
     private int[] lastDuckPositions = null;
@@ -611,8 +609,7 @@ public class Vision
     {
         final String funcName = "getCurrentDuckPositions";
         int[] duckPositions = null;
-        FtcTensorFlow.TargetInfo[] targetInfo =
-            robot.vision.getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
+        FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
 
         if (targetInfo != null && targetInfo.length > 0)
         {
@@ -624,11 +621,10 @@ public class Vision
             //
             for (int i = targetInfo.length - 1; i >= 0; i--)
             {
-                duckPositions[i] = robot.vision.determineDuckPosition(targetInfo[i]);
+                duckPositions[i] = determineDuckPosition(targetInfo[i]);
                 if (tracer != null)
                 {
-                    tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d",
-                                     i, targetInfo[i], duckPositions[i]);
+                    tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d", i, targetInfo[i], duckPositions[i]);
                 }
                 // We don't have unlimited display lines, so only display the first three in the array.
                 if (i < 3)
@@ -636,13 +632,12 @@ public class Vision
                     robot.dashboard.displayPrintf(12 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
                 }
             }
-
-            if (targetInfo.length < 3)
+            //
+            // Clear the rest of the allocated display lines.
+            //
+            for (int i = targetInfo.length; i < 3; i++)
             {
-                for (int i = targetInfo.length; i < 3; i++)
-                {
-                    robot.dashboard.displayPrintf(12 + i, "");
-                }
+                robot.dashboard.displayPrintf(12 + i, "");
             }
 
             lastDuckPositions = duckPositions;

@@ -243,7 +243,7 @@ public class FtcTest extends FtcTeleOp
         if (testChoices.test == Test.PURE_PURSUIT_DRIVE)
         {
             //
-            // Doing an infinity.
+            // Doing a 48x48-inch square box with robot heading always pointing to the center of the box.
             //
             // Set the current position as the absolute field origin so the path can be an absolute path.
             robot.robotDrive.driveBase.setFieldPosition(new TrcPose2D(0.0, 0.0, 0.0));
@@ -252,7 +252,7 @@ public class FtcTest extends FtcTeleOp
                 new TrcPose2D(-24.0, 0, 45.0),
                 new TrcPose2D(-24.0, 48.0, 135.0),
                 new TrcPose2D(24.0, 48.0, 225.0),
-                new TrcPose2D(24.0, 0.0, 270.0),
+                new TrcPose2D(24.0, 0.0, 315.0),
                 new TrcPose2D(0.0, 0.0, 0.0));
         }
     }   //startMode
@@ -309,6 +309,9 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void runContinuous(double elapsedTime)
     {
+        //
+        // Run the testCommand if any.
+        //
         if (testCommand != null)
         {
             testCommand.cmdPeriodic(elapsedTime);
@@ -323,23 +326,28 @@ public class FtcTest extends FtcTeleOp
 
                 robot.globalTracer.traceInfo(moduleName, "RobotPose: %s", robot.robotDrive.driveBase.getFieldPosition());
 
-                if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
+                if (robot.robotDrive.pidDrive.isActive())
                 {
-                    robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
-                }
+                    if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
+                    {
+                        robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
+                    }
 
-                if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
-                {
-                    robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
-                }
+                    if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
+                    {
+                        robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
+                    }
 
-                if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
-                {
-                    robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
+                    if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
+                    {
+                        robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
+                    }
                 }
             }
         }
-
+        //
+        // Display test status.
+        //
         switch (testChoices.test)
         {
             case DRIVE_SPEED_TEST:
@@ -405,19 +413,26 @@ public class FtcTest extends FtcTeleOp
                     {
                         robot.robotDrive.encoderXPidCtrl.displayPidInfo(9);
                     }
-                    robot.robotDrive.encoderYPidCtrl.displayPidInfo(11);
-                    robot.robotDrive.gyroPidCtrl.displayPidInfo(13);
+                    if (robot.robotDrive.encoderYPidCtrl != null)
+                    {
+                        robot.robotDrive.encoderYPidCtrl.displayPidInfo(11);
+                    }
+                    if (robot.robotDrive.gyroPidCtrl != null)
+                    {
+                        robot.robotDrive.gyroPidCtrl.displayPidInfo(13);
+                    }
                 }
                 break;
 
             case PURE_PURSUIT_DRIVE:
                 if (!RobotParams.Preferences.visionOnly)
                 {
-                    robot.dashboard.displayPrintf(8, "Pure Pursuit Drive: %.0f sec", testChoices.driveTime);
                     robot.dashboard.displayPrintf(
-                        9, "xPos=%.1f,yPos=%.1f,heading=%.1f",
+                        8, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,rb:%.0f",
                         robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(),
-                        robot.robotDrive.driveBase.getHeading());
+                        robot.robotDrive.driveBase.getHeading(),
+                        robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
+                        robot.robotDrive.rightBackWheel.getPosition());
                 }
                 break;
         }
@@ -541,7 +556,9 @@ public class FtcTest extends FtcTeleOp
             "Drive time:", testMenu, 1.0, 10.0, 1.0, 4.0, " %.0f sec");
         FtcValueMenu drivePowerMenu = new FtcValueMenu(
             "Drive power:", testMenu, -1.0, 1.0, 0.1, 0.5, " %.1f");
-
+        //
+        // PID Tuning menus.
+        //
         FtcValueMenu tuneKpMenu = new FtcValueMenu(
             "Kp:", testMenu, 0.0, 1.0, 0.001, this::getTuneKp, " %f");
         FtcValueMenu tuneKiMenu = new FtcValueMenu(
@@ -593,7 +610,7 @@ public class FtcTest extends FtcTeleOp
         if (tunePidCtrl != null)
         {
             //
-            // Write the user input PID coefficients to a cache file so tune PID menu can read them as default value
+            // Write the user input PID coefficients to a cache file so tune PID menu can read them as start value
             // next time.
             //
             pidCoeffCache.writeCachedPidCoeff(tunePidCtrl, testChoices.tunePidCoeff);
@@ -636,9 +653,9 @@ public class FtcTest extends FtcTeleOp
     }   //getTunePidController
 
     /**
-     * This method is called by the tuneKpMenu to get the default value to be displayed as the starting value.
+     * This method is called by the tuneKpMenu to get the start value to be displayed as the current value of the menu.
      *
-     * @return current Kp of the X PID controller.
+     * @return start Kp value of the PID controller being tuned.
      */
     private double getTuneKp()
     {
@@ -654,9 +671,9 @@ public class FtcTest extends FtcTeleOp
     }   //getTuneKp
 
     /**
-     * This method is called by the tuneKiMenu to get the default value to be displayed as the starting value.
+     * This method is called by the tuneKiMenu to get the start value to be displayed as the current value of the menu.
      *
-     * @return current Ki of the X PID controller.
+     * @return start Ki value of the PID controller being tuned.
      */
     double getTuneKi()
     {
@@ -672,9 +689,9 @@ public class FtcTest extends FtcTeleOp
     }   //getTuneKi
 
     /**
-     * This method is called by the tuneKdMenu to get the default value to be displayed as the starting value.
+     * This method is called by the tuneKdMenu to get the start value to be displayed as the current value of the menu.
      *
-     * @return current Kd of the X PID controller.
+     * @return start Kd value of the PID controller being tuned.
      */
     double getTuneKd()
     {
@@ -690,9 +707,9 @@ public class FtcTest extends FtcTeleOp
     }   //getTuneKd
 
     /**
-     * This method is called by the tuneKfMenu to get the default value to be displayed as the starting value.
+     * This method is called by the tuneKfMenu to get the start value to be displayed as the current value of the menu.
      *
-     * @return current Kf of the X PID controller.
+     * @return start Kf value of the PID controller being tuned.
      */
     double getTuneKf()
     {

@@ -38,8 +38,8 @@ public class FtcTeleOp extends FtcOpMode
     protected Robot robot;
     protected FtcGamepad driverGamepad;
     protected FtcGamepad operatorGamepad;
-    private double drivePowerScale = 1.0;
     private boolean invertedDrive = false;
+    private double drivePowerScale = 1.0;
     private double armPowerScale = 1.0;
 
     //
@@ -185,10 +185,15 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
-        if (robot.odwDeployer != null)
+        if (robot.odwDeployer != null || robot.pickupHook != null)
         {
-            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s", robot.odwDeployer.isDeployed());
+            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s; pickupHook: pos=%s",
+                                          robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed(),
+                                          robot.pickupHook == null? "n/a":
+                                              robot.pickupHook.getPosition() == RobotParams.PICKUPHOOK_UP_POS?
+                                                  "up": "down");
         }
+
     }   //runPeriodic
 
     //

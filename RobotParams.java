@@ -74,6 +74,7 @@ public class RobotParams
     static final String HWNAME_YLEFT_ODW_DEPLOYOR               = "yLeftOdwServo";
     static final String HWNAME_YRIGHT_ODW_DEPLOYOR              = "yRightOdwServo";
     static final String HWNAME_X_ODW_DEPLOYOR                   = "xOdwServo";
+    static final String HWNAME_PICKUP_HOOK                      = "pickupHookServo";
     //
     // Field dimensions.
     //
@@ -173,26 +174,17 @@ public class RobotParams
     // max wheel speed = pi * wheel diameter * wheel gear ratio * motor RPM / 60.0
     // = 3.1415926535897932384626433832795 * 4 in. * 1.0 * 312.0 / 60.0
     // = 65.345127194667699360022982372214 in./sec.
-    static final double ROBOT_MAX_VELOCITY                      =
+    static final double ROBOT_NOLOAD_MAX_VELOCITY               =
         Math.PI*DRIVE_WHEEL_DIAMETER*DRIVE_WHEEL_GEAR_RATIO*GOBILDA_5203_312_RPM/60.0;  // 65.345 inches per second.
+    static final double ROBOT_MAX_VELOCITY                      = 61.0; // measured maximum from drive speed test.
     static final double ROBOT_VEL_KP                            = 0.0;
     static final double ROBOT_VEL_KI                            = 0.0;
     static final double ROBOT_VEL_KD                            = 0.0;
     // KF should be set to the reciprocal of max tangential velocity (time to travel unit distance), units: sec./in.
     static final double ROBOT_VEL_KF                            = 1.0 / ROBOT_MAX_VELOCITY;
-    //
-    // Assuming the robot is placed at the center of the field for which we will set as field origin (i.e. x=0, y=0,
-    // heading=0), this path will drive an infinity pattern.
-    //
-    static final TrcPose2D[] PURE_PURSUIT_PATH = new TrcPose2D[]{
-        new TrcPose2D(-24.0, 0, 45.0),
-        new TrcPose2D(-24.0, 48.0, 135.0),
-        new TrcPose2D(24.0, 48.0, 225.0),
-        new TrcPose2D(0.0, 46.0, 270.0),
-        new TrcPose2D(0.0, 0.0, 0.0),
-        new TrcPose2D(-23.0, 47.0, 225.0),
-        new TrcPose2D(0.0, 0.0, 0.0)
-    };
+    static final double PPD_FOLLOWING_DISTANCE                  = 6.0;
+    static final double PPD_POS_TOLERANCE                       = 2.0;
+    static final double PPD_TURN_TOLERANCE                      = 1.0;
     //
     // Vision subsystem.
     //
@@ -248,8 +240,9 @@ public class RobotParams
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 1.0;
     static final double ODWHEEL_Y_INCHES_PER_COUNT              = 1.0;
     //
-    // pickupHook subsystem.
+    // Pickup Hook subsystem.
     //
     static final double PICKUPHOOK_UP_POS                       = 0.0;
     static final double PICKUPHOOK_DOWN_POS                     = 1.0;
+
 }   //class RobotInfo

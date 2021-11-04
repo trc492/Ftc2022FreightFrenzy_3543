@@ -60,8 +60,8 @@ public class Robot
     //
     // Sensors and indicators.
     //
-    public FtcRobotBattery battery;
     public FtcRevBlinkin blinkin;
+    public FtcRobotBattery battery;
     //
     // Subsystems.
     //
@@ -171,11 +171,20 @@ public class Robot
                 }
                 intake = new FtcDcMotor(RobotParams.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
-                if (RobotParams.Preferences.useExternalOdometry)
+                odwDeployer = new OdometryWheelDeployer();
+                //
+                // Deploy ODW only if we are using external odometry and we are in either autonomous or test modes.
+                //
+                if (RobotParams.Preferences.useExternalOdometry &&
+                    (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
                 {
-                    odwDeployer = new OdometryWheelDeployer();
+                    odwDeployer.deploy();
                 }
-                pickupHook = new FtcServo("pickupHookServo");
+                else
+                {
+                    odwDeployer.retract();
+                }
+                pickupHook = new FtcServo(RobotParams.HWNAME_PICKUP_HOOK);
                 pickupHook.setPosition(RobotParams.PICKUPHOOK_UP_POS);
             }
         }
@@ -316,6 +325,7 @@ public class Robot
     {
         final String funcName = "traceStateInfo";
 
+        // TODO: traceState does not support PurePursuitDrive yet.
         if (robotDrive != null)
         {
             StringBuilder msg = new StringBuilder();

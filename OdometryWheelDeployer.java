@@ -36,7 +36,6 @@ class OdometryWheelDeployer
         yLeftDeployer = new FtcServo(RobotParams.HWNAME_YLEFT_ODW_DEPLOYOR);
         yRightDeployer = new FtcServo(RobotParams.HWNAME_YRIGHT_ODW_DEPLOYOR);
         xDeployer = new FtcServo(RobotParams.HWNAME_X_ODW_DEPLOYOR);
-        retract();
     }   //OdometryWheelDeployer
 
     public void retract()
