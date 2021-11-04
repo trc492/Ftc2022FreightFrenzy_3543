@@ -210,9 +210,17 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
+                if (pressed)
+                {
+                    robot.pickupHook.setPosition(RobotParams.PICKUPHOOK_UP_POS);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
+                if (pressed)
+                {
+                    robot.pickupHook.setPosition(RobotParams.PICKUPHOOK_DOWN_POS);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:

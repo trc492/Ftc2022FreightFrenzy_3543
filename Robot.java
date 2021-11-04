@@ -36,6 +36,7 @@ import TrcFtcLib.ftclib.FtcRevBlinkin;
 import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
+import TrcFtcLib.ftclib.FtcServo;
 
 import java.util.Locale;
 
@@ -69,6 +70,7 @@ public class Robot
     public FtcDcMotor intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
+    public FtcServo pickupHook = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -173,6 +175,8 @@ public class Robot
                 {
                     odwDeployer = new OdometryWheelDeployer();
                 }
+                pickupHook = new FtcServo("pickupHookServo");
+                pickupHook.setPosition(RobotParams.PICKUPHOOK_UP_POS);
             }
         }
     }   //Robot

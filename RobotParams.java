@@ -247,5 +247,9 @@ public class RobotParams
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 1.0;
     static final double ODWHEEL_Y_INCHES_PER_COUNT              = 1.0;
-
+    //
+    // pickupHook subsystem.
+    //
+    static final double PICKUPHOOK_UP_POS                       = 0.0;
+    static final double PICKUPHOOK_DOWN_POS                     = 1.0;
 }   //class RobotInfo
