@@ -36,7 +36,7 @@ public class RobotParams
     {
         static boolean visionOnly = false;
         static boolean initSubsystems = true;
-        static boolean useExternalOdometry = false;
+        static boolean useExternalOdometry = true;
         static boolean useArm = true;
         static boolean useBlinkin = true;
         static boolean useVuforia = false;
@@ -205,7 +205,7 @@ public class RobotParams
     static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
     static final double ARM_OFFSET                              = 33.0;
     static final double ARM_MIN_POS                             = 33.0;
-    static final double ARM_MAX_POS                             = 142.0;
+    static final double ARM_MAX_POS                             = 140.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
@@ -231,14 +231,14 @@ public class RobotParams
     //
     // Odometry Wheel Deployer subsystem.
     //
-    static final double ODWHEEL_YLEFT_RETRACT_POS               = 0.3;
+    static final double ODWHEEL_YLEFT_RETRACT_POS               = 0.25;
     static final double ODWHEEL_YLEFT_EXTEND_POS                = 0.78;
-    static final double ODWHEEL_YRIGHT_RETRACT_POS              = 0.3;
+    static final double ODWHEEL_YRIGHT_RETRACT_POS              = 0.25;
     static final double ODWHEEL_YRIGHT_EXTEND_POS               = 0.78;
-    static final double ODWHEEL_X_RETRACT_POS                   = 0.3;
+    static final double ODWHEEL_X_RETRACT_POS                   = 0.25;
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
-    static final double ODWHEEL_X_INCHES_PER_COUNT              = 1.0;
-    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 1.0;
+    static final double ODWHEEL_X_INCHES_PER_COUNT              = 74.0/97780.0;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 100.0/124280.0;
     //
     // Pickup Hook subsystem.
     //

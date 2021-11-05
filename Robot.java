@@ -211,6 +211,12 @@ public class Robot
     {
         final String funcName = "startMode";
 
+        if (arm != null)
+        {
+            // Raise the arm a little at start so it will not get caught on the floor tile.
+            arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
+        }
+
         if (robotDrive != null)
         {
             //
