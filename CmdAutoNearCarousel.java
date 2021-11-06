@@ -22,6 +22,7 @@
 
 package Ftc2022FreightFrenzy_3543;
 
+import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
@@ -36,9 +37,11 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         START_DELAY,
         DRIVE_TO_CAROUSEL,
         SPIN_CAROUSEL,
-        DRIVE_TO_SHIPPING_HUB,
+        DRIVE_TO_ALLIANCE_SHIPPING_HUB,
         DUMP_FREIGHT,
-        DRIVE_STORAGE_UNIT,
+        DRIVE_TO_ALLIANCE_STORAGE_UNIT,
+        DRIVE_TO_WAREHOUSE,
+
         DONE
     }   //enum State
 
@@ -48,6 +51,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     private final TrcEvent event;
     private final TrcStateMachine<State> sm;
     private int duckPosition = 0;
+//    private CmdPurePursuitDrive cmdPPDrive;
 
     /**
      * Constructor: Create an instance of the object.
@@ -64,6 +68,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
+//        cmdPPDrive = new CmdPurePursuitDrive(
+//                robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
+//                robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
+        //should this remain commented?
         robot.robotDrive.driveBase.setFieldPosition(
             autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
                 RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
@@ -101,6 +109,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
      * @param elapsedTime specifies the elapsed time in seconds since the start of the robot mode.
      * @return true if the command sequence is completed, false otherwise.
      */
+
+
+
     @Override
     public boolean cmdPeriodic(double elapsedTime)
     {
@@ -117,9 +128,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
             boolean traceState = true;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
-
+            State nextState = null;
             switch (state)
             {
+
                 case START_DELAY:
                     //
                     // Do start delay if any.
@@ -131,60 +143,156 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
                     }
                     if (duckPosition == 0) duckPosition = 2;
-                    //
+                    //set nextState to either driving to carousel if doing carousel or driving to shipping hub
+                    if(autoChoices.doCarousel == FtcAuto.Carousel.DO_CAROUSEL){
+                        nextState = State.DRIVE_TO_CAROUSEL;
+                    }
+                    else if(autoChoices.freightDelivery ==FtcAuto.FreightDelivery.DO_DELIVERY){
+                        nextState = State.DRIVE_TO_ALLIANCE_SHIPPING_HUB;
+                    }
+                    else if(autoChoices.parking==FtcAuto.Parking.NO_PARKING) {
+                        nextState = State.DONE;
+                    }
+                    else {
+                        if(autoChoices.parking==FtcAuto.Parking.STORAGE_PARKING) {
+                            nextState = State.DRIVE_TO_ALLIANCE_STORAGE_UNIT;
+                        }
+                        else {
+                            nextState = State.DRIVE_TO_WAREHOUSE;
+                        }
+
+                    }
                     if (autoChoices.startDelay == 0.0)
                     {
-                        sm.setState(State.DRIVE_TO_CAROUSEL);
+
                         //
                         // Intentionally falling through to the next state.
                         //
+                        sm.setState(nextState);
                     }
                     else
                     {
                         timer.set(autoChoices.startDelay, event);
-                        sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
+                        sm.waitForSingleEvent(event, nextState);
                         break;
                     }
                 case DRIVE_TO_CAROUSEL:
-                    yTarget= RobotParams.RED_CAROUSEL_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
-                    xTarget = RobotParams.RED_CAROUSEL_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
-                    State nextState=null;
-                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
-                    sm.waitForSingleEvent(event,State.SPIN_CAROUSEL);
+                    switch(autoChoices.alliance) {
+                        case RED_ALLIANCE:
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event,
+                                    robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_CHECKPOINT_1, RobotParams.RED_CAROUSEL_CHECKPOINT_1_HEADING, true),
+                                    robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true));
+                            break;
+                        case BLUE_ALLIANCE:
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event,
+                                    robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 0.0, true));
+                            break;
+
+                    }
+                    sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
+
                     break;
+
+
                 case SPIN_CAROUSEL:
                     robot.spinner.set(
                             autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
                                     RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
                             RobotParams.SPINNER_TIME, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_SHIPPING_HUB);
+                    //if dumping freight do prep for drive to shipping hub
+                    if(autoChoices.freightDelivery == FtcAuto.FreightDelivery.DO_DELIVERY) {
+                        nextState = State.DRIVE_TO_ALLIANCE_SHIPPING_HUB;
+                    }
+                    //otherwise if parking - either do prep for drive to warehouse or prep for drive to storage unit
+                    else if(autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING) {
+                        nextState = State.DRIVE_TO_WAREHOUSE;
+                    }
+                    else if(autoChoices.parking == FtcAuto.Parking.STORAGE_PARKING) {
+                        nextState = State.DRIVE_TO_ALLIANCE_STORAGE_UNIT;
+                    }
+                    else {
+                        nextState = State.DONE;
+                    }
+                    sm.waitForSingleEvent(event, nextState);
                     break;
+                case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
+                        //add path of driving to carousel in cmdPPDrive
+                        switch(autoChoices.alliance){
+                            case RED_ALLIANCE :
 
-                case DRIVE_TO_SHIPPING_HUB:
-                    //rotate arm to the right level while driving, i think it is equal to duckLevel-currentLevel
-                    robot.arm.setPosition(RobotParams.ARM_PRESET_LEVELS[duckPosition]);
-                    //move to the shipping hub location
-                    xTarget =
-                        RobotParams.RED_ALLIANCE_HUB_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget =
-                        RobotParams.RED_ALLIANCE_HUB_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
-                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
-                    sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
-                    break;
-
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event,
+                                        robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_CHECKPOINT_1, 0.0, true),
+                                        robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0, true));
+                                break;
+                            case BLUE_ALLIANCE :
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event,
+                                        robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_CHECKPOINT_1, 0.0, true),
+                                        robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 0.0, true));
+                                break;
+                        }
+                        sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
+                        break;
+                //done
                 case DUMP_FREIGHT:
                     //dumps the block for 2 seconds, when done signals event and goes to next state
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 2, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_STORAGE_UNIT);
+                    //if parking is drive to storage unit, next state is prep For driving to storage unit
+                    switch(autoChoices.parking) {
+                        case WAREHOUSE_PARKING:
+                            nextState = State.DRIVE_TO_WAREHOUSE;
+                            break;
+                        case STORAGE_PARKING:
+                            nextState = State.DRIVE_TO_ALLIANCE_STORAGE_UNIT;
+                            break;
+                        case NO_PARKING:
+                            nextState = State.DONE;
+                            break;
+                    }
+                    sm.waitForSingleEvent(event, nextState);
                     break;
-                case DRIVE_STORAGE_UNIT:
-                    //find distance to drive from current position to target position o
-                    xTarget =
-                        RobotParams.RED_STORAGE_UNIT_LOCATION.x - robot.robotDrive.pidDrive.getAbsoluteTargetPose().x;
-                    yTarget =
-                        RobotParams.RED_STORAGE_UNIT_LOCATION.y - robot.robotDrive.pidDrive.getAbsoluteTargetPose().y;
-                    robot.robotDrive.pidDrive.setRelativeTarget(xTarget, yTarget, 0, event);
-                    sm.waitForSingleEvent(event, State.DONE);
+
+                case DRIVE_TO_WAREHOUSE:
+
+                    switch(autoChoices.alliance){
+                        case RED_ALLIANCE :
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event,
+                                    robot.robotDrive.driveBase.getFieldPosition(), false,
+
+                                    robot.robotDrive.pathPoint(RobotParams.RED_WAREHOUSE_LOCATION_1, 0.0, true));
+                            break;
+                        case BLUE_ALLIANCE :
+                            robot.robotDrive.purePursuitDrive.start(robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(RobotParams.BLUE_WAREHOUSE_LOCATION_1, 0.0, true));                                break;
+                    }
+                    sm.setState(State.DONE);
+                    break;
+
+
+                case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
+                    switch(autoChoices.alliance){
+                        case RED_ALLIANCE :
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event,
+                                    robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true));
+                            break;
+                        case BLUE_ALLIANCE :
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event,
+                                    robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(RobotParams.BLUE_STORAGE_UNIT_LOCATION, 0.0, true));
+                            break;
+                    }
+
 
                 case DONE:
                 default:
