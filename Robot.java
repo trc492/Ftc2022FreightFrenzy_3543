@@ -36,7 +36,6 @@ import TrcFtcLib.ftclib.FtcRevBlinkin;
 import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
-import TrcFtcLib.ftclib.FtcServo;
 import TrcFtcLib.ftclib.FtcServoActuator;
 
 import java.util.Locale;
