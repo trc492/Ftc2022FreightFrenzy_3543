@@ -37,6 +37,7 @@ import TrcFtcLib.ftclib.FtcRobotBattery;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcMotorActuator;
 import TrcFtcLib.ftclib.FtcServo;
+import TrcFtcLib.ftclib.FtcServoActuator;
 
 import java.util.Locale;
 
@@ -70,7 +71,7 @@ public class Robot
     public FtcDcMotor intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
-    public FtcServo pickupHook = null;
+    public FtcServoActuator pickupHook = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -184,8 +185,14 @@ public class Robot
                 {
                     odwDeployer.retract();
                 }
-                pickupHook = new FtcServo(RobotParams.HWNAME_PICKUP_HOOK);
-                pickupHook.setPosition(RobotParams.PICKUPHOOK_UP_POS);
+                FtcServoActuator.Parameters pickupHookParams = new FtcServoActuator.Parameters()
+                    .setStepParams(
+                        RobotParams.PICKUPHOOK_STEPRATE, RobotParams.PICKUPHOOK_MIN_POS, RobotParams.PICKUPHOOK_MAX_POS)
+                    .setInverted(false, false)
+                    .setRetractParams(RobotParams.PICKUPHOOK_RETRACT_POS, RobotParams.PICKUPHOOK_ROTATE_TIME)
+                    .setExtendParams(RobotParams.PICKUPHOOK_EXTEND_POS, RobotParams.PICKUPHOOK_ROTATE_TIME);
+                pickupHook = new FtcServoActuator(RobotParams.HWNAME_PICKUP_HOOK, pickupHookParams);
+                pickupHook.retract();
             }
         }
     }   //Robot

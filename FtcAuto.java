@@ -288,11 +288,13 @@ public class FtcAuto extends FtcOpMode
         {
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
+                RobotParams.ROBOT_MAX_VELOCITY*0.5, RobotParams.ROBOT_MAX_ACCELERATION*0.5,
                 robot.robotDrive.pathPoint(RobotParams.RED_STORAGE_UNIT_LOCATION, 0.0, true),
                 robot.robotDrive.pathPoint(RobotParams.RED_CAROUSEL_LOCATION, 0.0, true),
                 robot.robotDrive.pathPoint(RobotParams.BLUE_CAROUSEL_LOCATION, 180.0, true),
                 robot.robotDrive.pathPoint(RobotParams.BLUE_ALLIANCE_HUB_LOCATION, 180.0, true),
-                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0, true));
+                robot.robotDrive.pathPoint(RobotParams.RED_ALLIANCE_HUB_LOCATION, 0.0, true),
+                robot.robotDrive.pathPoint(RobotParams.STARTPOS_RED_1.x, RobotParams.STARTPOS_RED_1.y, 0.0, false));
         }
     }   //startMode
 

@@ -185,15 +185,19 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
-        if (robot.odwDeployer != null || robot.pickupHook != null)
+        double pickupHookPower = robot.pickupHook != null? operatorGamepad.getLeftStickY(true): 0.0;
+        if (robot.pickupHook != null)
         {
-            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s; pickupHook: pos=%s",
-                                          robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed(),
-                                          robot.pickupHook == null? "n/a":
-                                              robot.pickupHook.getPosition() == RobotParams.PICKUPHOOK_UP_POS?
-                                                  "up": "down");
+
+            robot.pickupHook.setPower(pickupHookPower);
         }
 
+        if (robot.odwDeployer != null || robot.pickupHook != null)
+        {
+            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s; pickupHook: power=%.1f",
+                                          robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed(),
+                                          pickupHookPower);
+        }
     }   //runPeriodic
 
     //
@@ -215,17 +219,9 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
-                if (pressed)
-                {
-                    robot.pickupHook.setPosition(RobotParams.PICKUPHOOK_UP_POS);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
-                if (pressed)
-                {
-                    robot.pickupHook.setPosition(RobotParams.PICKUPHOOK_DOWN_POS);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:

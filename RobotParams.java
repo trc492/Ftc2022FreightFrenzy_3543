@@ -219,7 +219,8 @@ public class RobotParams
     // = 65.345127194667699360022982372214 in./sec.
     static final double ROBOT_NOLOAD_MAX_VELOCITY               =
         Math.PI*DRIVE_WHEEL_DIAMETER*DRIVE_WHEEL_GEAR_RATIO*GOBILDA_5203_312_RPM/60.0;  // 65.345 inches per second.
-    static final double ROBOT_MAX_VELOCITY                      = 61.0; // measured maximum from drive speed test.
+    static final double ROBOT_MAX_VELOCITY                      = 25.0;     // measured maximum from drive speed test.
+    static final double ROBOT_MAX_ACCELERATION                  = 3380.0;   // measured maximum from drive speed test.
     static final double ROBOT_VEL_KP                            = 0.0;
     static final double ROBOT_VEL_KI                            = 0.0;
     static final double ROBOT_VEL_KD                            = 0.0;
@@ -285,7 +286,11 @@ public class RobotParams
     //
     // Pickup Hook subsystem.
     //
-    static final double PICKUPHOOK_UP_POS                       = 0.0;
-    static final double PICKUPHOOK_DOWN_POS                     = 1.0;
+    static final double PICKUPHOOK_MIN_POS                      = 0.0;
+    static final double PICKUPHOOK_MAX_POS                      = 1.0;
+    static final double PICKUPHOOK_RETRACT_POS                  = PICKUPHOOK_MIN_POS;
+    static final double PICKUPHOOK_EXTEND_POS                   = PICKUPHOOK_MAX_POS;
+    static final double PICKUPHOOK_STEPRATE                     = (1.0/0.75);
+    static final double PICKUPHOOK_ROTATE_TIME                  = 0.3;
 
 }   //class RobotInfo
