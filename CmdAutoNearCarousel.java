@@ -132,15 +132,15 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         robot.vision.getCurrentDuckPositions();
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
-                    }
 
-                    // If it can't find the duckPosition, set it to 2 as default.
-                    if (duckPosition == 0 && elapsedTime < 10.0)
-                    {
-                        //
-                        // We can't find the duck. Keep looking for up to 10 second.
-                        //
-                        break;
+                        // If it can't find the duckPosition, set it to 2 as default.
+                        if (duckPosition == 0 && elapsedTime < 10.0)
+                        {
+                            //
+                            // We can't find the duck. Keep looking for up to 10 second.
+                            //
+                            break;
+                        }
                     }
 
                     if (duckPosition == 0)
