@@ -202,7 +202,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-                        //if not driving to shipping hub and dumping freight go to next state after dumping freight - driving to storage unit
+                    // sets arm to proper position based on duck position while driving
+                    robot.arm.setPosition(RobotParams.ARM_PRESET_LEVELS[duckPosition]);
+
+                    //if not driving to shipping hub and dumping freight go to next state after dumping freight - driving to storage unit
                         if(autoChoices.freightDelivery!=FtcAuto.FreightDelivery.DO_DELIVERY){
                             sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
                         }
