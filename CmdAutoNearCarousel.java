@@ -223,10 +223,14 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         // based on alliance, drive to red or blue alliance hub
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
+                            //the smaller the number the closer to the hub
+                            double distanceToHub = duckPosition == 3? 1.3:
+                                                   duckPosition == 2? 1.5: 1.4;
+                            double intermediateX= (autoChoices.doCarousel==FtcAuto.Carousel.NO_CAROUSEL)? 2.5:2.0;
                             robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0, true),
-                                robot.robotDrive.pathPoint(-1.3, -1.0, 90.0, true));
+                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(-intermediateX, -1.0, 90.0, true),
+                                    robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0, true));
                         }
                         else
                         {
@@ -261,21 +265,22 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else
                     {
-                        //based on alliance, drive to red or blue storage unit location with pure pursuit
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0, true));
-                        }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 1.5,180.0, true));
-                        }
-                        //once done driving to the storage unit, go to next state - done
-                        sm.waitForSingleEvent(event, State.DONE);
+                        sm.setState(State.DONE);
+//                        //based on alliance, drive to red or blue storage unit location with pure pursuit
+//                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+//                        {
+//                            robot.robotDrive.purePursuitDrive.start(
+//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0, true));
+//                        }
+//                        else
+//                        {
+//                            robot.robotDrive.purePursuitDrive.start(
+//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                                robot.robotDrive.pathPoint(-2.5, 1.5,180.0, true));
+//                        }
+//                        //once done driving to the storage unit, go to next state - done
+//                        sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;
 
@@ -319,8 +324,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 default:
                     //
                     // We are done, zero calibrate the arm will lower it.
-                    //
-                    robot.arm.zeroCalibrate();
+                    //for now when we skip doing parking
+                    //robot.arm.zeroCalibrate();
                     cancel();
                     break;
             }
