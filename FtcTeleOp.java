@@ -185,10 +185,11 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
         }
 
-        double pickupHookPower = robot.pickupHook != null? operatorGamepad.getLeftStickY(true): 0.0;
+        double pickupHookPower =
+            robot.pickupHook != null?
+                driverGamepad.getLeftTrigger(true) - driverGamepad.getRightTrigger(true): 0.0;
         if (robot.pickupHook != null)
         {
-
             robot.pickupHook.setPower(pickupHookPower);
         }
 
@@ -276,30 +277,30 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_A:
                 if (robot.intake != null)
                 {
-                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
+                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
-                if (robot.spinner != null && pressed)
+                if (robot.spinner != null)
                 {
                     // Spin the red carousel for set amount of time.
-                    robot.spinner.set(RobotParams.SPINNER_POWER_RED, RobotParams.SPINNER_TIME);
+                    robot.spinner.set(pressed? RobotParams.SPINNER_POWER_RED: 0.0);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_X:
-                if (robot.spinner != null && pressed)
+                if (robot.spinner != null)
                 {
                     // Spin the blue carousel for set amount of time.
-                    robot.spinner.set(RobotParams.SPINNER_POWER_BLUE, RobotParams.SPINNER_TIME);
+                    robot.spinner.set(pressed? RobotParams.SPINNER_POWER_BLUE: 0.0);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
                 if (robot.intake != null)
                 {
-                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
+                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
                 }
                 break;
 

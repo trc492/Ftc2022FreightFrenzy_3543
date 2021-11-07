@@ -26,8 +26,6 @@ import android.os.Environment;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.opencv.core.Point;
-
 import TrcCommonLib.trclib.TrcPose2D;
 
 public class RobotParams
@@ -104,65 +102,6 @@ public class RobotParams
     static final TrcPose2D STARTPOS_BLUE_2                      =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     //
-    // Locations of various game elements in the unit of floor tiles.
-    //
-    static final Point RED_ALLIANCE_HUB_LOCATION                = new Point(-0.5, -1.0);
-    static final Point BLUE_ALLIANCE_HUB_LOCATION               = new Point(-0.5, 1.0);
-    static final Point RED_CAROUSEL_LOCATION                    = new Point(-2.5, -1.5);
-    static final Point BLUE_CAROUSEL_LOCATION                   = new Point(-2.5, 2.0);
-    static final Point RED_STORAGE_UNIT_LOCATION                = new Point(-2.5, -1.5);
-    static final Point BLUE_STORAGE_UNIT_LOCATION               = new Point(-2.5, 1.5);
-    static final Point RED_WAREHOUSE_LOCATION_1                 = new Point(2.5, -1.5);
-    static final Point BLUE_WAREHOUSE_LOCATION_1                = new Point(2.5, 1.5);
-    static final Point RED_WAREHOUSE_LOCATION_2                 = new Point(1.5, -1.5);
-    static final Point BLUE_WAREHOUSE_LOCATION_2                = new Point(1.5, 1.5);
-    static final Point RED_WAREHOUSE_LOCATION_3                 = new Point(1.5, -2.5);
-    static final Point BLUE_WAREHOUSE_LOCATION_3                = new Point(1.5, 2.5);
-    static final Point SHARED_HUB_LOCATION                      = new Point(2.0, 0.0);
-    //
-
-    //cmdAuto Near Carousel paths to go to the following  exclude endpoints
-    //RED
-    //  red carousel
-    static final Point RED_CAROUSEL_CHECKPOINT_1                = new Point(-1.5, -2.5); //heading of robot is 300
-    static final Double RED_CAROUSEL_CHECKPOINT_1_HEADING       = 300.0;
-
-    //shipping hub red
-    static final Point RED_ALLIANCE_HUB_CHECKPOINT_1             = new Point(-2, -2.5); // heading of robot is 70
-    static final Double RED_ALLIANCE_HUB_CHECKPOINT_1_HEADING    = 70.0;
-
-    // shipping storage unit red
-    static final Point RED_STORAGE_UNIT_CHECKPOINT_1                        = new Point(-1.5, -2.5); //heading is 120 or so
-    static final Double RED_STORAGE_UNIT_CHECKPOINT_1_HEADING                 = 120.0;
-
-    //wareHouse 3 red
-    static final Point RED_WAREHOUSE_3_CHECKPOINT_1              = new Point(0.5, -2.5); // heading is 90
-    static final Double RED_WAREHOUSE_3_CHECKPOINT_1_HEADING     = 90.0;
-
-    //warehouse 1 or 2 red - note that end points are different
-    static final Point RED_WAREHOUSE_1_OR_2_CHECKPOINT_1              = new Point(0.5, -1.75); // heading is 90
-    static final Double RED_WAREHOUSE_1_OR_2_CHECKPOINT_1_HEADING     = 90.0;
-    //BLUE
-    //  blue carousel
-    static final Point BLUE_CAROUSEL_CHECKPOINT_1                = new Point(-1.5, 2.5); //heading of robot is around 240
-    static final Double  BLUE_CAROUSEL_CHECKPOINT_1_HEADING        = 240.0;
-
-    //shipping hub blue
-    static final Point BLUE_ALLIANCE_HUB_CHECKPOINT_1             = new Point(-2, 2.5); // heading of robot is 110
-    static final double BLUE_ALLIANCE_HUB_CHECKPOINT_1_HEADING    = 120.0;
-
-    // shipping storage unit blue
-    static final Point BLUE_STORAGE_UNIT_CHECKPOINT_1                        = new Point(-1.5, 2.5); //heading is 60 or so
-    static final double BLUE_STORAGE_UNIT_CHECKPOINT_1_HEADING               = 60.0;
-
-    //wareHouse 3 blue
-    static final Point BLUE_WAREHOUSE_3_CHECKPOINT_1              = new Point(0.5, 2.5); // heading is 90
-    static final double BLUE_WAREHOUSE_3_CHECKPOINT_1_HEADING      = 90;
-    //warehouse 1 or 2 blue - note that end points are different
-    static final Point BLUE_WAREHOUSE_1_OR_2_CHECKPOINT_1              = new Point(0.5, 1.75); // heading is 90
-    static final double BLUE_WAREHOUSE_1_OR_2_CHECKPOINT_1_HEADING     = 90;
-
-
     // Motor Odometries.
     //
     // https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/
@@ -264,8 +203,8 @@ public class RobotParams
     //
     // Intake subsystem.
     //
-    static final double INTAKE_POWER_PICKUP                     = 1.0;
-    static final double INTAKE_POWER_DUMP                       = -1.0;
+    static final double INTAKE_POWER_PICKUP                     = -1.0;
+    static final double INTAKE_POWER_DUMP                       = 0.7;
     //
     // Spinner subsystem.
     //
