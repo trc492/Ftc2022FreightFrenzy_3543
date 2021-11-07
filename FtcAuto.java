@@ -462,7 +462,7 @@ public class FtcAuto extends FtcOpMode
         strategyMenu.addChoice("Take a tour", AutoStrategy.TAKE_A_TOUR, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
-        strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, true);
+        strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, false);
 
         freightDeliveryMenu.addChoice("Do Delivery", FreightDelivery.DO_DELIVERY, true, carouselMenu);
         freightDeliveryMenu.addChoice("No Delivery", FreightDelivery.NO_DELIVERY, false, carouselMenu);
@@ -471,8 +471,8 @@ public class FtcAuto extends FtcOpMode
         carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
 
         parkingMenu.addChoice("No Parking", Parking.NO_PARKING, false);
-        parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, false);
-        parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, true);
+        parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, true);
+        parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, false);
         //
         // Traverse menus.
         //

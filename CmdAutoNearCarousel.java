@@ -35,6 +35,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     {
         START_DELAY,
         DRIVE_TO_CAROUSEL,
+        GET_TO_CAROUSEL,
         SPIN_CAROUSEL,
         DRIVE_TO_ALLIANCE_SHIPPING_HUB,
         DUMP_FREIGHT,
@@ -128,13 +129,25 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     // Call vision at the beginning to figure out the position of the duck.
                     if(robot.vision != null && robot.vision.isTensorFlowInitialized())
                     {
+                        robot.vision.getCurrentDuckPositions();
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
                     }
 
                     // If it can't find the duckPosition, set it to 2 as default.
+                    if (duckPosition == 0 && elapsedTime < 10.0)
+                    {
+                        //
+                        // We can't find the duck. Keep looking for up to 10 second.
+                        //
+                        break;
+                    }
+
                     if (duckPosition == 0)
                     {
+                        //
+                        // We still can't see the duck, default to level 2.
+                        //
                         duckPosition = 2;
                     }
 
@@ -167,22 +180,29 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.0, -2.0, 0.0, true),
-                                robot.robotDrive.pathPoint(-2.5, -2.0, 0.0, true));
+                                robot.robotDrive.pathPoint(-2.5, -2.0, 0.0, true),
+                                robot.robotDrive.pathPoint(-2.5, -2.3, 0.0, true));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.0, 2.0, 180.0, true),
-                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0, true));
+                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0, true),
+                                robot.robotDrive.pathPoint(-2.5, 2.3, 180.0, true));
                         }
                         //when done driving to carousel, go to next state - spinning carousel
-                        sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
+                        sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                     }
                     break;
 
+                case GET_TO_CAROUSEL:
+                    robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
+                    timer.set(0.2, event);
+                    sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
+                    break;
+
                 case SPIN_CAROUSEL:
+                    robot.robotDrive.driveBase.stop();
                     //spins carousel with power depending on alliance color
                     robot.spinner.set(
                             autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
@@ -205,15 +225,15 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-1.5, -1.0, 0.0, true),
-                                robot.robotDrive.pathPoint(-1.0, -1.0, 90.0, true));
+                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0, true),
+                                robot.robotDrive.pathPoint(-1.3, -1.0, 90.0, true));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-1.5, 1.0, 0.0, true),
-                                robot.robotDrive.pathPoint(-1.0, 1.0, 90.0, true));
+                                robot.robotDrive.pathPoint(-2.0, 1.0, 90.0, true),
+                                robot.robotDrive.pathPoint(-1.3, 1.0, 90.0, true));
                         }
                         // raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -226,7 +246,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     //dumps the freight for 2 seconds, when done signals event and goes to next state - driving to the
                     // storage unit
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 2.0, event);
-                    sm.waitForSingleEvent(event, State. DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
                     break;
 
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
