@@ -125,8 +125,6 @@ public class RobotParams
     //
     // Velocity controlled constants.
     //
-    static final double DRIVE_WHEEL_GEAR_RATIO                  = 1.0;
-    static final double DRIVE_WHEEL_DIAMETER                    = 4.0;  //inches
     static final double DRIVE_MOTOR_MAX_VELOCITY_PPS            = GOBILDA_5203_312_MAX_VELOCITY_PPS;
 
     static final double ENCODER_X_KP                            = 0.095;
@@ -156,8 +154,6 @@ public class RobotParams
     // max wheel speed = pi * wheel diameter * wheel gear ratio * motor RPM / 60.0
     // = 3.1415926535897932384626433832795 * 4 in. * 1.0 * 312.0 / 60.0
     // = 65.345127194667699360022982372214 in./sec.
-    static final double ROBOT_NOLOAD_MAX_VELOCITY               =
-        Math.PI*DRIVE_WHEEL_DIAMETER*DRIVE_WHEEL_GEAR_RATIO*GOBILDA_5203_312_RPM/60.0;  // 65.345 inches per second.
     static final double ROBOT_MAX_VELOCITY                      = 25.0;     // measured maximum from drive speed test.
     static final double ROBOT_MAX_ACCELERATION                  = 3380.0;   // measured maximum from drive speed test.
     static final double ROBOT_VEL_KP                            = 0.0;

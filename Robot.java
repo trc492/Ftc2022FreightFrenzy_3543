@@ -140,7 +140,7 @@ public class Robot
             //
             // Create and initialize RobotDrive.
             //
-            robotDrive = new RobotDrive();
+            robotDrive = new RobotDrive(this);
             //
             // Create and initialize other subsystems.
             //
@@ -215,12 +215,10 @@ public class Robot
      */
     public void startMode(TrcRobot.RunMode runMode)
     {
-        final String funcName = "startMode";
-
         if (arm != null)
         {
             // Raise the arm a little at start so it will not get caught on the floor tile.
-            arm.setPosition(RobotParams.ARM_MIN_POS + 3.0);
+            arm.setPosition(RobotParams.ARM_MIN_POS + 2.0);
         }
 
         if (robotDrive != null)
@@ -238,23 +236,6 @@ public class Robot
             if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
             {
                 robotDrive.setOdometryEnabled(true);
-            }
-        }
-        //
-        // Vision generally will impact performance, so we only enable it if it's needed such as in autonomous.
-        //
-        if (vision != null && (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
-        {
-            if (vision.isVuforiaInitialized())
-            {
-                globalTracer.traceInfo(funcName, "Enabling Vuforia.");
-                vision.setVuforiaEnabled(true);
-            }
-
-            if (vision.isTensorFlowInitialized())
-            {
-                globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
-                vision.setTensorFlowEnabled(true);
             }
         }
         //
@@ -337,7 +318,6 @@ public class Robot
     {
         final String funcName = "traceStateInfo";
 
-        // TODO: traceState does not support PurePursuitDrive yet.
         if (robotDrive != null)
         {
             StringBuilder msg = new StringBuilder();
@@ -364,11 +344,30 @@ public class Robot
                                              robotPose.angle, targetPose.angle));
                 }
             }
+            else if (robotDrive.purePursuitDrive.isActive())
+            {
+                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
+
+                if (robotDrive.xPosPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, " xPos=%6.2f", robotPose.x));
+                }
+
+                if (robotDrive.yPosPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, " yPos=%6.2f", robotPose.y));
+                }
+
+                if (robotDrive.turnPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, " heading=%6.2f", robotPose.angle));
+                }
+            }
 
             if (battery != null)
             {
-                msg.append(String.format(Locale.US,
-                                         " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
+                msg.append(String.format(
+                    Locale.US, " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
             }
 
             globalTracer.logEvent(funcName, "StateInfo", "%s", msg);

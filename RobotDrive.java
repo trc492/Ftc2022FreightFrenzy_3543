@@ -74,7 +74,7 @@ public class RobotDrive
     /**
      * Constructor: Create an instance of the object.
      */
-    public RobotDrive()
+    public RobotDrive(Robot robot)
     {
         imu = new FtcBNO055Imu(RobotParams.HWNAME_IMU);
         gyro = imu.gyro;
@@ -161,6 +161,7 @@ public class RobotDrive
             "purePursuitDrive", driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
             xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+        purePursuitDrive.setMsgTracer(robot.globalTracer, true,true, robot.battery);
     }   //RobotDrive
 
     /**

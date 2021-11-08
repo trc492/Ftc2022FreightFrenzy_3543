@@ -265,22 +265,21 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else
                     {
-                        sm.setState(State.DONE);
-//                        //based on alliance, drive to red or blue storage unit location with pure pursuit
-//                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-//                        {
-//                            robot.robotDrive.purePursuitDrive.start(
-//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0, true));
-//                        }
-//                        else
-//                        {
-//                            robot.robotDrive.purePursuitDrive.start(
-//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                                robot.robotDrive.pathPoint(-2.5, 1.5,180.0, true));
-//                        }
-//                        //once done driving to the storage unit, go to next state - done
-//                        sm.waitForSingleEvent(event, State.DONE);
+                        //based on alliance, drive to red or blue storage unit location with pure pursuit
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                        {
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0, true));
+                        }
+                        else
+                        {
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.5, 1.5,180.0, true));
+                        }
+                        //once done driving to the storage unit, go to next state - done
+                        sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;
 

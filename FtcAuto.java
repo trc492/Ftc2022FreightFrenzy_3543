@@ -146,6 +146,7 @@ public class FtcAuto extends FtcOpMode
     @Override
     public void initRobot()
     {
+        final String funcName = "initRobot";
         //
         // Create and initialize robot object.
         // calls hardware, subsystems, etc.
@@ -218,6 +219,21 @@ public class FtcAuto extends FtcOpMode
             default:
                 autoCommand = null;
                 break;
+        }
+
+        if (robot.vision != null)
+        {
+            if (robot.vision.isVuforiaInitialized())
+            {
+                robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
+                robot.vision.setVuforiaEnabled(true);
+            }
+
+            if (robot.vision.isTensorFlowInitialized())
+            {
+                robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
+                robot.vision.setTensorFlowEnabled(true);
+            }
         }
     }   //initRobot
 

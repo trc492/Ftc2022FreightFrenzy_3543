@@ -238,22 +238,46 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void startMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
-        super.startMode(prevMode, nextMode);
+        final String funcName = "startMode";
 
-        if (testChoices.test == Test.PURE_PURSUIT_DRIVE)
+        super.startMode(prevMode, nextMode);
+        switch (testChoices.test)
         {
-            //
-            // Doing a 48x48-inch square box with robot heading always pointing to the center of the box.
-            //
-            // Set the current position as the absolute field origin so the path can be an absolute path.
-            robot.robotDrive.driveBase.setFieldPosition(new TrcPose2D(0.0, 0.0, 0.0));
-            ((CmdPurePursuitDrive)testCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                new TrcPose2D(-24.0, 0, 45.0),
-                new TrcPose2D(-24.0, 48.0, 135.0),
-                new TrcPose2D(24.0, 48.0, 225.0),
-                new TrcPose2D(24.0, 0.0, 315.0),
-                new TrcPose2D(0.0, 0.0, 0.0));
+            case SENSORS_TEST:
+            case SUBSYSTEMS_TEST:
+                if (robot.vision != null)
+                {
+                    //
+                    // Vision generally will impact performance, so we only enable it if it's needed.
+                    //
+                    if (robot.vision.isVuforiaInitialized())
+                    {
+                        robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
+                        robot.vision.setVuforiaEnabled(true);
+                    }
+
+                    if (robot.vision.isTensorFlowInitialized())
+                    {
+                        robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
+                        robot.vision.setTensorFlowEnabled(true);
+                    }
+                }
+                break;
+
+            case PURE_PURSUIT_DRIVE:
+                //
+                // Doing a 48x48-inch square box with robot heading always pointing to the center of the box.
+                //
+                // Set the current position as the absolute field origin so the path can be an absolute path.
+                robot.robotDrive.driveBase.setFieldPosition(new TrcPose2D(0.0, 0.0, 0.0));
+                ((CmdPurePursuitDrive)testCommand).start(
+                    robot.robotDrive.driveBase.getFieldPosition(), false,
+                    new TrcPose2D(-24.0, 0, 45.0),
+                    new TrcPose2D(-24.0, 48.0, 135.0),
+                    new TrcPose2D(24.0, 48.0, 225.0),
+                    new TrcPose2D(24.0, 0.0, 315.0),
+                    new TrcPose2D(0.0, 0.0, 0.0));
+                break;
         }
     }   //startMode
 
