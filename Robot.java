@@ -349,7 +349,7 @@ public class Robot
             {
                 TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
                 TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
-                TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition(robotPose);
+                TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition();
 
                 if (robotDrive.xPosPidCoeff != null)
                 {

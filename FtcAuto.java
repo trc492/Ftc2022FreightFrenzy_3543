@@ -24,8 +24,6 @@ package Ftc2022FreightFrenzy_3543;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.opencv.core.Point;
-
 import TrcCommonLib.command.CmdPidDrive;
 import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.command.CmdTimedDrive;
@@ -50,11 +48,7 @@ public class FtcAuto extends FtcOpMode
     {
         AUTO_NEAR_CAROUSEL,
         AUTO_FAR_CAROUSEL,
-        PARK_AT_RED_STORAGE_UNIT,
-        PARK_AT_BLUE_STORAGE_UNIT,
-        PARK_AT_RED_CAROUSEL,
-        PARK_AT_BLUE_CAROUSEL,
-        TAKE_A_TOUR,
+        TEST_PPD,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
@@ -183,11 +177,7 @@ public class FtcAuto extends FtcOpMode
                 }
                 break;
 
-            case PARK_AT_RED_STORAGE_UNIT:
-            case PARK_AT_BLUE_STORAGE_UNIT:
-            case PARK_AT_RED_CAROUSEL:
-            case PARK_AT_BLUE_CAROUSEL:
-            case TAKE_A_TOUR:
+            case TEST_PPD:
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdPurePursuitDrive(
@@ -242,6 +232,19 @@ public class FtcAuto extends FtcOpMode
     //
 
     /**
+     * This method is called periodically after initRobot() is called but before competition starts. For this season,
+     * we are detecting the duck's barcode position before the match starts.
+     */
+    @Override
+    public void initPeriodic()
+    {
+        if (robot.vision != null && robot.vision.isTensorFlowInitialized())
+        {
+            robot.vision.getCurrentDuckPositions();
+        }
+    }   //initPeriodic
+
+    /**
      * This method is called when the competition mode is about to start. In FTC, this is called when the "Play"
      * button on the Driver Station is pressed. Typically, you put code that will prepare the robot for start of
      * competition here such as resetting the encoders/sensors and enabling some sensors to start sampling.
@@ -276,56 +279,14 @@ public class FtcAuto extends FtcOpMode
         //
         // PurePursuitDrive requires start initialization to provide a drive path.
         //
-        final Point RED_ALLIANCE_HUB_LOCATION                = new Point(-0.5, -1.0);
-        final Point BLUE_ALLIANCE_HUB_LOCATION               = new Point(-0.5, 1.0);
-        final Point RED_CAROUSEL_LOCATION                    = new Point(-2.5, -2.0);
-        final Point BLUE_CAROUSEL_LOCATION                   = new Point(-2.5, 2.0);
-        final Point RED_STORAGE_UNIT_LOCATION                = new Point(-2.5, -1.5);
-        final Point BLUE_STORAGE_UNIT_LOCATION               = new Point(-2.5, 1.5);
-        final Point RED_WAREHOUSE_LOCATION_1                 = new Point(2.5, -1.5);
-        final Point BLUE_WAREHOUSE_LOCATION_1                = new Point(2.5, 1.5);
-        final Point RED_WAREHOUSE_LOCATION_2                 = new Point(1.5, -1.5);
-        final Point BLUE_WAREHOUSE_LOCATION_2                = new Point(1.5, 1.5);
-        final Point RED_WAREHOUSE_LOCATION_3                 = new Point(1.5, -2.5);
-        final Point BLUE_WAREHOUSE_LOCATION_3                = new Point(1.5, 2.5);
-        final Point SHARED_HUB_LOCATION                      = new Point(2.0, 0.0);
-        robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_1);
-        robot.arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
-        if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_STORAGE_UNIT)
+        if (autoChoices.strategy == AutoStrategy.TEST_PPD)
         {
+            robot.robotDrive.driveBase.setFieldPosition(
+                new TrcPose2D(-1.4*RobotParams.FULL_TILE_INCHES, -1.0*RobotParams.FULL_TILE_INCHES, 90.0));
             ((CmdPurePursuitDrive)autoCommand).start(
                 robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RED_STORAGE_UNIT_LOCATION, 0.0, true));
-        }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT)
-        {
-            ((CmdPurePursuitDrive)autoCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(BLUE_STORAGE_UNIT_LOCATION, 0.0, true));
-        }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_RED_CAROUSEL)
-        {
-            ((CmdPurePursuitDrive)autoCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(RED_CAROUSEL_LOCATION, 0.0, true));
-        }
-        else if (autoChoices.strategy == AutoStrategy.PARK_AT_BLUE_CAROUSEL)
-        {
-            ((CmdPurePursuitDrive)autoCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(BLUE_CAROUSEL_LOCATION, 0.0, true));
-        }
-        else if (autoChoices.strategy == AutoStrategy.TAKE_A_TOUR)
-        {
-            ((CmdPurePursuitDrive)autoCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                RobotParams.ROBOT_MAX_VELOCITY*0.5, RobotParams.ROBOT_MAX_ACCELERATION*0.5,
-                robot.robotDrive.pathPoint(RED_STORAGE_UNIT_LOCATION, 0.0, true),
-                robot.robotDrive.pathPoint(RED_CAROUSEL_LOCATION, 0.0, true),
-                robot.robotDrive.pathPoint(BLUE_CAROUSEL_LOCATION, 180.0, true),
-                robot.robotDrive.pathPoint(BLUE_ALLIANCE_HUB_LOCATION, 180.0, true),
-                robot.robotDrive.pathPoint(RED_ALLIANCE_HUB_LOCATION, 0.0, true),
-                robot.robotDrive.pathPoint(RobotParams.STARTPOS_RED_1.x, RobotParams.STARTPOS_RED_1.y, 0.0, false));
+                robot.robotDrive.pathPoint(
+                    -2.5*RobotParams.FULL_TILE_INCHES, -1.5*RobotParams.FULL_TILE_INCHES, 90.0));
         }
     }   //startMode
 
@@ -368,19 +329,6 @@ public class FtcAuto extends FtcOpMode
             robot.globalTracer.closeTraceLog();
         }
     }   //stopMode
-
-    /**
-     * This method is called periodically after initRobot() is called but before competition starts. For this season,
-     * we are detecting the duck's barcode position before the match starts.
-     */
-    @Override
-    public void initPeriodic()
-    {
-        if (robot.vision != null && robot.vision.isTensorFlowInitialized())
-        {
-            robot.vision.getCurrentDuckPositions();
-        }
-    }   //initPeriodic
 
     /**
      * This method is called periodically as fast as the control system allows. Typically, you put code that requires
@@ -471,11 +419,7 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
-        strategyMenu.addChoice("Park at Red Storage", AutoStrategy.PARK_AT_RED_STORAGE_UNIT, false);
-        strategyMenu.addChoice("Park at Blue Storage", AutoStrategy.PARK_AT_BLUE_STORAGE_UNIT, false);
-        strategyMenu.addChoice("Park at Red Carousel", AutoStrategy.PARK_AT_RED_CAROUSEL, false);
-        strategyMenu.addChoice("Park at Blue Carousel", AutoStrategy.PARK_AT_BLUE_CAROUSEL, false);
-        strategyMenu.addChoice("Take a tour", AutoStrategy.TAKE_A_TOUR, false);
+        strategyMenu.addChoice("Test PPD", AutoStrategy.TEST_PPD, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, false);

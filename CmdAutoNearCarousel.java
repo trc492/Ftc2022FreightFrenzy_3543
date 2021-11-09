@@ -71,9 +71,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        robot.robotDrive.driveBase.setFieldPosition(
-            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel
 
@@ -128,6 +125,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     //
                     // Do start delay if any.
                     //
+                    robot.robotDrive.driveBase.setFieldPosition(
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                            RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
                     // Call vision at the beginning to figure out the position of the duck.
                     if(robot.vision != null && robot.vision.isTensorFlowInitialized())
                     {
@@ -255,7 +255,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else
                     {
-                        // Drive to alliance shipping hub.
+                        // Drive to storage unit.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.pidDrive.setAbsoluteTarget(
