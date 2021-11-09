@@ -173,6 +173,13 @@ public class RobotDrive
         {
             pidDrive.cancel();
         }
+
+        if (purePursuitDrive.isActive())
+        {
+            purePursuitDrive.cancel();
+        }
+
+        driveBase.stop();
     }   //cancel
 
     /**

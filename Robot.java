@@ -30,6 +30,7 @@ import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
+import TrcCommonLib.trclib.TrcUtil;
 import TrcFtcLib.ftclib.FtcDashboard;
 import TrcFtcLib.ftclib.FtcOpMode;
 import TrcFtcLib.ftclib.FtcRevBlinkin;
@@ -218,7 +219,7 @@ public class Robot
         if (arm != null)
         {
             // Raise the arm a little at start so it will not get caught on the floor tile.
-            arm.setPosition(RobotParams.ARM_MIN_POS + 2.0);
+            arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
         }
 
         if (robotDrive != null)
@@ -347,20 +348,28 @@ public class Robot
             else if (robotDrive.purePursuitDrive.isActive())
             {
                 TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
+                TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
+                TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition(robotPose);
 
                 if (robotDrive.xPosPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " xPos=%6.2f", robotPose.x));
+                    msg.append(String.format(Locale.US, " xPos=%6.2f xTarget=%6.2f", robotPose.x, targetPose.x));
                 }
 
                 if (robotDrive.yPosPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " yPos=%6.2f", robotPose.y));
+                    msg.append(String.format(Locale.US, " yPos=%6.2f yTarget=%6.2f", robotPose.y, targetPose.y));
                 }
 
                 if (robotDrive.turnPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " heading=%6.2f", robotPose.angle));
+                    msg.append(String.format(Locale.US, " heading=%6.2f headingTarget=%6.2f",
+                                             robotPose.angle, targetPose.angle));
+                }
+
+                if (robotDrive.velPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, " vel=%6.2f", TrcUtil.magnitude(robotVel.x, robotVel.y)));
                 }
             }
 
