@@ -170,15 +170,15 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -2.0, 0.0, true),
-                                robot.robotDrive.pathPoint(-2.5, -2.3, 0.0, true));
+                                robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
+                                robot.robotDrive.pathPoint(-2.5, -2.3, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0, true),
-                                robot.robotDrive.pathPoint(-2.5, 2.3, 180.0, true));
+                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
+                                robot.robotDrive.pathPoint(-2.5, 2.3, 180.0));
                         }
                         sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                     }
@@ -219,15 +219,15 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                     event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(intermediateX, -1.0, 90.0, true),
-                                    robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0, true));
+                                    robot.robotDrive.pathPoint(intermediateX, -1.0, 90.0),
+                                    robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(intermediateX, 1.0, 90.0, true),
-                                robot.robotDrive.pathPoint(distanceToHub, 1.0, 90.0, true));
+                                robot.robotDrive.pathPoint(intermediateX, 1.0, 90.0),
+                                robot.robotDrive.pathPoint(distanceToHub, 1.0, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -259,18 +259,17 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.pidDrive.setAbsoluteTarget(
-                                -2.5*RobotParams.FULL_TILE_INCHES, -1.55*RobotParams.FULL_TILE_INCHES,
-                                90.0, event);
+                                robot.robotDrive.pathPoint(-2.5, -1.55, 90.0), event);
 //                            robot.robotDrive.purePursuitDrive.start(
 //                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0, true),
-//                                robot.robotDrive.pathPoint(-2.5, -1.5, 90.0, true));
+//                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0),
+//                                robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 1.5,90.0, true));
+                                robot.robotDrive.pathPoint(-2.5, 1.5,90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
@@ -278,26 +277,26 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DRIVE_TO_WAREHOUSE_INTERMEDIATE:
                     robot.robotDrive.pidDrive.setAbsoluteTarget(
-                        -2.0*RobotParams.FULL_TILE_INCHES, 0.0, 90.0, event);
+                        robot.robotDrive.pathPoint(-2.0, 0.0, 90.0), event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_INTERMEDIATE2);
 //                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
 //                    {
 //                        robot.robotDrive.purePursuitDrive.start(
 //                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                            robot.robotDrive.pathPoint(-1.5, -1.5, 90.0, true));
+//                            robot.robotDrive.pathPoint(-1.5, -1.5, 90.0));
 //                    }
 //                    else
 //                    {
 //                        robot.robotDrive.purePursuitDrive.start(
 //                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                            robot.robotDrive.pathPoint(-1.5, 1.5, 90.0, true));
+//                            robot.robotDrive.pathPoint(-1.5, 1.5, 90.0));
 //                    }
 //                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE);
                     break;
 
                 case DRIVE_TO_WAREHOUSE_INTERMEDIATE2:
                     robot.robotDrive.pidDrive.setAbsoluteTarget(
-                        0.0*RobotParams.FULL_TILE_INCHES, 0.0*RobotParams.FULL_TILE_INCHES, 90.0, event);
+                        robot.robotDrive.pathPoint(0.0, 0.0, 90.0), event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_INTERMEDIATE3);
                     break;
 
@@ -305,7 +304,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 {
                     double intermediateY = autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -1.8: 1.8;
 
-                    robot.robotDrive.pidDrive.setAbsoluteYTarget(intermediateY*RobotParams.FULL_TILE_INCHES, event);
+                    robot.robotDrive.pidDrive.setAbsoluteTarget(
+                        robot.robotDrive.pathPoint(0.0, intermediateY, 90.0), event);
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
                 }
@@ -327,13 +327,13 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 //                    {
 //                        robot.robotDrive.purePursuitDrive.start(
 //                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                            robot.robotDrive.pathPoint(2.5, -1.5, 90.0, true));
+//                            robot.robotDrive.pathPoint(2.5, -1.5, 90.0));
 //                    }
 //                    else
 //                    {
 //                        robot.robotDrive.purePursuitDrive.start(
 //                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                            robot.robotDrive.pathPoint(2.5, 1.5, 90.0, true));
+//                            robot.robotDrive.pathPoint(2.5, 1.5, 90.0));
 //                    }
                     sm.waitForSingleEvent(event, State.DONE);
                     break;

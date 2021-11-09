@@ -215,6 +215,19 @@ public class RobotDrive
     /**
      * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
      *
+     * @param xTargetLocation specifies the target location in field reference frame.
+     * @param yTargetLocation specifies the target location in field reference frame.
+     * @param heading specifies the robot end heading.
+     * @return path point to be used in PurePursuitDrive.
+     */
+    public TrcPose2D pathPoint(double xTargetLocation, double yTargetLocation, double heading)
+    {
+        return pathPoint(xTargetLocation, yTargetLocation, heading, true);
+    }   //pathPoint
+
+    /**
+     * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
+     *
      * @param targetLocation specifies the target location in field reference frame.
      * @param heading specifies the robot end heading.
      * @param tileUnit specifies true if location unit is in floor tile unit, false if in inches unit.
@@ -223,6 +236,18 @@ public class RobotDrive
     public TrcPose2D pathPoint(Point targetLocation, double heading, boolean tileUnit)
     {
         return pathPoint(targetLocation.x, targetLocation.y, heading, tileUnit);
+    }   //pathPoint
+
+    /**
+     * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
+     *
+     * @param targetLocation specifies the target location in field reference frame.
+     * @param heading specifies the robot end heading.
+     * @return path point to be used in PurePursuitDrive.
+     */
+    public TrcPose2D pathPoint(Point targetLocation, double heading)
+    {
+        return pathPoint(targetLocation.x, targetLocation.y, heading, true);
     }   //pathPoint
 
 }   //class RobotDrive
