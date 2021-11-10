@@ -25,7 +25,6 @@ package Ftc2022FreightFrenzy_3543;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import TrcCommonLib.command.CmdPidDrive;
-import TrcCommonLib.command.CmdPurePursuitDrive;
 import TrcCommonLib.command.CmdTimedDrive;
 
 import java.util.Locale;
@@ -48,9 +47,9 @@ public class FtcAuto extends FtcOpMode
     {
         AUTO_NEAR_CAROUSEL,
         AUTO_FAR_CAROUSEL,
-        AUTO_TEST,
         PID_DRIVE,
         TIMED_DRIVE,
+        AUTO_TEST,
         DO_NOTHING
     }   //enum AutoStrategy
 
@@ -177,13 +176,6 @@ public class FtcAuto extends FtcOpMode
                 }
                 break;
 
-            case AUTO_TEST:
-                if (!RobotParams.Preferences.visionOnly)
-                {
-                    autoCommand = new CmdAutoTest(robot, autoChoices);
-                }
-                break;
-
             case PID_DRIVE:
                 if (!RobotParams.Preferences.visionOnly)
                 {
@@ -200,6 +192,13 @@ public class FtcAuto extends FtcOpMode
                     autoCommand = new CmdTimedDrive(
                         robot.robotDrive.driveBase, autoChoices.startDelay, autoChoices.driveTime,
                         0.0, autoChoices.drivePower, 0.0);
+                }
+                break;
+
+            case AUTO_TEST:
+                if (!RobotParams.Preferences.visionOnly)
+                {
+                    autoCommand = new CmdAutoTest(robot, autoChoices);
                 }
                 break;
 
@@ -405,9 +404,9 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
-        strategyMenu.addChoice("Auto Test", AutoStrategy.AUTO_TEST, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
+        strategyMenu.addChoice("Auto Test", AutoStrategy.AUTO_TEST, false);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, false);
 
         freightDeliveryMenu.addChoice("Do Delivery", FreightDelivery.DO_DELIVERY, true, carouselMenu);
