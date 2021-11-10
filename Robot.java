@@ -261,6 +261,11 @@ public class Robot
     public void stopMode(TrcRobot.RunMode runMode)
     {
         final String funcName = "stopMode";
+
+        if (odwDeployer != null && odwDeployer.isDeployed())
+        {
+            odwDeployer.retract();
+        }
         //
         // Print all performance counters if there are any.
         //
