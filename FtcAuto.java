@@ -415,9 +415,9 @@ public class FtcAuto extends FtcOpMode
         carouselMenu.addChoice("Do Carousel", Carousel.DO_CAROUSEL, true, parkingMenu);
         carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
 
-        parkingMenu.addChoice("No Parking", Parking.NO_PARKING, false);
         parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, true);
         parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, false);
+        parkingMenu.addChoice("No Parking", Parking.NO_PARKING, false);
         //
         // Traverse menus.
         //
