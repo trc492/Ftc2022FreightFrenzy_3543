@@ -48,7 +48,7 @@ public class FtcAuto extends FtcOpMode
     {
         AUTO_NEAR_CAROUSEL,
         AUTO_FAR_CAROUSEL,
-        TEST_PPD,
+        AUTO_TEST,
         PID_DRIVE,
         TIMED_DRIVE,
         DO_NOTHING
@@ -177,7 +177,7 @@ public class FtcAuto extends FtcOpMode
                 }
                 break;
 
-            case TEST_PPD:
+            case AUTO_TEST:
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdAutoTest(robot, autoChoices);
@@ -405,7 +405,7 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
-        strategyMenu.addChoice("Test PPD", AutoStrategy.TEST_PPD, false);
+        strategyMenu.addChoice("Auto Test", AutoStrategy.AUTO_TEST, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, false);
