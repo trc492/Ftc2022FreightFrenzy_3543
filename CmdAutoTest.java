@@ -122,9 +122,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                 case DONE:
                 default:
                     //
-                    // We are done, zero calibrate the arm will lower it.
+                    // We are done.
                     //
-                    robot.arm.zeroCalibrate();
                     cancel();
                     break;
             }
