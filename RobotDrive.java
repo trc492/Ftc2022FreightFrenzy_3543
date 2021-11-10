@@ -28,6 +28,7 @@ import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDriveBase;
 import TrcCommonLib.trclib.TrcDriveBaseOdometry;
 import TrcCommonLib.trclib.TrcGyro;
+import TrcCommonLib.trclib.TrcHolonomicPurePursuitDrive;
 import TrcCommonLib.trclib.TrcMecanumDriveBase;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
@@ -62,7 +63,8 @@ public class RobotDrive
     public final TrcPidController encoderYPidCtrl;
     public final TrcPidController gyroPidCtrl;
     public final TrcPidDrive pidDrive;
-    public final TrcPurePursuitDrive purePursuitDrive;
+//    public final TrcPurePursuitDrive purePursuitDrive;
+    public final TrcHolonomicPurePursuitDrive purePursuitDrive;
     //
     // Coefficients for PID controllers.
     //
@@ -157,10 +159,14 @@ public class RobotDrive
         pidDrive.setStallTimeout(RobotParams.PIDDRIVE_STALL_TIMEOUT);
         pidDrive.setMsgTracer(TrcDbgTrace.getGlobalTracer());
 
-        purePursuitDrive = new TrcPurePursuitDrive(
+//        purePursuitDrive = new TrcPurePursuitDrive(
+//            "purePursuitDrive", driveBase,
+//            RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
+//            xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+        purePursuitDrive = new TrcHolonomicPurePursuitDrive(
             "purePursuitDrive", driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
-            xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+            yPosPidCoeff, turnPidCoeff, velPidCoeff);
         purePursuitDrive.setMsgTracer(robot.globalTracer, true,true, robot.battery);
     }   //RobotDrive
 

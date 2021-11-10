@@ -180,9 +180,7 @@ public class FtcAuto extends FtcOpMode
             case TEST_PPD:
                 if (!RobotParams.Preferences.visionOnly)
                 {
-                    autoCommand = new CmdPurePursuitDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
-                        robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
+                    autoCommand = new CmdAutoTest(robot, autoChoices);
                 }
                 break;
 
@@ -275,18 +273,6 @@ public class FtcAuto extends FtcOpMode
         if (robot.battery != null)
         {
             robot.battery.setEnabled(true);
-        }
-        //
-        // PurePursuitDrive requires start initialization to provide a drive path.
-        //
-        if (autoChoices.strategy == AutoStrategy.TEST_PPD)
-        {
-            robot.robotDrive.driveBase.setFieldPosition(
-                new TrcPose2D(-1.4*RobotParams.FULL_TILE_INCHES, -1.0*RobotParams.FULL_TILE_INCHES, 90.0));
-            ((CmdPurePursuitDrive)autoCommand).start(
-                robot.robotDrive.driveBase.getFieldPosition(), false,
-                robot.robotDrive.pathPoint(
-                    -2.5*RobotParams.FULL_TILE_INCHES, -1.5*RobotParams.FULL_TILE_INCHES, 90.0));
         }
     }   //startMode
 
