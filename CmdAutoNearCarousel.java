@@ -219,10 +219,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-//                                    RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                    robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
-                                    robot.robotDrive.pathPoint(-2.5, -1.1, 0.0),
+                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(intermediateX, -1.0, 90.0),
                                     robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
                         }
                         else
@@ -232,6 +230,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                                 robot.robotDrive.pathPoint(-2.5, 1.0, 90.0),
                                 robot.robotDrive.pathPoint(distanceToHub, 1.0, 90.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(intermediateX, 1.0, 90.0),
+                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);

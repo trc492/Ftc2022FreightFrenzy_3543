@@ -39,10 +39,14 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
         DRIVE_TO_CAROUSEL,
         GET_TO_CAROUSEL,
         SPIN_CAROUSEL,
-        DRIVE_TO_ALLIANCE_STORAGE_UNIT,
-        DRIVE_TO_WAREHOUSE_INTERMEDIATE,
-        DRIVE_TO_WAREHOUSE_INTERMEDIATE2,
-        DRIVE_TO_WAREHOUSE_INTERMEDIATE3,
+        DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_CAROUSEL,
+        DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE,
+        DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_2,
+        DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_3,
+        DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE,
+        DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_2,
+        DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_3,
+        DRIVE_TO_WAREHOUSE_FROM_NOT_CAROUSEL_INTERMEDIATE,
         RETRACT_ODOMETRY_WHEELS,
         DRIVE_TO_WAREHOUSE,
 
@@ -73,7 +77,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
         sm = new TrcStateMachine<>(moduleName);
         robot.robotDrive.driveBase.setFieldPosition(
                 autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                        RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
+                        RobotParams.STARTPOS_RED_2: RobotParams.STARTPOS_BLUE_2);
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel
 
@@ -109,79 +113,67 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
      * @return true if the command sequence is completed, false otherwise.
      */
     @Override
-    public boolean cmdPeriodic(double elapsedTime)
-    {
+    public boolean cmdPeriodic(double elapsedTime) {
         State state = sm.checkReadyAndGetState();
 
-        if (state == null)
-        {
+        if (state == null) {
             robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
-        }
-        else
-        {
+        } else {
             boolean traceState = true;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
-            switch (state)
-            {
+            switch (state) {
+                //done checking
                 case START_DELAY:
                     //
                     // Do start delay if any.
                     //
                     // Call vision at the beginning to figure out the position of the duck.
-                    if(robot.vision != null && robot.vision.isTensorFlowInitialized())
-                    {
+                    if (robot.vision != null && robot.vision.isTensorFlowInitialized()) {
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
                     }
 
-                    if (duckPosition == 0)
-                    {
+                    if (duckPosition == 0) {
                         //
                         // We still can't see the duck, default to level 3.
                         //
                         duckPosition = 3;
                     }
 
-                    if (autoChoices.startDelay == 0.0)
-                    {
+                    if (autoChoices.startDelay == 0.0) {
                         //
                         // Intentionally falling through to the next state.
                         //
                         sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-                    }
-                    else
-                    {
+                    } else {
                         timer.set(autoChoices.startDelay, event);
                         sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                         break;
                     }
-                    //done
+
+
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
                     // If not driving to shipping hub and dumping freight, go to next state (driving to carousel).
-                    if (autoChoices.freightDelivery == FtcAuto.FreightDelivery.NO_DELIVERY)
-                    {
+                    if (autoChoices.freightDelivery == FtcAuto.FreightDelivery.NO_DELIVERY) {
                         sm.setState(State.DRIVE_TO_CAROUSEL);
-                    }
-                    else
-                    {
+                    } else {
                         // Drive to alliance shipping hub.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3? 0.4: duckPosition == 2? 0.4: 0.4;
+                        double distanceToHub = duckPosition == 3 ? 0.4 : duckPosition == 2 ? 0.4 : 0.4;
+                        double yTarget = 0.0;
+                        //only difference between coordinate for red and blue case is the yTarget
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
+                            yTarget = -1.0;
+                        } else {
+                            yTarget = 1.0;
+                        }
+                        robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                //heading is negative because we are dumping freight to the right of shipping hub
+                                robot.robotDrive.pathPoint(distanceToHub, yTarget, -90.0, true));
 
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    //heading is negative because we are dumping freight to the right of shipping hub
-                                    robot.robotDrive.pathPoint(-distanceToHub, -1.0, -90.0, true));
-                        }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(distanceToHub, 1.0, -90.0, true));
-                        }
+
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
                         sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
@@ -192,34 +184,37 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state (driving to the
                     // storage unit).
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 2.0, event);
+
                     sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                     break;
 
                 case DRIVE_TO_CAROUSEL:
-                    // If we are not doing carousel, skip to next state (drive to alliance shipping hub).
-                    if (autoChoices.doCarousel == FtcAuto.Carousel.NO_CAROUSEL)
-                    {
-                        sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
-                    }
-                    else
-                    {
+                    // If we are not doing carousel, skip to next state (drive to storage unit from not carousel)
+                    if (autoChoices.doCarousel == FtcAuto.Carousel.NO_CAROUSEL) {
+                        sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE);
+                    } else
+
                         // Drive to the carousel.
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
+                        // assuming that we wont need to use PidDrive for drive to Carousel
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
                             robot.robotDrive.purePursuitDrive.start(
                                     event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.5, -2.0, 0.0, true),
-                                    robot.robotDrive.pathPoint(-2.5, -2.3, 0.0, true));
+                                    robot.robotDrive.pathPoint(0.5, 0.0, -90.0, true),
+                                    robot.robotDrive.pathPoint(-2.0, 0.0, -90.0, true),
+
+                                    robot.robotDrive.pathPoint(-2.5, -2.0, 0.0, true));
+                        } else {
+                            {
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        //first two points same as for red alliance, for last point, yTarget and heading is different
+                                        robot.robotDrive.pathPoint(0.5, 0.0, -90.0, true),
+                                        robot.robotDrive.pathPoint(-2.0, 0.0, -90.0, true),
+
+                                        robot.robotDrive.pathPoint(-2.5, 2.0, 180.0, true));
+                            }
+                            sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                         }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.5, 2.0, 180.0, true),
-                                    robot.robotDrive.pathPoint(-2.5, 2.3, 180.0, true));
-                        }
-                        sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
-                    }
                     break;
 
                 case GET_TO_CAROUSEL:
@@ -234,52 +229,81 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     robot.robotDrive.driveBase.stop();
                     // Spin the carousel for 3 seconds.
                     robot.spinner.set(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                                    RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE ?
+                                    RobotParams.SPINNER_POWER_RED : RobotParams.SPINNER_POWER_BLUE,
                             RobotParams.SPINNER_TIME, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_CAROUSEL);
                     break;
 
 
-
-                case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
-                    if (autoChoices.parking == FtcAuto.Parking.NO_PARKING)
-                    {
+                case DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_CAROUSEL:
+                    if (autoChoices.parking == FtcAuto.Parking.NO_PARKING) {
                         // We are not parking anywhere, just stop and be done.
                         sm.setState(State.DONE);
-                    }
-                    else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING)
-                    {
+                    } else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING) {
                         // We are parking at the warehouse.
-                        sm.setState(State.DRIVE_TO_WAREHOUSE_INTERMEDIATE);
-                    }
-                    else
-                    {
+                        sm.setState(State.DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE);
+                    } else {
                         // Drive to alliance shipping hub.
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
+
+                            //pidDrive version
                             robot.robotDrive.pidDrive.setAbsoluteTarget(
-                                    -2.5*RobotParams.FULL_TILE_INCHES, -1.55*RobotParams.FULL_TILE_INCHES,
-                                    90.0, event);
+                                    -2.5 * RobotParams.FULL_TILE_INCHES, -1.55 * RobotParams.FULL_TILE_INCHES,
+                                    0.0, event);
+                            //pure pursuit alternative
+                            robot.robotDrive.purePursuitDrive.start(event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(-2.5, -1.5, 0.0, true));
+
 //                            robot.robotDrive.purePursuitDrive.start(
 //                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0, true),
 //                                robot.robotDrive.pathPoint(-2.5, -1.5, 90.0, true));
-                        }
-                        else
-                        {
+                        } else {
+
+                            //pidDrive Version
                             robot.robotDrive.purePursuitDrive.start(
                                     event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.5, 1.5,90.0, true));
+                                    robot.robotDrive.pathPoint(-2.5, 1.5, 180.0, true));
+
+                            //pure pursuit alternative
+                            robot.robotDrive.purePursuitDrive.start(event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(-2.5, -1.5, 180.0, true));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;
 
-                case DRIVE_TO_WAREHOUSE_INTERMEDIATE:
+                case DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE:
+                    //for both red and blue the coordinate an dheading is the same
+                    if (autoChoices.parking != FtcAuto.Parking.STORAGE_PARKING) {
+                        sm.setState(State.DRIVE_TO_WAREHOUSE_FROM_NOT_CAROUSEL_INTERMEDIATE);
+                    }
                     robot.robotDrive.pidDrive.setAbsoluteTarget(
-                            -2.0*RobotParams.FULL_TILE_INCHES, 0.0, 90.0, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_INTERMEDIATE2);
+                            0.5 * RobotParams.FULL_TILE_INCHES, 0.0, -90.0, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_2);
+
+
+                    break;
+
+
+                case DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_2:
+                    robot.robotDrive.pidDrive.setAbsoluteTarget(
+                            -2.0 * RobotParams.FULL_TILE_INCHES, 0.0, -90.0, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_3);
+
+                    break;
+
+                case DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_NOT_CAROUSEL_INTERMEDIATE_3:
+                    //the 3rd pathpoint robot  goes to from start  or alliance  hub to storage unit is the same as the pathpoint from carousel to storage unit
+                    sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT_FROM_CAROUSEL);
+
+                    break;
+                case DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE:
+                    //point and heading is same for both red and blue alliances
+                    robot.robotDrive.pidDrive.setAbsoluteTarget(
+                            -2.0 * RobotParams.FULL_TILE_INCHES, 0.0, -90.0, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_2);
 //                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
 //                    {
 //                        robot.robotDrive.purePursuitDrive.start(
@@ -295,20 +319,33 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 //                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE);
                     break;
 
-                case DRIVE_TO_WAREHOUSE_INTERMEDIATE2:
+                case DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_2:
+                    //point and heading is same for red and blue alliances
                     robot.robotDrive.pidDrive.setAbsoluteTarget(
-                            0.0*RobotParams.FULL_TILE_INCHES, 0.0*RobotParams.FULL_TILE_INCHES, 90.0, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_INTERMEDIATE3);
+                            -2.0 * RobotParams.FULL_TILE_INCHES, 0.0 * RobotParams.FULL_TILE_INCHES, -90.0, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_3);
                     break;
 
-                case DRIVE_TO_WAREHOUSE_INTERMEDIATE3:
-                {
-                    double intermediateY = autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -1.8: 1.8;
+                case DRIVE_TO_WAREHOUSE_FROM_CAROUSEL_INTERMEDIATE_3: {
 
-                    robot.robotDrive.pidDrive.setAbsoluteYTarget(intermediateY*RobotParams.FULL_TILE_INCHES, event);
-                    sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
+                    //because 3rd point in path from carousel to warehouse same as first point in path from not carousel to warehouse
+                    sm.setState(State.DRIVE_TO_WAREHOUSE_FROM_NOT_CAROUSEL_INTERMEDIATE);
                     break;
                 }
+                case DRIVE_TO_WAREHOUSE_FROM_NOT_CAROUSEL_INTERMEDIATE:
+                    if (autoChoices.parking == FtcAuto.Parking.NO_PARKING) {
+                        sm.setState(State.DONE);
+                    }
+                    double yTarget = 0;
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
+                        yTarget = -1.8;
+                    } else {
+                        yTarget = 1.8;
+                    }
+                    robot.robotDrive.pidDrive.setAbsoluteTarget(
+                            0.5 * RobotParams.FULL_TILE_INCHES, yTarget * RobotParams.FULL_TILE_INCHES, 90.0, event);
+                    sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
+
 
                 case RETRACT_ODOMETRY_WHEELS:
                     robot.arm.setLevel(1);
@@ -348,13 +385,14 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     break;
             }
 
-            if (traceState)
-            {
+            if (traceState) {
                 robot.traceStateInfo(sm.getState());
             }
+
         }
 
-        return !sm.isEnabled();
-    }   //cmdPeriodic
+            return !sm.isEnabled();
+           //cmdPeriodic
 
-}   //class CmdAutoNearCarousel
+    }
+}   //class CmdAutoFarCarousel
