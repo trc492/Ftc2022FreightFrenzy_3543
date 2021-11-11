@@ -25,7 +25,6 @@ package Ftc2022FreightFrenzy_3543;
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
-import TrcCommonLib.trclib.TrcTimer;
 
 class CmdAutoTest implements TrcRobot.RobotCommand
 {
@@ -39,8 +38,6 @@ class CmdAutoTest implements TrcRobot.RobotCommand
     }   //enum State
 
     private final Robot robot;
-    private final FtcAuto.AutoChoices autoChoices;
-    private final TrcTimer timer;
     private final TrcEvent event;
     private final TrcStateMachine<State> sm;
 
@@ -48,15 +45,12 @@ class CmdAutoTest implements TrcRobot.RobotCommand
      * Constructor: Create an instance of the object.
      *
      * @param robot specifies the robot object for providing access to various global objects.
-     * @param autoChoices specifies all the choices from the autonomous menus.
      */
-    CmdAutoTest(Robot robot, FtcAuto.AutoChoices autoChoices)
+    CmdAutoTest(Robot robot)
     {
-        robot.globalTracer.traceInfo(moduleName, ">>> robot=%s, choices=%s", robot, autoChoices);
+        robot.globalTracer.traceInfo(moduleName, ">>> robot=%s", robot);
 
         this.robot = robot;
-        this.autoChoices = autoChoices;
-        timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
         sm.start(State.START);

@@ -24,7 +24,6 @@ package Ftc2022FreightFrenzy_3543;
 
 import org.opencv.core.Point;
 
-import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDriveBase;
 import TrcCommonLib.trclib.TrcDriveBaseOdometry;
 import TrcCommonLib.trclib.TrcGyro;
@@ -132,7 +131,7 @@ public class RobotDrive
             driveBase.setOdometryScales(RobotParams.ENCODER_X_INCHES_PER_COUNT, RobotParams.ENCODER_Y_INCHES_PER_COUNT);
         }
         //
-        // Initialize PID drive.
+        // Create and initialize PID controllers.
         //
         xPosPidCoeff = new TrcPidController.PidCoefficients(
             RobotParams.ENCODER_X_KP, RobotParams.ENCODER_X_KI, RobotParams.ENCODER_X_KD);
@@ -150,18 +149,20 @@ public class RobotDrive
         gyroPidCtrl = new TrcPidController(
             "gyroPidCtrl", turnPidCoeff, RobotParams.GYRO_TOLERANCE, driveBase::getHeading);
         gyroPidCtrl.setAbsoluteSetPoint(true);
+        // FTC robots generally have USB performance issues where the sampling rate of the gyro is not high enough.
+        // If the robot turns too fast, PID will cause oscillation. By limiting turn power, the robot turns slower.
         gyroPidCtrl.setOutputLimit(RobotParams.TURN_POWER_LIMIT);
 
         pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroPidCtrl);
+        // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
+        // of the absolute target position.
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotParams.PIDDRIVE_STALL_TIMEOUT);
-        pidDrive.setMsgTracer(TrcDbgTrace.getGlobalTracer());
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
             xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
-        purePursuitDrive.setMsgTracer(robot.globalTracer, true,true, robot.battery);
     }   //RobotDrive
 
     /**

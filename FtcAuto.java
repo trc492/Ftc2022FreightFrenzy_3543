@@ -198,7 +198,7 @@ public class FtcAuto extends FtcOpMode
             case AUTO_TEST:
                 if (!RobotParams.Preferences.visionOnly)
                 {
-                    autoCommand = new CmdAutoTest(robot, autoChoices);
+                    autoCommand = new CmdAutoTest(robot);
                 }
                 break;
 
@@ -291,11 +291,6 @@ public class FtcAuto extends FtcOpMode
         if (autoCommand != null)
         {
             autoCommand.cancel();
-        }
-
-        if (RobotParams.Preferences.useExternalOdometry && robot.odwDeployer != null)
-        {
-            robot.odwDeployer.retract();
         }
         //
         // Tell robot object opmode is about to stop so it can do the necessary cleanup for the mode.

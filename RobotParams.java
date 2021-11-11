@@ -93,13 +93,13 @@ public class RobotParams
     static final double STARTPOS_FROM_FIELDCENTER_X1            = QUAD_FIELD_INCHES;
     static final double STARTPOS_FROM_FIELDCENTER_X2            = HALF_TILE_INCHES;
 
-    static final TrcPose2D STARTPOS_RED_1                       =
+    static final TrcPose2D STARTPOS_RED_NEAR                    =
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, -STARTPOS_FROM_FIELDCENTER_Y, 0.0);
-    static final TrcPose2D STARTPOS_RED_2                       =
+    static final TrcPose2D STARTPOS_RED_FAR                     =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, -STARTPOS_FROM_FIELDCENTER_Y, 0.0);
-    static final TrcPose2D STARTPOS_BLUE_1                      =
+    static final TrcPose2D STARTPOS_BLUE_NEAR                   =
         new TrcPose2D(-STARTPOS_FROM_FIELDCENTER_X1, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
-    static final TrcPose2D STARTPOS_BLUE_2                      =
+    static final TrcPose2D STARTPOS_BLUE_FAR                    =
         new TrcPose2D(STARTPOS_FROM_FIELDCENTER_X2, STARTPOS_FROM_FIELDCENTER_Y, 180.0);
     //
     // Motor Odometries.

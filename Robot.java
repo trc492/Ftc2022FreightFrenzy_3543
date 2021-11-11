@@ -162,13 +162,7 @@ public class Robot
                             RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
                         .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
                     arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams);
-                    //
-                    // Don't zero calibrate the arm. Some tests may want the arm up a bit.
-                    //
-                    if (runMode != TrcRobot.RunMode.TEST_MODE)
-                    {
-                        arm.zeroCalibrate();
-                    }
+                    arm.zeroCalibrate();
                 }
                 intake = new FtcDcMotor(RobotParams.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);

@@ -452,7 +452,7 @@ public class FtcTest extends FtcTeleOp
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     robot.dashboard.displayPrintf(
-                        8, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,rb:%.0f",
+                        8, "xPos=%.1f,yPos=%.1f,heading=%.1f,rawEnc=lf:%.0f,rf:%.0f,rb:%.0f",
                         robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(),
                         robot.robotDrive.driveBase.getHeading(),
                         robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
