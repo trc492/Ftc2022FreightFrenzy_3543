@@ -23,7 +23,6 @@
 package Ftc2022FreightFrenzy_3543;
 
 import TrcCommonLib.trclib.TrcEvent;
-import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
@@ -112,7 +111,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
             {
                 case START:
                     robot.robotDrive.driveBase.setFieldPosition(
-                        new TrcPose2D(-1.4*RobotParams.FULL_TILE_INCHES, -1.0*RobotParams.FULL_TILE_INCHES, 90.0));
+                        robot.robotDrive.pathPoint(-1.4, -1.0, 90.0));
                     robot.robotDrive.purePursuitDrive.start(
                         event, robot.robotDrive.driveBase.getFieldPosition(), false,
                         robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
