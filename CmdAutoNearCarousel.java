@@ -41,7 +41,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         DUMP_FREIGHT,
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE_INTERMEDIATE,
-//        DRIVE_TO_WAREHOUSE_INTERMEDIATE2,
+        //        DRIVE_TO_WAREHOUSE_INTERMEDIATE2,
 //        DRIVE_TO_WAREHOUSE_INTERMEDIATE3,
         RETRACT_ODOMETRY_WHEELS,
         DRIVE_TO_WAREHOUSE,
@@ -126,8 +126,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     // Do start delay if any.
                     //
                     robot.robotDrive.driveBase.setFieldPosition(
-                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                            RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                                    RobotParams.STARTPOS_RED_1: RobotParams.STARTPOS_BLUE_1);
                     // Call vision at the beginning to figure out the position of the duck.
                     if(robot.vision != null && robot.vision.isTensorFlowInitialized())
                     {
@@ -169,18 +169,18 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-2.5, -2.2, 0.0));
+                                    robot.robotDrive.pathPoint(-2.5, -2.2, 0.0));
 //                                robot.robotDrive.pathPoint(-2.5, -2.3, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
-                                robot.robotDrive.pathPoint(-2.5, 2.2, 180.0));
+                                    robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
+                                    robot.robotDrive.pathPoint(-2.5, 2.2, 180.0));
                         }
                         sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                     }
@@ -219,20 +219,19 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(intermediateX, -1.0, 90.0),
+                                    event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                                    RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                    robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
+                                    robot.robotDrive.pathPoint(-2.5, -1.1, 0.0),
                                     robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-2.5, 1.0, 90.0),
-                                robot.robotDrive.pathPoint(distanceToHub, 1.0, 90.0));
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(intermediateX, 1.0, 90.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
+                                    robot.robotDrive.pathPoint(-2.5, 1.0, 90.0),
+                                    robot.robotDrive.pathPoint(distanceToHub, 1.0, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -266,16 +265,16 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 //                            robot.robotDrive.pidDrive.setAbsoluteTarget(
 //                                robot.robotDrive.pathPoint(-2.5, -1.55, 90.0), event);
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
+                                    robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
 //                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-2.5, 1.5,90.0));
+                                    robot.robotDrive.pathPoint(-2.5, 1.5,90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
@@ -288,20 +287,20 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                            robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, -1.8, 90.0));
+                                event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
+                                robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
+                                robot.robotDrive.pathPoint(0.5, -1.8, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                            robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, 1.8, 90.0));
+                                event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
+                                robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
+                                robot.robotDrive.pathPoint(0.5, 1.8, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
