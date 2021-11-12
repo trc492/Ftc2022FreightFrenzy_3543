@@ -185,7 +185,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case GET_TO_CAROUSEL:
                     // We are still about an inch from the carousel, drive slowly towards it for 400 msec to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(0.4, event);
+                    timer.set(
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.4: 0.5, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -210,23 +211,23 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         // Drive to alliance shipping hub. We could be coming from starting position or carousel.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3? 1.3: duckPosition == 2? 1.4: 1.4;
+                        double distanceToHub = duckPosition == 3? 1.3: duckPosition == 2? 1.5: 1.4;
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
-                                robot.robotDrive.pathPoint(-2.5, -1.1, 0.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
+                                robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
+                                robot.robotDrive.pathPoint(-distanceToHub, -0.9, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
-                                robot.robotDrive.pathPoint(-2.5, 1.1, 180.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
+                                robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
+                                robot.robotDrive.pathPoint(-distanceToHub, 0.9, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -258,13 +259,13 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
+                                robot.robotDrive.pathPoint(-2.5, -1.4, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 1.5,90.0));
+                                robot.robotDrive.pathPoint(-2.5, 1.4,90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
@@ -277,6 +278,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
