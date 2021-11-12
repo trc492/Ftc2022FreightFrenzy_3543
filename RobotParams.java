@@ -119,9 +119,9 @@ public class RobotParams
     static final boolean DRIVE_WHEEL_BRAKE_MODE                 = true;
     static final double TURN_POWER_LIMIT                        = 0.5;
     static final double SLOW_DRIVE_POWER_SCALE                  = 0.5;
-    static final double X_ODOMETRY_WHEEL_OFFSET                 = -4.625;  //4 5/8 inches behind robot centroid
-    static final double Y_LEFT_ODOMETRY_WHEEL_OFFSET            = -7.5;
-    static final double Y_RIGHT_ODOMETRY_WHEEL_OFFSET           = 7.5;
+    static final double X_ODOMETRY_WHEEL_OFFSET                 = ROBOT_LENGTH/2.0 - (3.875 + 9.5); //behind centroid
+    static final double Y_LEFT_ODOMETRY_WHEEL_OFFSET            = -15.25/2.0;
+    static final double Y_RIGHT_ODOMETRY_WHEEL_OFFSET           = 15.25/2.0;
     //
     // Velocity controlled constants.
     //
@@ -184,7 +184,7 @@ public class RobotParams
     static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
     static final double ARM_OFFSET                              = 33.0;
     static final double ARM_MIN_POS                             = 33.0;
-    static final double ARM_MAX_POS                             = 140.0;
+    static final double ARM_MAX_POS                             = 134.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
@@ -217,7 +217,7 @@ public class RobotParams
     static final double ODWHEEL_X_RETRACT_POS                   = 0.25;
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
-    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 8.4975599965843450668612102620431e-4;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 8.3527984931543701389098271890307e-4;
     //
     // Pickup Hook subsystem.
     //

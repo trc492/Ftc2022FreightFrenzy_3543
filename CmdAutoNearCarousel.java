@@ -183,9 +183,9 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case GET_TO_CAROUSEL:
-                    // We are still about an inch from the carousel, drive slowly towards it for 300 msec to touch it.
+                    // We are still about an inch from the carousel, drive slowly towards it for 400 msec to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(0.3, event);
+                    timer.set(0.4, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -279,7 +279,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, -1.8, 90.0));
+                            robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
                     }
                     else
                     {
@@ -287,7 +287,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                            robot.robotDrive.pathPoint(0.5, 1.8, 90.0));
+                            robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
@@ -298,13 +298,13 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     robot.arm.setLevel(1);
                     robot.odwDeployer.retract();
                     timer.set(2.0, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_WAREHOUSE);
+                    sm.waitForSingleEvent(event, State.GET_INTO_WAREHOUSE);
                     break;
 
                 case GET_INTO_WAREHOUSE:
                     // Run full speed into the warehouse crossing the barriers.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(1.0, event);
+                    timer.set(0.75, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
