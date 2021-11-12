@@ -167,21 +167,20 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     {
                         // Drive to alliance shipping hub.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3 ? 2.3: duckPosition == 2 ? 2.2: 1.8;
+                        double distanceToHub = duckPosition == 3 ? 1.8: duckPosition == 2 ? 1.87: 1.87;
                         // Only difference between coordinate for red and blue cases is the yTarget.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                // Heading is negative because we are dumping freight to the right of shipping hub.
-                                robot.robotDrive.pathPoint(-0.5, -distanceToHub, -0.0));
+                                robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 // Heading is negative because we are dumping freight to the right of shipping hub.
-                                robot.robotDrive.pathPoint(-0.4, distanceToHub, -180.0));
+                                robot.robotDrive.pathPoint(-0.4, distanceToHub, 180.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -208,7 +207,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0),
+                                robot.robotDrive.pathPoint(-2.5, -1.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -2.2, 0.0));
                         }
                         else
@@ -216,7 +215,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 // First two points same as red alliance. Last point, yTarget and heading is different.
-                                robot.robotDrive.pathPoint(-2.5, 1.5, 180.0),
+                                robot.robotDrive.pathPoint(-2.5, 1.0, 180.0),
                                 robot.robotDrive.pathPoint(-2.5, 2.2, 180.0));
                         }
                         sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
@@ -226,7 +225,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                 case GET_TO_CAROUSEL:
                     // We are still about an inch from the carousel, drive slowly towards it for 300 msec to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(0.3, event);
+                    timer.set(0.25, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -326,7 +325,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(0.75, event);
+                    timer.set(1.0, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
