@@ -43,6 +43,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
         DRIVE_TO_WAREHOUSE,
         RETRACT_ODOMETRY_WHEELS,
         GET_INTO_WAREHOUSE,
+        GET_TO_WAREHOUSE_CENTER,
 
         DONE
     }   //enum State
@@ -198,7 +199,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state.
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 2.0, event);
+                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 1.25, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                     break;
 
@@ -335,6 +336,15 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
                     timer.set(0.8, event);
+                    sm.waitForSingleEvent(
+                        event, autoChoices.doCarousel == FtcAuto.Carousel.DO_CAROUSEL?
+                            State.GET_TO_WAREHOUSE_CENTER: State.DONE);
+                    break;
+
+                case GET_TO_WAREHOUSE_CENTER:
+                    robot.robotDrive.driveBase.holonomicDrive(
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 1.0: -1.0, 0.0, 0.0);
+                    timer.set(0.25, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
