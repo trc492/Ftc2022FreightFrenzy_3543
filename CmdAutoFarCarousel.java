@@ -167,7 +167,16 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     {
                         // Drive to alliance shipping hub.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3 ? 1.8: duckPosition == 2 ? 1.95: 1.95;
+                        double distanceToHub;
+
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                        {
+                            distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.85: 1.85;
+                        }
+                        else
+                        {
+                            distanceToHub = duckPosition == 3? 1.9: duckPosition == 2? 1.95: 1.9;
+                        }
                         // Only difference between coordinate for red and blue cases is the yTarget.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
@@ -208,7 +217,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -1.0, 0.0),
-                                robot.robotDrive.pathPoint(-2.5, -2.3, 0.0));
+                                robot.robotDrive.pathPoint(-2.5, -2.2, 0.0));
                         }
                         else
                         {
@@ -226,7 +235,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     // We are still about an inch from the carousel, drive slowly towards it for 300 msec to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
                     timer.set(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.4: 0.5, event);
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.2: 0.5, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -260,7 +269,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -1.5, 0.0));
+                                robot.robotDrive.pathPoint(-2.5, -1.4, 0.0));
                         }
                         else
                         {
@@ -283,13 +292,13 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
+                                robot.robotDrive.pathPoint(0.5, -2.1, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
+                                robot.robotDrive.pathPoint(0.5, 2.1, 90.0));
                         }
                     }
                     else
@@ -301,7 +310,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                                 event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.0, 0.0, 0.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                                robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
+                                robot.robotDrive.pathPoint(0.5, -1.7, 90.0));
                         }
                         else
                         {
@@ -309,7 +318,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                                 event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.0, 0.0, 180.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
-                                robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
+                                robot.robotDrive.pathPoint(0.5, 1.7, 90.0));
                         }
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
@@ -326,7 +335,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(1.0, event);
+                    timer.set(0.8, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 

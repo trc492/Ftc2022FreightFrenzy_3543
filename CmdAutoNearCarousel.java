@@ -265,7 +265,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 1.4,90.0));
+                                robot.robotDrive.pathPoint(-2.5, 1.4, 90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
@@ -278,7 +278,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
