@@ -36,6 +36,7 @@ public class RobotParams
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = true;
         static boolean useArm = true;
+        static boolean usePickupHook = false;
         static boolean useBlinkin = true;
         static boolean useVuforia = false;
         static boolean showVuforiaView = false;
@@ -195,7 +196,6 @@ public class RobotParams
     static final double ARM_STALL_TIMEOUT                       = 1.0;
     static final double ARM_RESET_TIMEOUT                       = 0.5;
     static final double[] ARM_PRESET_LEVELS                     = new double[] {ARM_MIN_POS, 51.6, 76.2, 107};
-//    static final double[] ARM_PRESET_LEVELS                     = new double[] {ARM_MIN_POS, 51.6, 75, 107};
     static final double ARM_SLOW_POWER_SCALE                    = 0.5;
     //
     // Intake subsystem.

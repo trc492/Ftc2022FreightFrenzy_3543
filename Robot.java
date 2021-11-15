@@ -179,14 +179,19 @@ public class Robot
                 {
                     odwDeployer.retract();
                 }
-                FtcServoActuator.Parameters pickupHookParams = new FtcServoActuator.Parameters()
-                    .setStepParams(
-                        RobotParams.PICKUPHOOK_STEPRATE, RobotParams.PICKUPHOOK_MIN_POS, RobotParams.PICKUPHOOK_MAX_POS)
-                    .setInverted(false, false)
-                    .setRetractParams(RobotParams.PICKUPHOOK_RETRACT_POS, RobotParams.PICKUPHOOK_ROTATE_TIME)
-                    .setExtendParams(RobotParams.PICKUPHOOK_EXTEND_POS, RobotParams.PICKUPHOOK_ROTATE_TIME);
-                pickupHook = new FtcServoActuator(RobotParams.HWNAME_PICKUP_HOOK, pickupHookParams);
-                pickupHook.retract();
+
+                if (RobotParams.Preferences.usePickupHook)
+                {
+                    FtcServoActuator.Parameters pickupHookParams = new FtcServoActuator.Parameters()
+                        .setStepParams(
+                            RobotParams.PICKUPHOOK_STEPRATE, RobotParams.PICKUPHOOK_MIN_POS,
+                            RobotParams.PICKUPHOOK_MAX_POS)
+                        .setInverted(false, false)
+                        .setRetractParams(RobotParams.PICKUPHOOK_RETRACT_POS, RobotParams.PICKUPHOOK_ROTATE_TIME)
+                        .setExtendParams(RobotParams.PICKUPHOOK_EXTEND_POS, RobotParams.PICKUPHOOK_ROTATE_TIME);
+                    pickupHook = new FtcServoActuator(RobotParams.HWNAME_PICKUP_HOOK, pickupHookParams);
+                    pickupHook.retract();
+                }
             }
         }
     }   //Robot
