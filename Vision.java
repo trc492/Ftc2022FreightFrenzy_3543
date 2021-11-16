@@ -65,11 +65,7 @@ public class Vision
     public static final String duckPos1 = "DuckPos1";
     public static final String duckPos2 = "DuckPos2";
     public static final String duckPos3 = "DuckPos3";
-
-    private final Robot robot;
-    private final TrcDbgTrace tracer;
-    private final FtcVuforia vuforia;
-    private static final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
+    private final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
         new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
             .add(duckPos1, TrcRevBlinkin.LEDPattern.SolidRed)
             .add(duckPos2, TrcRevBlinkin.LEDPattern.SolidGreen)
@@ -78,7 +74,7 @@ public class Vision
             .add(blueStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeBlue)
             .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseRed)
             .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseBlue);
-    private static final TrcRevBlinkin.LEDPattern[] ledPatternPriorities = {
+    private final TrcRevBlinkin.LEDPattern[] ledPatternPriorities = {
         TrcRevBlinkin.LEDPattern.SolidRed,
         TrcRevBlinkin.LEDPattern.SolidGreen,
         TrcRevBlinkin.LEDPattern.SolidBlue,
@@ -87,14 +83,30 @@ public class Vision
         TrcRevBlinkin.LEDPattern.FixedLightChaseRed,
         TrcRevBlinkin.LEDPattern.FixedLightChaseBlue};
 
+    private final Robot robot;
+    private final TrcDbgTrace tracer;
+    private final FtcVuforia vuforia;
+    //
+    // Vuforia Vision.
+    //
+    private final VuforiaVision vuforiaVision;
+    private String lastVuforiaImageName;
+    //
+    // TensorFlow Vision.
+    //
+    private TensorFlowVision tensorFlowVision;
+    private int[] lastDuckPositions = null;
+
     /**
      * Constructor: Create an instance of the object. Vision is required by both Vuforia and TensorFlow and must be
      * instantiated if either is used. However, to use either Vuforia or TensorFlow, one must explicitly initialize
      * them by calling the initVuforia or initTensorFlow methods respectively.
      *
      * @param robot specifies the robot object.
+     * @param useVuforia specifies true to use Vuforia Vision, false otherwise.
+     * @param useTensorFlow specifies true to use TensorFlow Vision, false otherwise.
      */
-    public Vision(Robot robot)
+    public Vision(Robot robot, boolean useVuforia, boolean useTensorFlow)
     {
         this.robot = robot;
         this.tracer = TrcDbgTrace.getGlobalTracer();
@@ -118,6 +130,9 @@ public class Vision
         vuforiaParams.useExtendedTracking = false;
         vuforiaParams.cameraMonitorFeedback = VuforiaLocalizer.Parameters.CameraMonitorFeedback.AXES;
         vuforia = new FtcVuforia(vuforiaParams);
+
+        vuforiaVision = useVuforia? new VuforiaVision(): null;
+        tensorFlowVision = useTensorFlow? new TensorFlowVision(): null;
     }   //Vision
 
     /**
@@ -125,129 +140,14 @@ public class Vision
      */
     public void setupBlinkin()
     {
-        if (robot.blinkin != null)
-        {
-            robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
-            robot.blinkin.setPatternPriorities(ledPatternPriorities);
-        }
+        robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
+        robot.blinkin.setPatternPriorities(ledPatternPriorities);
     }   //setupBlinkin
 
-    //
-    // Vuforia Vision.
-    //
-    private static final int IMAGE_WIDTH = 640;     //in pixels
-    private static final int IMAGE_HEIGHT = 480;    //in pixels
-    private static final int FRAME_QUEUE_CAPACITY = 2;
-    //
-    // Since ImageTarget trackables use mm to specify their dimensions, we must use mm for all the physical dimension.
-    // We will define some constants and conversions here.
-    //
-    // Height of the center of the target image above the floor.
-    private static final float mmTargetHeight = 6.0f * (float)TrcUtil.MM_PER_INCH;
-    private static final float halfField = (float)(RobotParams.HALF_FIELD_INCHES*TrcUtil.MM_PER_INCH);
-    private static final float fullTile = (float)(RobotParams.FULL_TILE_INCHES*TrcUtil.MM_PER_INCH);
-    private static final float halfTile = (float)(RobotParams.HALF_TILE_INCHES*TrcUtil.MM_PER_INCH);
-    private static final float oneAndHalfTile = (float)(fullTile*1.5);
-
-    private boolean vuforiaInitialized = false;
-    private VuforiaTrackable[] vuforiaImageTargets;
-    private String lastVuforiaImageName;
-
-    /**
-     * This method must be called before any Vuforia related methods can be called or it may throw an exception.
-     */
-    public void initVuforia()
+    public boolean isVuforiaVisionInitialized()
     {
-        if (!vuforiaInitialized)
-        {
-            vuforia.configVideoSource(IMAGE_WIDTH, IMAGE_HEIGHT, FRAME_QUEUE_CAPACITY);
-            /*
-             * Create a transformation matrix describing where the camera is on the robot.
-             *
-             * Info:  The coordinate frame for the robot looks the same as the field.
-             * The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along the Y axis.
-             * Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
-             *
-             * For a WebCam, the default starting orientation of the camera is looking UP (pointing in the Z direction),
-             * with the wide (horizontal) axis of the camera aligned with the X axis, and
-             * the Narrow (vertical) axis of the camera aligned with the Y axis
-             *
-             * But, this example assumes that the camera is actually facing forward out the front of the robot.
-             * So, the "default" camera position requires two rotations to get it oriented correctly.
-             * 1) First it must be rotated +90 degrees around the X axis to get it horizontal (its now facing out the right side of the robot)
-             * 2) Next it must be be rotated +90 degrees (counter-clockwise) around the Z axis to face forward.
-             *
-             * Finally the camera can be translated to its actual mounting position on the robot.
-             *      In this example, it is centered on the robot (left-to-right and front-to-back), and 6 inches above ground level.
-             */
-            final float CAMERA_FORWARD_DISPLACEMENT =
-                (float)((RobotParams.ROBOT_LENGTH/2.0 - RobotParams.CAMERA_FRONT_OFFSET)*TrcUtil.MM_PER_INCH);
-            final float CAMERA_VERTICAL_DISPLACEMENT =
-                (float)(RobotParams.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
-            final float CAMERA_LEFT_DISPLACEMENT =
-                (float)((RobotParams.ROBOT_WIDTH/2.0 - RobotParams.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
-            OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
-            /*
-             * In order for localization to work, we need to tell the system where each target is on the field, and where
-             * the camera resides on the robot.  These specifications are in the form of <em>transformation matrices.</em>
-             * Transformation matrices are a central, important concept in the math here involved in localization.
-             * See <a href="https://en.wikipedia.org/wiki/Transformation_matrix">Transformation Matrix</a>
-             * for detailed information. Commonly, you'll encounter transformation matrices as instances
-             * of the {@link OpenGLMatrix} class.
-             *
-             * If you are standing in the Red Alliance Station looking towards the center of the field,
-             *     - The X axis runs from your left to the right. (positive from the center to the right)
-             *     - The Y axis runs from the Red Alliance Station towards the other side of the field
-             *       where the Blue Alliance Station is. (Positive is from the center, towards the BlueAlliance station)
-             *     - The Z axis runs from the floor, upwards towards the ceiling.  (Positive is above the floor)
-             *
-             * Before being transformed, each target image is conceptually located at the origin of the field's
-             *  coordinate system (the center of the field), facing up.
-             */
-            OpenGLMatrix blueStorageLocation = OpenGLMatrix
-                .translation(-halfField, oneAndHalfTile, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90));
-            OpenGLMatrix blueAllianceWallLocation = OpenGLMatrix
-                .translation(halfTile, halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0));
-            OpenGLMatrix redStorageLocation = OpenGLMatrix
-                .translation(-halfField, -oneAndHalfTile, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90));
-            OpenGLMatrix redAllianceWallLocation = OpenGLMatrix
-                .translation(halfTile, -halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180));
-            //
-            // Create and initialize all image targets.
-            //
-            FtcVuforia.TargetInfo[] imageTargetsInfo = {
-                new FtcVuforia.TargetInfo(0, blueStorageName, false, blueStorageLocation),
-                new FtcVuforia.TargetInfo(1, blueAllianceWallName, false, blueAllianceWallLocation),
-                new FtcVuforia.TargetInfo(2, redStorageName, false, redStorageLocation),
-                new FtcVuforia.TargetInfo(3, redAllianceWallName, false, redAllianceWallLocation)
-            };
-            vuforia.addTargetList(RobotParams.TRACKABLE_IMAGES_FILE, imageTargetsInfo, cameraLocationOnRobot);
-
-            vuforiaImageTargets = new VuforiaTrackable[imageTargetsInfo.length];
-            for (int i = 0; i < vuforiaImageTargets.length; i++)
-            {
-                vuforiaImageTargets[i] = vuforia.getTarget(imageTargetsInfo[i].name);
-            }
-
-            vuforiaInitialized = true;
-        }
-    }   //initVuforia
-
-    /**
-     * This method checks if Vuforia has been initialized.
-     *
-     * @return true if Vuforia is initialized, false otherwise.
-     */
-    public boolean isVuforiaInitialized()
-    {
-        return vuforiaInitialized;
-    }   //isVuforiaInitialized
+        return vuforiaVision != null;
+    }   //isVuforiaVisionInitialized
 
     /**
      * This method enables/disables Vuforia Vision.
@@ -256,7 +156,8 @@ public class Vision
      */
     public void setVuforiaEnabled(boolean enabled)
     {
-        if (!vuforiaInitialized) throw new RuntimeException("Vuforia Vision is not initialized!");
+        if (vuforiaVision == null) throw new RuntimeException("Vuforia Vision is not initialized.");
+
         vuforia.setTrackingEnabled(enabled);
     }   //setVuforiaEnabled
 
@@ -271,119 +172,6 @@ public class Vision
     }   //getLastSeenVuforiaImageName
 
     /**
-     * This method returns the vector of the given target location object.
-     *
-     * @param location specifies the target location.
-     * @return target location vector.
-     */
-    public VectorF getLocationTranslation(OpenGLMatrix location)
-    {
-        return location.getTranslation();
-    }   //getLocationTranslation
-
-    /**
-     * This method returns the orientation of the given target location object.
-     *
-     * @param location specifies the target location.
-     * @return target orientation.
-     */
-    public Orientation getLocationOrientation(OpenGLMatrix location)
-    {
-        return Orientation.getOrientation(location, EXTRINSIC, XYZ, DEGREES);
-    }   //getLocationOrientation
-
-    /**
-     * This method returns the robot location computed with the detected target.
-     *
-     * @param targetName specifies the detected target name.
-     * @return robot location.
-     */
-    public OpenGLMatrix getRobotLocation(String targetName)
-    {
-        if (!vuforiaInitialized) throw new RuntimeException("Vuforia Vision is not initialized!");
-
-        OpenGLMatrix robotLocation = null;
-        VuforiaTrackable target = vuforia.getTarget(targetName);
-
-        if (target != null)
-        {
-            robotLocation = vuforia.getRobotLocation(target);
-
-            if (robot.blinkin != null)
-            {
-                if (robotLocation != null)
-                {
-                    robot.blinkin.setPatternState(targetName, true);
-                }
-                else
-                {
-                    robot.blinkin.reset();
-                }
-            }
-        }
-
-        return robotLocation;
-    }   //getRobotLocation
-
-    /**
-     * This method returns the robot location computed with the detected target.
-     *
-     * @param targetName specifies the detected target name.
-     * @param exclude specifies true to exclude the specified target.
-     * @return robot location.
-     */
-    public OpenGLMatrix getRobotLocation(String targetName, boolean exclude)
-    {
-        if (!vuforiaInitialized) throw new RuntimeException("Vuforia Vision is not initialized!");
-
-        OpenGLMatrix robotLocation = null;
-
-        if (targetName == null || exclude)
-        {
-            for (VuforiaTrackable target: vuforiaImageTargets)
-            {
-                String name = target.getName();
-                boolean isMatched = targetName == null || !targetName.equals(name);
-
-                if (isMatched && vuforia.isTargetVisible(target))
-                {
-                    // getRobotLocation() will return null if no new information is available since
-                    // the last time that call was made, or if the trackable is not currently visible.
-                    OpenGLMatrix location = vuforia.getRobotLocation(target);
-                    if (location != null)
-                    {
-                        robotLocation = location;
-                        lastVuforiaImageName = name;
-                    }
-                    break;
-                }
-            }
-        }
-        else
-        {
-            robotLocation = getRobotLocation(targetName);
-            if (robotLocation != null)
-            {
-                lastVuforiaImageName = targetName;
-            }
-        }
-
-        if (robot.blinkin != null)
-        {
-            if (robotLocation != null)
-            {
-                robot.blinkin.setPatternState(lastVuforiaImageName, true);
-            }
-            else
-            {
-                robot.blinkin.reset();
-            }
-        }
-
-        return robotLocation;
-    }   //getRobotLocation
-
-    /**
      * This method returns the robot field position.
      *
      * @param targetName specifies the detected target name.
@@ -392,75 +180,31 @@ public class Vision
      */
     public TrcPose2D getRobotPose(String targetName, boolean exclude)
     {
-        OpenGLMatrix robotLocation = getRobotLocation(targetName, exclude);
-        VectorF translation = robotLocation == null? null: getLocationTranslation(robotLocation);
-        Orientation orientation = robotLocation == null? null: getLocationOrientation(robotLocation);
+        if (vuforiaVision == null) throw new RuntimeException("Vuforia Vision is not initialized.");
+
+        OpenGLMatrix robotLocation = vuforiaVision.getRobotLocation(targetName, exclude);
+        VectorF translation = robotLocation == null? null: vuforiaVision.getLocationTranslation(robotLocation);
+        Orientation orientation = robotLocation == null? null: vuforiaVision.getLocationOrientation(robotLocation);
         //
         // The returned RobotPose have the X axis pointing from the audience side to the back of the field,
         // the Y axis pointing from the red alliance to the blue alliance and the direction of the Y axis
         // is zero degree and increases in the clockwise direction.
         // Vuforia's orientation is such that facing the negative side of the X axis is 0 degree, clockwise gives
         // you negative angle and anti-clockwise gives you positive angle.
-        // Robot's orientation is such that facing the positive side of the Y axis is 0 degree, clockwise gives you
-        // positive angle and anti-clockwise gives you negative angle.
-        // In order to translate Vuforia's orientation to the robot's orientation, we first negate the vuforia angle
-        // to make rotation agree with the robot's rotation. Then we subtract 90 degrees from the angle.
+        // Robot's orientation is such that facing the positive side of the Y axis is 0 degree, clockwise gives
+        // you positive angle and anti-clockwise gives you negative angle.
+        // In order to translate Vuforia's orientation to the robot's orientation, we first negate the vuforia
+        // angle to make rotation agree with the robot's rotation. Then we subtract 90 degrees from the angle.
         //
         return (translation == null || orientation == null)? null:
             new TrcPose2D(translation.get(0)/TrcUtil.MM_PER_INCH, translation.get(1)/TrcUtil.MM_PER_INCH,
                           -orientation.thirdAngle - 90.0);
     }   //getRobotPose
 
-    //
-    // TensorFlow Vision.
-    //
-    private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-    private static final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
-    private static final float TFOD_MIN_CONFIDENCE = 0.5f;
-
-    private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.65;
-    private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
-    // Target size is area of target rect.
-    private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
-    private static final double TARGET_SIZE_TOLERANCE_UPPER = 22000.0;
-
-    private FtcTensorFlow tensorFlow = null;
-    private int[] lastDuckPositions = null;
-
-    /**
-     * This method must be called before any TensorFlow related methods can be called or it may throw an exception.
-     */
-    public void initTensorFlow()
+    public boolean isTensorFlowVisionInitialized()
     {
-        if (tensorFlow == null)
-        {
-            FtcOpMode opMode = FtcOpMode.getInstance();
-            int tfodMonitorViewId = !RobotParams.Preferences.showTensorFlowView ? -1 :
-                opMode.hardwareMap.appContext.getResources().getIdentifier(
-                    "tfodMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
-            //
-            // If no TFOD monitor view ID, do not activate camera monitor view to save power.
-            //
-            TFObjectDetector.Parameters tfodParams =
-                tfodMonitorViewId == -1?
-                    new TFObjectDetector.Parameters() : new TFObjectDetector.Parameters(tfodMonitorViewId);
-            tfodParams.minResultConfidence = TFOD_MIN_CONFIDENCE;
-            tfodParams.isModelTensorFlow2 = true;
-            tfodParams.inputSize = 320;
-
-            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
-        }
-    }   //initTensorFlow
-
-    /**
-     * This method checks if TensorFlow has been initialized.
-     *
-     * @return true if Vuforia is initialized, false otherwise.
-     */
-    public boolean isTensorFlowInitialized()
-    {
-        return tensorFlow != null;
-    }   //isTensorFlowInitialized
+        return tensorFlowVision != null;
+    }   //isTensorFlowVisionInitialized
 
     /**
      * This method enables/disables TensorFlow.
@@ -469,12 +213,12 @@ public class Vision
      */
     public void setTensorFlowEnabled(boolean enabled)
     {
-        if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        tensorFlow.setEnabled(enabled);
+        tensorFlowVision.tensorFlow.setEnabled(enabled);
         if (enabled)
         {
-            tensorFlow.setZoom(1.0, 16.0/9.0);
+            tensorFlowVision.tensorFlow.setZoom(1.0, 16.0/9.0);
         }
     }   //setTensorFlowEnabled
 
@@ -483,122 +227,13 @@ public class Vision
      */
     public void tensorFlowShutdown()
     {
-        setTensorFlowEnabled(false);
-        tensorFlow.shutdown();
-        tensorFlow = null;
+        if (tensorFlowVision != null)
+        {
+            setTensorFlowEnabled(false);
+            tensorFlowVision.shutdown();
+            tensorFlowVision = null;
+        }
     }   //tensorFlowShutdown
-
-    /**
-     * This method is called by the Arrays.sort to sort the target object by decreasing confidence.
-     *
-     * @param a specifies the first target
-     * @param b specifies the second target.
-     * @return negative value if a has higher confidence than b, 0 if a and b have equal confidence, positive value
-     *         if a has lower confidence than b.
-     */
-    private int compareConfidence(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
-    {
-        return (int)((b.confidence - a.confidence)*100);
-    }   //compareConfidence
-
-    /**
-     * This method returns an array of detected targets from TensorFlow vision.
-     *
-     * @param label specifies the label of the targets to detect for, can be null for detecting any target.
-     * @param filter specifies the filter to call to filter out false positive targets.
-     * @return array of detected target info.
-     */
-    private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
-    {
-        if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
-
-        FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
-        if (detectedTargets != null)
-        {
-            Arrays.sort(detectedTargets, this::compareConfidence);
-        }
-
-        return detectedTargets;
-    }   //getDetectedTargetsInfo
-
-    /**
-     * This method is called to validate the detected target as a duck.
-     * To valid a valid duck, it must have:
-     *  - correct aspect ratio
-     *  - correct size
-     *  - at expected location(s).
-     *
-     * @param target specifies the target to be validated.
-     * @return true if target is valid, false if false positive.
-     */
-    private boolean validateDuck(Recognition target)
-    {
-        FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
-        double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
-        double area = targetInfo.rect.width*targetInfo.rect.height;
-        double distanceYTolerance = targetInfo.imageHeight/6.0;
-
-        return targetInfo.label.equals(LABEL_DUCK) &&
-               aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-               aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
-               area <= TARGET_SIZE_TOLERANCE_UPPER &&
-               area >= TARGET_SIZE_TOLERANCE_LOWER &&
-               Math.abs(targetInfo.distanceFromCenter.y) <= distanceYTolerance;
-    }   //validateDuck
-
-    /**
-     * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found).
-     *
-     * @param targetInfo specifies the detected duck's target info.
-     * @return duck's barcode position.
-     */
-    private int determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
-    {
-        int pos = 0;
-
-        if (targetInfo != null)
-        {
-            double oneSixthImageWidth = targetInfo.imageWidth/6.0;
-
-            if (targetInfo.distanceFromCenter.x <= -oneSixthImageWidth)
-            {
-                pos = 1;
-            }
-            else if (targetInfo.distanceFromCenter.x >= oneSixthImageWidth)
-            {
-                pos = 3;
-            }
-            else
-            {
-                pos = 2;
-            }
-
-            if (robot.blinkin != null)
-            {
-                // Turn off previous detection indication.
-                robot.blinkin.setPatternState(duckPos1, false);
-                robot.blinkin.setPatternState(duckPos2, false);
-                robot.blinkin.setPatternState(duckPos3, false);
-
-                switch (pos)
-                {
-                    case 1:
-                        robot.blinkin.setPatternState(duckPos1, true);
-                        break;
-
-                    case 2:
-                        robot.blinkin.setPatternState(duckPos2, true);
-                        break;
-
-                    case 3:
-                        robot.blinkin.setPatternState(duckPos3, true);
-                        break;
-                }
-            }
-        }
-
-        return pos;
-    }   //determineDuckPosition
 
     /**
      * This method calls vision to detect all the ducks and returns their barcode positions in an array.
@@ -609,7 +244,8 @@ public class Vision
     {
         final String funcName = "getCurrentDuckPositions";
         int[] duckPositions = null;
-        FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, robot.vision::validateDuck);
+        FtcTensorFlow.TargetInfo[] targetInfo =
+            tensorFlowVision.getDetectedTargetsInfo(Vision.LABEL_DUCK, tensorFlowVision::validateDuck);
 
         if (targetInfo != null && targetInfo.length > 0)
         {
@@ -621,7 +257,7 @@ public class Vision
             //
             for (int i = targetInfo.length - 1; i >= 0; i--)
             {
-                duckPositions[i] = determineDuckPosition(targetInfo[i]);
+                duckPositions[i] = tensorFlowVision.determineDuckPosition(targetInfo[i]);
                 if (tracer != null)
                 {
                     tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d", i, targetInfo[i], duckPositions[i]);
@@ -655,5 +291,389 @@ public class Vision
     {
         return lastDuckPositions != null? lastDuckPositions[0]: 0;
     }   //getLastDuckPosition
+
+    /**
+     * This class implements Vuforia Vision that provides the capability of using images to locate the robot position
+     * on the field.
+     */
+    private class VuforiaVision
+    {
+        private static final int IMAGE_WIDTH = 640;     //in pixels
+        private static final int IMAGE_HEIGHT = 480;    //in pixels
+        private static final int FRAME_QUEUE_CAPACITY = 2;
+        //
+        // Since ImageTarget trackables use mm to specify their dimensions, we must use mm for all the physical
+        // dimension. We will define some constants and conversions here.
+        //
+        // Height of the center of the target image above the floor.
+        private static final float mmTargetHeight = 6.0f * (float)TrcUtil.MM_PER_INCH;
+        private static final float halfField = (float)(RobotParams.HALF_FIELD_INCHES*TrcUtil.MM_PER_INCH);
+        private static final float fullTile = (float)(RobotParams.FULL_TILE_INCHES*TrcUtil.MM_PER_INCH);
+        private static final float halfTile = (float)(RobotParams.HALF_TILE_INCHES*TrcUtil.MM_PER_INCH);
+        private static final float oneAndHalfTile = (float)(fullTile*1.5);
+
+        private final VuforiaTrackable[] vuforiaImageTargets;
+
+        /**
+         * Constructor: Create an instance of the object.
+         */
+        private VuforiaVision()
+        {
+            vuforia.configVideoSource(IMAGE_WIDTH, IMAGE_HEIGHT, FRAME_QUEUE_CAPACITY);
+            /*
+             * Create a transformation matrix describing where the camera is on the robot.
+             *
+             * Info:  The coordinate frame for the robot looks the same as the field.
+             * The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along
+             * the Y axis. Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
+             *
+             * For a WebCam, the default starting orientation of the camera is looking UP (pointing in the Z
+             * direction), with the wide (horizontal) axis of the camera aligned with the X axis, and
+             * the Narrow (vertical) axis of the camera aligned with the Y axis
+             *
+             * But, this example assumes that the camera is actually facing forward out the front of the robot.
+             * So, the "default" camera position requires two rotations to get it oriented correctly.
+             * 1) First it must be rotated +90 degrees around the X axis to get it horizontal (its now facing out
+             *    the right side of the robot)
+             * 2) Next it must be be rotated +90 degrees (counter-clockwise) around the Z axis to face forward.
+             *
+             * Finally the camera can be translated to its actual mounting position on the robot.
+             */
+            final float CAMERA_FORWARD_DISPLACEMENT =
+                (float)((RobotParams.ROBOT_LENGTH/2.0 - RobotParams.CAMERA_FRONT_OFFSET)*TrcUtil.MM_PER_INCH);
+            final float CAMERA_VERTICAL_DISPLACEMENT =
+                (float)(RobotParams.CAMERA_HEIGHT_OFFSET*TrcUtil.MM_PER_INCH);
+            final float CAMERA_LEFT_DISPLACEMENT =
+                (float)((RobotParams.ROBOT_WIDTH/2.0 - RobotParams.CAMERA_LEFT_OFFSET)*TrcUtil.MM_PER_INCH);
+            OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
+                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, 0));
+            /*
+             * In order for localization to work, we need to tell the system where each target is on the field,
+             * and where the camera resides on the robot.  These specifications are in the form of
+             * <em>transformation matrices.</em>
+             * Transformation matrices are a central, important concept in the math here involved in localization.
+             * See <a href="https://en.wikipedia.org/wiki/Transformation_matrix">Transformation Matrix</a>
+             * for detailed information. Commonly, you'll encounter transformation matrices as instances
+             * of the {@link OpenGLMatrix} class.
+             *
+             * If you are standing in the Red Alliance Station looking towards the center of the field,
+             *     - The X axis runs from your left to the right. (positive from the center to the right)
+             *     - The Y axis runs from the Red Alliance Station towards the other side of the field
+             *       where the Blue Alliance Station is. (Positive is from the center, towards the BlueAlliance
+             *       station)
+             *     - The Z axis runs from the floor, upwards towards the ceiling.  (Positive is above the floor)
+             *
+             * Before being transformed, each target image is conceptually located at the origin of the field's
+             * coordinate system (the center of the field), facing up.
+             */
+            OpenGLMatrix blueStorageLocation = OpenGLMatrix
+                .translation(-halfField, oneAndHalfTile, mmTargetHeight)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90));
+            OpenGLMatrix blueAllianceWallLocation = OpenGLMatrix
+                .translation(halfTile, halfField, mmTargetHeight)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0));
+            OpenGLMatrix redStorageLocation = OpenGLMatrix
+                .translation(-halfField, -oneAndHalfTile, mmTargetHeight)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90));
+            OpenGLMatrix redAllianceWallLocation = OpenGLMatrix
+                .translation(halfTile, -halfField, mmTargetHeight)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180));
+            //
+            // Create and initialize all image targets.
+            //
+            FtcVuforia.TargetInfo[] imageTargetsInfo = {
+                new FtcVuforia.TargetInfo(0, blueStorageName, false, blueStorageLocation),
+                new FtcVuforia.TargetInfo(1, blueAllianceWallName, false, blueAllianceWallLocation),
+                new FtcVuforia.TargetInfo(2, redStorageName, false, redStorageLocation),
+                new FtcVuforia.TargetInfo(3, redAllianceWallName, false, redAllianceWallLocation)
+            };
+            vuforia.addTargetList(RobotParams.TRACKABLE_IMAGES_FILE, imageTargetsInfo, cameraLocationOnRobot);
+
+            vuforiaImageTargets = new VuforiaTrackable[imageTargetsInfo.length];
+            for (int i = 0; i < vuforiaImageTargets.length; i++)
+            {
+                vuforiaImageTargets[i] = vuforia.getTarget(imageTargetsInfo[i].name);
+            }
+        }   //VuforiaVision
+
+        /**
+         * This method returns the vector of the given target location object.
+         *
+         * @param location specifies the target location.
+         * @return target location vector.
+         */
+        private VectorF getLocationTranslation(OpenGLMatrix location)
+        {
+            return location.getTranslation();
+        }   //getLocationTranslation
+
+        /**
+         * This method returns the orientation of the given target location object.
+         *
+         * @param location specifies the target location.
+         * @return target orientation.
+         */
+        private Orientation getLocationOrientation(OpenGLMatrix location)
+        {
+            return Orientation.getOrientation(location, EXTRINSIC, XYZ, DEGREES);
+        }   //getLocationOrientation
+
+        /**
+         * This method returns the robot location computed with the detected target.
+         *
+         * @param targetName specifies the detected target name.
+         * @return robot location.
+         */
+        private OpenGLMatrix getRobotLocation(String targetName)
+        {
+            OpenGLMatrix robotLocation = null;
+            VuforiaTrackable target = vuforia.getTarget(targetName);
+
+            if (target != null)
+            {
+                robotLocation = vuforia.getRobotLocation(target);
+
+                if (robot.blinkin != null)
+                {
+                    if (robotLocation != null)
+                    {
+                        robot.blinkin.setPatternState(targetName, true);
+                    }
+                    else
+                    {
+                        robot.blinkin.reset();
+                    }
+                }
+            }
+
+            return robotLocation;
+        }   //getRobotLocation
+
+        /**
+         * This method returns the robot location computed with the detected target.
+         *
+         * @param targetName specifies the detected target name.
+         * @param exclude specifies true to exclude the specified target.
+         * @return robot location.
+         */
+        private OpenGLMatrix getRobotLocation(String targetName, boolean exclude)
+        {
+            OpenGLMatrix robotLocation = null;
+
+            if (targetName == null || exclude)
+            {
+                for (VuforiaTrackable target: vuforiaImageTargets)
+                {
+                    String name = target.getName();
+                    boolean isMatched = targetName == null || !targetName.equals(name);
+
+                    if (isMatched && vuforia.isTargetVisible(target))
+                    {
+                        // getRobotLocation() will return null if no new information is available since
+                        // the last time that call was made, or if the trackable is not currently visible.
+                        OpenGLMatrix location = vuforia.getRobotLocation(target);
+                        if (location != null)
+                        {
+                            robotLocation = location;
+                            lastVuforiaImageName = name;
+                        }
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                robotLocation = getRobotLocation(targetName);
+                if (robotLocation != null)
+                {
+                    lastVuforiaImageName = targetName;
+                }
+            }
+
+            if (robot.blinkin != null)
+            {
+                if (robotLocation != null)
+                {
+                    robot.blinkin.setPatternState(lastVuforiaImageName, true);
+                }
+                else
+                {
+                    robot.blinkin.reset();
+                }
+            }
+
+            return robotLocation;
+        }   //getRobotLocation
+
+    }   //class VuforiaVision
+
+    /**
+     * This class implements TensorFlow Vision that provides the capability to detect learned objects and return their
+     * location info.
+     */
+    private class TensorFlowVision
+    {
+        private final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
+        private final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
+        private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
+
+        private final float TFOD_MIN_CONFIDENCE = 0.5f;
+        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.65;
+        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
+        // Target size is area of target rect.
+        private final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
+        private final double TARGET_SIZE_TOLERANCE_UPPER = 22000.0;
+
+        private FtcTensorFlow tensorFlow = null;
+
+        /**
+         * Constructor: Create an instance of the object.
+         */
+        private TensorFlowVision()
+        {
+            System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
+            FtcOpMode opMode = FtcOpMode.getInstance();
+            int tfodMonitorViewId = !RobotParams.Preferences.showTensorFlowView ? -1 :
+                opMode.hardwareMap.appContext.getResources().getIdentifier(
+                    "tfodMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
+            //
+            // If no TFOD monitor view ID, do not activate camera monitor view to save power.
+            //
+            TFObjectDetector.Parameters tfodParams =
+                tfodMonitorViewId == -1?
+                    new TFObjectDetector.Parameters() : new TFObjectDetector.Parameters(tfodMonitorViewId);
+            tfodParams.minResultConfidence = TFOD_MIN_CONFIDENCE;
+            tfodParams.isModelTensorFlow2 = true;
+            tfodParams.inputSize = 320;
+
+            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
+        }   //TensorFlowVision
+
+        /**
+         * This method shuts down TensorFlow.
+         */
+        private void shutdown()
+        {
+            if (tensorFlow != null)
+            {
+                tensorFlow.shutdown();
+                tensorFlow = null;
+            }
+        }   //shutdown
+
+        /**
+         * This method is called by the Arrays.sort to sort the target object by decreasing confidence.
+         *
+         * @param a specifies the first target
+         * @param b specifies the second target.
+         * @return negative value if a has higher confidence than b, 0 if a and b have equal confidence, positive value
+         *         if a has lower confidence than b.
+         */
+        private int compareConfidence(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
+        {
+            return (int)((b.confidence - a.confidence)*100);
+        }   //compareConfidence
+
+        /**
+         * This method returns an array of detected targets from TensorFlow vision.
+         *
+         * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+         * @param filter specifies the filter to call to filter out false positive targets.
+         * @return array of detected target info.
+         */
+        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+        {
+            if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+
+            FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
+            if (detectedTargets != null)
+            {
+                Arrays.sort(detectedTargets, this::compareConfidence);
+            }
+
+            return detectedTargets;
+        }   //getDetectedTargetsInfo
+
+        /**
+         * This method is called to validate the detected target as a duck.
+         * To valid a valid duck, it must have:
+         *  - correct aspect ratio
+         *  - correct size
+         *  - at expected location(s).
+         *
+         * @param target specifies the target to be validated.
+         * @return true if target is valid, false if false positive.
+         */
+        private boolean validateDuck(Recognition target)
+        {
+            FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
+            double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
+            double area = targetInfo.rect.width*targetInfo.rect.height;
+            double distanceYTolerance = targetInfo.imageHeight/6.0;
+
+            return targetInfo.label.equals(LABEL_DUCK) &&
+                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
+                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
+                   Math.abs(targetInfo.distanceFromCenter.y) <= distanceYTolerance;
+        }   //validateDuck
+
+        /**
+         * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found).
+         *
+         * @param targetInfo specifies the detected duck's target info.
+         * @return duck's barcode position.
+         */
+        private int determineDuckPosition(FtcTensorFlow.TargetInfo targetInfo)
+        {
+            int pos = 0;
+
+            if (targetInfo != null)
+            {
+                double oneSixthImageWidth = targetInfo.imageWidth/6.0;
+
+                if (targetInfo.distanceFromCenter.x <= -oneSixthImageWidth)
+                {
+                    pos = 1;
+                }
+                else if (targetInfo.distanceFromCenter.x >= oneSixthImageWidth)
+                {
+                    pos = 3;
+                }
+                else
+                {
+                    pos = 2;
+                }
+
+                if (robot.blinkin != null)
+                {
+                    // Turn off previous detection indication.
+                    robot.blinkin.setPatternState(duckPos1, false);
+                    robot.blinkin.setPatternState(duckPos2, false);
+                    robot.blinkin.setPatternState(duckPos3, false);
+
+                    switch (pos)
+                    {
+                        case 1:
+                            robot.blinkin.setPatternState(duckPos1, true);
+                            break;
+
+                        case 2:
+                            robot.blinkin.setPatternState(duckPos2, true);
+                            break;
+
+                        case 3:
+                            robot.blinkin.setPatternState(duckPos3, true);
+                            break;
+                    }
+                }
+            }
+
+            return pos;
+        }   //determineDuckPosition
+
+    }   //class TensorFlowVision
 
 }   //class Vision

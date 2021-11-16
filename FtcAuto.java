@@ -119,9 +119,7 @@ public class FtcAuto extends FtcOpMode
 
     private static final String moduleName = "FtcAuto";
     private static final boolean logEvents = true;
-    private static final boolean debugXPid = true;
-    private static final boolean debugYPid = true;
-    private static final boolean debugTurnPid = true;
+    private static final boolean debugPid = true;
 
     private Robot robot;
     private FtcMatchInfo matchInfo;
@@ -210,13 +208,13 @@ public class FtcAuto extends FtcOpMode
 
         if (robot.vision != null)
         {
-            if (robot.vision.isVuforiaInitialized())
+            if (robot.vision.isVuforiaVisionInitialized())
             {
                 robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
                 robot.vision.setVuforiaEnabled(true);
             }
 
-            if (robot.vision.isTensorFlowInitialized())
+            if (robot.vision.isTensorFlowVisionInitialized())
             {
                 robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
                 robot.vision.setTensorFlowEnabled(true);
@@ -235,7 +233,7 @@ public class FtcAuto extends FtcOpMode
     @Override
     public void initPeriodic()
     {
-        if (robot.vision != null && robot.vision.isTensorFlowInitialized())
+        if (robot.vision != null && robot.vision.isTensorFlowVisionInitialized())
         {
             robot.vision.getCurrentDuckPositions();
         }
@@ -273,6 +271,9 @@ public class FtcAuto extends FtcOpMode
         {
             robot.battery.setEnabled(true);
         }
+
+        robot.robotDrive.pidDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid, robot.battery);
+        robot.robotDrive.purePursuitDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid, robot.battery);
     }   //startMode
 
     /**
@@ -326,36 +327,6 @@ public class FtcAuto extends FtcOpMode
             // Run the autonomous command.
             //
             autoCommand.cmdPeriodic(elapsedTime);
-
-            if (robot.robotDrive.pidDrive.isActive() && (logEvents || debugXPid || debugYPid || debugTurnPid))
-            {
-                if (robot.battery != null)
-                {
-                    robot.globalTracer.traceInfo("Battery", "Voltage=%5.2fV (%5.2fV)",
-                                                 robot.battery.getVoltage(), robot.battery.getLowestVoltage());
-                }
-
-                if (logEvents)
-                {
-                    robot.globalTracer.logEvent(moduleName, "RobotPose", "pose=\"%s\"",
-                                                robot.robotDrive.driveBase.getFieldPosition());
-                }
-
-                if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
-                {
-                    robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
-                }
-
-                if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
-                {
-                    robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
-                }
-
-                if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
-                {
-                    robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
-                }
-            }
         }
     }   //runContinuous
 

@@ -158,13 +158,11 @@ public class RobotDrive
         // of the absolute target position.
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotParams.PIDDRIVE_STALL_TIMEOUT);
-        pidDrive.setMsgTracer(robot.globalTracer, true, false);
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
             xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
-        purePursuitDrive.setMsgTracer(robot.globalTracer, true, true);
     }   //RobotDrive
 
     /**

@@ -128,7 +128,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     // Do start delay if any.
                     //
                     // Call vision at the beginning to figure out the position of the duck.
-                    if (robot.vision != null && robot.vision.isTensorFlowInitialized())
+                    if (robot.vision != null)
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);

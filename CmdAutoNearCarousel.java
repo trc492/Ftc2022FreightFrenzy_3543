@@ -128,7 +128,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
                             RobotParams.STARTPOS_RED_NEAR : RobotParams.STARTPOS_BLUE_NEAR);
                     // Call vision at the beginning to figure out the position of the duck.
-                    if(robot.vision != null && robot.vision.isTensorFlowInitialized())
+                    if (robot.vision != null)
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
                         robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);

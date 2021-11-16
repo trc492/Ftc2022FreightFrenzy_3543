@@ -50,10 +50,8 @@ import TrcFtcLib.ftclib.FtcValueMenu;
 @TeleOp(name="FtcTest", group="Ftc3543")
 public class FtcTest extends FtcTeleOp
 {
-    private static final String moduleName = "FtcTest";
-    private static final boolean debugXPid = true;
-    private static final boolean debugYPid = true;
-    private static final boolean debugTurnPid = true;
+    private static final boolean logEvents = true;
+    private static final boolean debugPid = true;
 
     private enum Test
     {
@@ -216,7 +214,7 @@ public class FtcTest extends FtcTeleOp
         //
         // Only SENSORS_TEST and SUBSYSTEMS_TEST need TensorFlow, shut it down for all other tests.
         //
-        if (robot.vision != null && robot.vision.isTensorFlowInitialized() &&
+        if (robot.vision != null && robot.vision.isTensorFlowVisionInitialized() &&
             testChoices.test != Test.SENSORS_TEST && testChoices.test != Test.SUBSYSTEMS_TEST)
         {
             robot.globalTracer.traceInfo("TestInit", "Shutting down TensorFlow.");
@@ -250,13 +248,13 @@ public class FtcTest extends FtcTeleOp
                     //
                     // Vision generally will impact performance, so we only enable it if it's needed.
                     //
-                    if (robot.vision.isVuforiaInitialized())
+                    if (robot.vision.isVuforiaVisionInitialized())
                     {
                         robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
                         robot.vision.setVuforiaEnabled(true);
                     }
 
-                    if (robot.vision.isTensorFlowInitialized())
+                    if (robot.vision.isTensorFlowVisionInitialized())
                     {
                         robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
                         robot.vision.setTensorFlowEnabled(true);
@@ -264,7 +262,15 @@ public class FtcTest extends FtcTeleOp
                 }
                 break;
 
+            case PID_DRIVE:
+            case TUNE_X_PID:
+            case TUNE_Y_PID:
+            case TUNE_TURN_PID:
+                robot.robotDrive.pidDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid);
+                break;
+
             case PURE_PURSUIT_DRIVE:
+                robot.robotDrive.purePursuitDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid);
                 //
                 // Doing a 48x48-inch square box with robot heading always pointing to the center of the box.
                 //
@@ -290,9 +296,29 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void stopMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode)
     {
+        final String funcName = "stopMode";
+
         if (testCommand != null)
         {
             testCommand.cancel();
+        }
+
+        if (robot.vision != null)
+        {
+            //
+            // Vision generally will impact performance, so we only enable it if it's needed.
+            //
+            if (robot.vision.isVuforiaVisionInitialized())
+            {
+                robot.globalTracer.traceInfo(funcName, "Disabling Vuforia.");
+                robot.vision.setVuforiaEnabled(false);
+            }
+
+            if (robot.vision.isTensorFlowVisionInitialized())
+            {
+                robot.globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
+                robot.vision.tensorFlowShutdown();
+            }
         }
 
         super.stopMode(prevMode, nextMode);
@@ -339,35 +365,6 @@ public class FtcTest extends FtcTeleOp
         if (testCommand != null)
         {
             testCommand.cmdPeriodic(elapsedTime);
-
-            if (robot.robotDrive.pidDrive.isActive() && (debugXPid || debugYPid || debugTurnPid))
-            {
-                if (robot.battery != null)
-                {
-                    robot.globalTracer.traceInfo("Battery", "Voltage=%5.2fV (%5.2fV)",
-                                                 robot.battery.getVoltage(), robot.battery.getLowestVoltage());
-                }
-
-                robot.globalTracer.traceInfo(moduleName, "RobotPose: %s", robot.robotDrive.driveBase.getFieldPosition());
-
-                if (robot.robotDrive.pidDrive.isActive())
-                {
-                    if (debugXPid && robot.robotDrive.encoderXPidCtrl != null)
-                    {
-                        robot.robotDrive.encoderXPidCtrl.printPidInfo(robot.globalTracer);
-                    }
-
-                    if (debugYPid && robot.robotDrive.encoderYPidCtrl != null)
-                    {
-                        robot.robotDrive.encoderYPidCtrl.printPidInfo(robot.globalTracer);
-                    }
-
-                    if (debugTurnPid && robot.robotDrive.gyroPidCtrl != null)
-                    {
-                        robot.robotDrive.gyroPidCtrl.printPidInfo(robot.globalTracer);
-                    }
-                }
-            }
         }
         //
         // Display test status.
@@ -699,7 +696,7 @@ public class FtcTest extends FtcTeleOp
      *
      * @return start Ki value of the PID controller being tuned.
      */
-    double getTuneKi()
+    private double getTuneKi()
     {
         double value = 0.0;
         TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
@@ -717,7 +714,7 @@ public class FtcTest extends FtcTeleOp
      *
      * @return start Kd value of the PID controller being tuned.
      */
-    double getTuneKd()
+    private double getTuneKd()
     {
         double value = 0.0;
         TrcPidController tunePidCtrl = getTunePidController(testMenu.getCurrentChoiceObject());
@@ -790,14 +787,14 @@ public class FtcTest extends FtcTeleOp
     {
         if (robot.vision != null)
         {
-            if (robot.vision.isVuforiaInitialized())
+            if (robot.vision.isVuforiaVisionInitialized())
             {
                 TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
                 robot.dashboard.displayPrintf(11, "RobotLocation %s: %s",
                                               robot.vision.getLastSeenVuforiaImageName(), robotPose);
             }
 
-            if (robot.vision.isTensorFlowInitialized())
+            if (robot.vision.isTensorFlowVisionInitialized())
             {
                 robot.vision.getCurrentDuckPositions();
             }

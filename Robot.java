@@ -50,7 +50,6 @@ public class Robot
     // Global objects.
     //
     private static final String ROBOT_NAME = "Robot3543";
-    private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
     public FtcOpMode opMode;
     public FtcDashboard dashboard;
     public TrcDbgTrace globalTracer;
@@ -92,38 +91,12 @@ public class Robot
                 .findViewById(com.qualcomm.ftcrobotcontroller.R.id.textOpMode));
         globalTracer = TrcDbgTrace.getGlobalTracer();
         //
-        // Vision may use blinkin, so we must instantiate it before vision. However, if we are doing vision only, we
-        // don't have robot hardware thus no blinkin either.
-        //
-        if (RobotParams.Preferences.useBlinkin && !RobotParams.Preferences.visionOnly)
-        {
-            blinkin = new FtcRevBlinkin(RobotParams.HWNAME_BLINKIN);
-        }
-        //
         // Initialize vision subsystems.
         //
-        if (RobotParams.Preferences.useVuforia || RobotParams.Preferences.useTensorFlow)
+        if ((RobotParams.Preferences.useVuforia || RobotParams.Preferences.useTensorFlow) &&
+            (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE))
         {
-            vision = new Vision(this);
-
-            if (runMode == TrcRobot.RunMode.AUTO_MODE || runMode == TrcRobot.RunMode.TEST_MODE)
-            {
-                if (RobotParams.Preferences.useVuforia)
-                {
-                    vision.initVuforia();
-                }
-
-                if (RobotParams.Preferences.useTensorFlow)
-                {
-                    System.loadLibrary(OPENCV_NATIVE_LIBRARY_NAME);
-                    vision.initTensorFlow();
-                }
-
-                if (RobotParams.Preferences.useBlinkin && blinkin != null)
-                {
-                    vision.setupBlinkin();
-                }
-            }
+            vision = new Vision(this, RobotParams.Preferences.useVuforia, RobotParams.Preferences.useTensorFlow);
         }
         //
         // If visionOnly is true, the robot controller is disconnected from the robot for testing vision.
@@ -134,6 +107,18 @@ public class Robot
             //
             // Create and initialize sensors and indicators.
             //
+            if (RobotParams.Preferences.useBlinkin )
+            {
+                blinkin = new FtcRevBlinkin(RobotParams.HWNAME_BLINKIN);
+                //
+                // Vision uses Blinkin as an indicator, so set it up.
+                //
+                if (vision != null)
+                {
+                    vision.setupBlinkin();
+                }
+            }
+
             if (RobotParams.Preferences.useBatteryMonitor)
             {
                 battery = new FtcRobotBattery();
@@ -284,13 +269,13 @@ public class Robot
         //
         if (vision != null)
         {
-            if (vision.isVuforiaInitialized())
+            if (vision.isVuforiaVisionInitialized())
             {
                 globalTracer.traceInfo(funcName, "Disabling Vuforia.");
                 vision.setVuforiaEnabled(false);
             }
 
-            if (vision.isTensorFlowInitialized())
+            if (vision.isTensorFlowVisionInitialized())
             {
                 globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
                 vision.tensorFlowShutdown();
