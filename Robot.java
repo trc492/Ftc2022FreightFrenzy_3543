@@ -90,6 +90,8 @@ public class Robot
             ((FtcRobotControllerActivity)opMode.hardwareMap.appContext)
                 .findViewById(com.qualcomm.ftcrobotcontroller.R.id.textOpMode));
         globalTracer = TrcDbgTrace.getGlobalTracer();
+
+        speak("Init starting");
         //
         // Initialize vision subsystems.
         //
@@ -179,6 +181,8 @@ public class Robot
                 }
             }
         }
+
+        speak("Init complete");
     }   //Robot
 
     /**
@@ -371,5 +375,15 @@ public class Robot
             globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
         }
     }   //traceStateInfo
+
+    /**
+     * This method sends the text string to the Driver Station to be spoken using text to speech.
+     *
+     * @param sentence specifies the sentence to be spoken by the Driver Station.
+     */
+    public void speak(String sentence)
+    {
+        opMode.telemetry.speak(sentence);
+    }   //speak
 
 }   //class Robot

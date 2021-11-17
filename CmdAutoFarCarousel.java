@@ -22,6 +22,8 @@
 
 package Ftc2022FreightFrenzy_3543;
 
+import java.util.Locale;
+
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
@@ -116,6 +118,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
         else
         {
             boolean traceState = true;
+            String msg;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
             switch (state)
@@ -131,7 +134,9 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     if (robot.vision != null)
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
-                        robot.globalTracer.traceInfo(moduleName, "Duck found at position %d", duckPosition);
+                        msg = String.format(Locale.US, "Duck found at position %d.", duckPosition);
+                        robot.globalTracer.traceInfo(moduleName, msg);
+                        robot.speak(msg);
                     }
 
                     if (duckPosition == 0)
@@ -140,8 +145,9 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         // We still can't see the duck, default to level 3.
                         //
                         duckPosition = 3;
-                        robot.globalTracer.traceInfo(
-                            moduleName, "No duck found, default to position %d.", duckPosition);
+                        msg = String.format(Locale.US, "No duck found, default to position %d.", duckPosition);
+                        robot.globalTracer.traceInfo(moduleName, msg);
+                        robot.speak(msg);
                     }
 
                     if (autoChoices.startDelay == 0.0)
