@@ -214,7 +214,7 @@ public class FtcTest extends FtcTeleOp
         //
         // Only SENSORS_TEST and SUBSYSTEMS_TEST need TensorFlow, shut it down for all other tests.
         //
-        if (robot.vision != null && robot.vision.isTensorFlowVisionInitialized() &&
+        if (robot.vision != null && RobotParams.Preferences.useTensorFlow &&
             testChoices.test != Test.SENSORS_TEST && testChoices.test != Test.SUBSYSTEMS_TEST)
         {
             robot.globalTracer.traceInfo("TestInit", "Shutting down TensorFlow.");
@@ -248,13 +248,13 @@ public class FtcTest extends FtcTeleOp
                     //
                     // Vision generally will impact performance, so we only enable it if it's needed.
                     //
-                    if (robot.vision.isVuforiaVisionInitialized())
+                    if (RobotParams.Preferences.useVuforia)
                     {
                         robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
                         robot.vision.setVuforiaEnabled(true);
                     }
 
-                    if (robot.vision.isTensorFlowVisionInitialized())
+                    if (RobotParams.Preferences.useTensorFlow)
                     {
                         robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
                         robot.vision.setTensorFlowEnabled(true);
@@ -308,13 +308,13 @@ public class FtcTest extends FtcTeleOp
             //
             // Vision generally will impact performance, so we only enable it if it's needed.
             //
-            if (robot.vision.isVuforiaVisionInitialized())
+            if (RobotParams.Preferences.useVuforia)
             {
                 robot.globalTracer.traceInfo(funcName, "Disabling Vuforia.");
                 robot.vision.setVuforiaEnabled(false);
             }
 
-            if (robot.vision.isTensorFlowVisionInitialized())
+            if (RobotParams.Preferences.useTensorFlow)
             {
                 robot.globalTracer.traceInfo(funcName, "Shutting down TensorFlow.");
                 robot.vision.tensorFlowShutdown();
@@ -787,16 +787,16 @@ public class FtcTest extends FtcTeleOp
     {
         if (robot.vision != null)
         {
-            if (robot.vision.isVuforiaVisionInitialized())
+            if (RobotParams.Preferences.useVuforia)
             {
                 TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
                 robot.dashboard.displayPrintf(11, "RobotLocation %s: %s",
                                               robot.vision.getLastSeenVuforiaImageName(), robotPose);
             }
 
-            if (robot.vision.isTensorFlowVisionInitialized())
+            if (RobotParams.Preferences.useTensorFlow)
             {
-                robot.vision.getCurrentDuckPositions();
+                robot.vision.getBestDuckPosition();
             }
         }
     }   //doVisionTest

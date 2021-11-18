@@ -95,7 +95,7 @@ public class Vision
     // TensorFlow Vision.
     //
     private TensorFlowVision tensorFlowVision;
-    private int[] lastDuckPositions = null;
+    private int lastDuckPosition = 0;
 
     /**
      * Constructor: Create an instance of the object. Vision is required by both Vuforia and TensorFlow and must be
@@ -143,11 +143,6 @@ public class Vision
         robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
         robot.blinkin.setPatternPriorities(ledPatternPriorities);
     }   //setupBlinkin
-
-    public boolean isVuforiaVisionInitialized()
-    {
-        return vuforiaVision != null;
-    }   //isVuforiaVisionInitialized
 
     /**
      * This method enables/disables Vuforia Vision.
@@ -201,11 +196,6 @@ public class Vision
                           -orientation.thirdAngle - 90.0);
     }   //getRobotPose
 
-    public boolean isTensorFlowVisionInitialized()
-    {
-        return tensorFlowVision != null;
-    }   //isTensorFlowVisionInitialized
-
     /**
      * This method enables/disables TensorFlow.
      *
@@ -227,60 +217,36 @@ public class Vision
      */
     public void tensorFlowShutdown()
     {
-        if (tensorFlowVision != null)
-        {
-            setTensorFlowEnabled(false);
-            tensorFlowVision.shutdown();
-            tensorFlowVision = null;
-        }
+        setTensorFlowEnabled(false);
+        tensorFlowVision.shutdown();
+        tensorFlowVision = null;
     }   //tensorFlowShutdown
 
     /**
-     * This method calls vision to detect all the ducks and returns their barcode positions in an array.
+     * This method returns the best detected targets from TensorFlow vision.
      *
-     * @return duck barcode position array 1, 2, or 3, null if none found.
+     * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+     * @return the best detected target info.
      */
-    public int[] getCurrentDuckPositions()
+    public FtcTensorFlow.TargetInfo getBestDetectedTargetInfo(String label)
     {
-        final String funcName = "getCurrentDuckPositions";
-        int[] duckPositions = null;
-        FtcTensorFlow.TargetInfo[] targetInfo =
-            tensorFlowVision.getDetectedTargetsInfo(Vision.LABEL_DUCK, tensorFlowVision::validateDuck);
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        if (targetInfo != null && targetInfo.length > 0)
-        {
-            duckPositions = new int[targetInfo.length];
-            //
-            // Target array is sorted with highest confidence first. Therefore, we process the array backward so
-            // that the highest confidence target will be processed last. Therefore, the LED state will show the
-            // highest confidence target position.
-            //
-            for (int i = targetInfo.length - 1; i >= 0; i--)
-            {
-                duckPositions[i] = tensorFlowVision.determineDuckPosition(targetInfo[i]);
-                if (tracer != null)
-                {
-                    tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d", i, targetInfo[i], duckPositions[i]);
-                }
-                // We don't have unlimited display lines, so only display the first three in the array.
-                if (i < 3)
-                {
-                    robot.dashboard.displayPrintf(12 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
-                }
-            }
-            //
-            // Clear the rest of the allocated display lines.
-            //
-            for (int i = targetInfo.length; i < 3; i++)
-            {
-                robot.dashboard.displayPrintf(12 + i, "");
-            }
+        return tensorFlowVision.getDetectedTargetsInfo(label, null)[0];
+    }   //getBestDetectedTargetInfo
 
-            lastDuckPositions = duckPositions;
-        }
+    /**
+     * This method calls vision to detect the best duck and returns its barcode position.
+     *
+     * @return duck barcode position array 1, 2, or 3, 0 if none found.
+     */
+    public int getBestDuckPosition()
+    {
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        return duckPositions;
-    }   //getCurrentDuckPositions
+        int[] detectedDuckPositions = tensorFlowVision.getDetectedDuckPositions();
+        return detectedDuckPositions != null? detectedDuckPositions[0]: 0;
+    }   //getBestDuckPosition
 
     /**
      * This method returns the last detected duck barcode position.
@@ -289,7 +255,7 @@ public class Vision
      */
     public int getLastDuckPosition()
     {
-        return lastDuckPositions != null? lastDuckPositions[0]: 0;
+        return lastDuckPosition;
     }   //getLastDuckPosition
 
     /**
@@ -576,26 +542,6 @@ public class Vision
         }   //compareConfidence
 
         /**
-         * This method returns an array of detected targets from TensorFlow vision.
-         *
-         * @param label specifies the label of the targets to detect for, can be null for detecting any target.
-         * @param filter specifies the filter to call to filter out false positive targets.
-         * @return array of detected target info.
-         */
-        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
-        {
-            if (tensorFlow == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
-
-            FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
-            if (detectedTargets != null)
-            {
-                Arrays.sort(detectedTargets, this::compareConfidence);
-            }
-
-            return detectedTargets;
-        }   //getDetectedTargetsInfo
-
-        /**
          * This method is called to validate the detected target as a duck.
          * To valid a valid duck, it must have:
          *  - correct aspect ratio
@@ -673,6 +619,70 @@ public class Vision
 
             return pos;
         }   //determineDuckPosition
+
+        /**
+         * This method returns an array of detected targets from TensorFlow vision.
+         *
+         * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+         * @param filter specifies the filter to call to filter out false positive targets.
+         * @return array of detected target info.
+         */
+        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+        {
+            FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
+            if (detectedTargets != null)
+            {
+                Arrays.sort(detectedTargets, this::compareConfidence);
+            }
+
+            return detectedTargets;
+        }   //getDetectedTargetsInfo
+
+        /**
+         * This method calls vision to detect all the ducks and returns their barcode positions in an array.
+         *
+         * @return duck barcode position array 1, 2, or 3, null if none found.
+         */
+        private int[] getDetectedDuckPositions()
+        {
+            final String funcName = "getDetectedDuckPositions";
+            int[] duckPositions = null;
+            FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, this::validateDuck);
+
+            if (targetInfo != null && targetInfo.length > 0)
+            {
+                duckPositions = new int[targetInfo.length];
+                //
+                // Target array is sorted with highest confidence first. Therefore, we process the array backward so
+                // that the highest confidence target will be processed last. Therefore, the LED state will show the
+                // highest confidence target position.
+                //
+                for (int i = targetInfo.length - 1; i >= 0; i--)
+                {
+                    duckPositions[i] = determineDuckPosition(targetInfo[i]);
+                    if (tracer != null)
+                    {
+                        tracer.traceInfo(funcName, "[%d] targetInfo=%s, duckPos=%d", i, targetInfo[i], duckPositions[i]);
+                    }
+                    // We don't have unlimited display lines, so only display the first three in the array.
+                    if (i < 3)
+                    {
+                        robot.dashboard.displayPrintf(12 + i, "%s (Pos=%d)", targetInfo[i], duckPositions[i]);
+                    }
+                }
+                //
+                // Clear the rest of the allocated display lines.
+                //
+                for (int i = targetInfo.length; i < 3; i++)
+                {
+                    robot.dashboard.displayPrintf(12 + i, "");
+                }
+
+                lastDuckPosition = duckPositions[0];
+            }
+
+            return duckPositions;
+        }   //getDetectedDuckPositions
 
     }   //class TensorFlowVision
 

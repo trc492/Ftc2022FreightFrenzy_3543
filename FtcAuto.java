@@ -208,13 +208,13 @@ public class FtcAuto extends FtcOpMode
 
         if (robot.vision != null)
         {
-            if (robot.vision.isVuforiaVisionInitialized())
+            if (RobotParams.Preferences.useVuforia)
             {
                 robot.globalTracer.traceInfo(funcName, "Enabling Vuforia.");
                 robot.vision.setVuforiaEnabled(true);
             }
 
-            if (robot.vision.isTensorFlowVisionInitialized())
+            if (RobotParams.Preferences.useTensorFlow)
             {
                 robot.globalTracer.traceInfo(funcName, "Enabling TensorFlow.");
                 robot.vision.setTensorFlowEnabled(true);
@@ -233,9 +233,9 @@ public class FtcAuto extends FtcOpMode
     @Override
     public void initPeriodic()
     {
-        if (robot.vision != null && robot.vision.isTensorFlowVisionInitialized())
+        if (robot.vision != null && RobotParams.Preferences.useTensorFlow)
         {
-            robot.vision.getCurrentDuckPositions();
+            robot.vision.getBestDuckPosition();
         }
     }   //initPeriodic
 
