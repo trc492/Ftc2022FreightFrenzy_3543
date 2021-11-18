@@ -44,6 +44,7 @@ public class RobotParams
         static boolean showTensorFlowView = true;
         static boolean useTraceLog = true;
         static boolean useBatteryMonitor = true;
+        static boolean playSongs = true;
         static boolean useLoopPerformanceMonitor = true;
         static boolean useVelocityControl = false;
     }   //class Preferences

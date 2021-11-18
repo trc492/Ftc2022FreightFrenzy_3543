@@ -31,6 +31,7 @@ import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
 import TrcCommonLib.trclib.TrcUtil;
+import TrcFtcLib.ftclib.FtcAndroidTone;
 import TrcFtcLib.ftclib.FtcDashboard;
 import TrcFtcLib.ftclib.FtcOpMode;
 import TrcFtcLib.ftclib.FtcRevBlinkin;
@@ -62,6 +63,8 @@ public class Robot
     //
     public FtcRevBlinkin blinkin;
     public FtcRobotBattery battery;
+    public FtcAndroidTone androidTone;
+    public MusicPlayer musicPlayer;
     //
     // Subsystems.
     //
@@ -121,6 +124,12 @@ public class Robot
                 }
             }
 
+            androidTone = new FtcAndroidTone("androidTone");
+            if (RobotParams.Preferences.playSongs)
+            {
+                musicPlayer = new MusicPlayer(androidTone);
+            }
+
             if (RobotParams.Preferences.useBatteryMonitor)
             {
                 battery = new FtcRobotBattery();
@@ -149,6 +158,7 @@ public class Robot
                             RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
                         .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
                     arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams);
+                    arm.setBeep(androidTone);
                     arm.zeroCalibrate();
                 }
                 intake = new FtcDcMotor(RobotParams.HWNAME_INTAKE);

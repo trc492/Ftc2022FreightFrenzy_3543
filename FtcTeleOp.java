@@ -26,6 +26,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import TrcCommonLib.trclib.TrcGameController;
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcTone;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcOpMode;
 
@@ -220,15 +221,31 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
+                if (robot.musicPlayer != null && pressed)
+                {
+                    robot.musicPlayer.toggleSong(MusicPlayer.starWarsName);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
+                if (robot.musicPlayer != null && pressed)
+                {
+                    robot.musicPlayer.toggleSong(MusicPlayer.lesMiserablesName);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:
+                if (pressed)
+                {
+                    robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 1000.0, 1.0, 1.0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
+                if (pressed)
+                {
+                    robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 440.0, 1.0, 1.0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_LBUMPER:

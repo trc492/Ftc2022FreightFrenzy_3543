@@ -158,6 +158,7 @@ public class RobotDrive
         // of the absolute target position.
         pidDrive.setAbsoluteTargetModeEnabled(true);
         pidDrive.setStallTimeout(RobotParams.PIDDRIVE_STALL_TIMEOUT);
+        pidDrive.setBeep(robot.androidTone);
 
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase,
