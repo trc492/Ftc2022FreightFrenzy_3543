@@ -166,6 +166,27 @@ public class RobotParams
     static final double PPD_FOLLOWING_DISTANCE                  = 6.0;
     static final double PPD_POS_TOLERANCE                       = 2.0;
     static final double PPD_TURN_TOLERANCE                      = 1.0;
+    // TODO: Need to retune.
+    static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
+    static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 360.0;
+    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 1280.0;
+    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_Y            = 360.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_X          = 0.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y          = 720.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X         = 1280.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y         = 720.0;
+
+    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
+    // Measurement unit: inches
+    // TODO: Tune all of this
+    static final double HOMOGRAPHY_WORLD_TOPLEFT_X              = -61.0;
+    static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 83.0;
+    static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 33.0;
+    static final double HOMOGRAPHY_WORLD_TOPRIGHT_Y             = 83.0;
+    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_X           = -39.5;
+    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_Y           = 19.0;
+    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_X          = 12.0;
+    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 19.0;
     //
     // Vision subsystem.
     //

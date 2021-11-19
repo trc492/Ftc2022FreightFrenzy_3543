@@ -33,6 +33,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcHashMap;
+import TrcCommonLib.trclib.TrcHomographyMapper;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRevBlinkin;
 import TrcCommonLib.trclib.TrcUtil;
@@ -513,7 +514,21 @@ public class Vision
             tfodParams.isModelTensorFlow2 = true;
             tfodParams.inputSize = 320;
 
-            tensorFlow = new FtcTensorFlow(vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, tracer);
+            TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
+                    RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
+                    RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
+                    RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
+                    RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
+
+            TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
+                    RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_Y,
+                    RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
+                    RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
+                    RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
+
+            tensorFlow = new FtcTensorFlow(
+                    vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect,
+                    tracer);
         }   //TensorFlowVision
 
         /**

@@ -59,18 +59,6 @@ public class FtcAuto extends FtcOpMode
         BLUE_ALLIANCE
     }   //enum Alliance
 
-    public enum FreightDelivery
-    {
-        DO_DELIVERY,
-        NO_DELIVERY
-    }   //enum FreightDelivery
-
-    public enum Carousel
-    {
-        DO_CAROUSEL,
-        NO_CAROUSEL
-    }   //enum Carousel
-
     public enum Parking
     {
         NO_PARKING,
@@ -86,8 +74,9 @@ public class FtcAuto extends FtcOpMode
         double startDelay = 0.0;
         Alliance alliance = Alliance.RED_ALLIANCE;
         AutoStrategy strategy = AutoStrategy.AUTO_NEAR_CAROUSEL;
-        FreightDelivery freightDelivery = FreightDelivery.DO_DELIVERY;
-        Carousel doCarousel = Carousel.DO_CAROUSEL;
+        boolean freightDelivery = false;
+        boolean ourGamePieceDelivery = false;
+        boolean doCarousel = false;
         Parking parking = Parking.WAREHOUSE_PARKING;
         double xTarget = 0.0;
         double yTarget = 0.0;
@@ -104,6 +93,7 @@ public class FtcAuto extends FtcOpMode
                 "alliance=\"%s\" " +
                 "strategy=\"%s\" " +
                 "freightDelivery=\"%s\" " +
+                "ourGamePieceDelivery=\"%s\" " +
                 "doCarousel=\"%s\" " +
                 "parking=\"%s\" " +
                 "xTarget=%.1f " +
@@ -111,7 +101,7 @@ public class FtcAuto extends FtcOpMode
                 "turnTarget=%.0f " +
                 "driveTime=%.0f " +
                 "drivePower=%.1f",
-                startDelay, alliance, strategy, freightDelivery, doCarousel, parking,
+                startDelay, alliance, strategy, freightDelivery, ourGamePieceDelivery, doCarousel, parking,
                 xTarget, yTarget, turnTarget, driveTime, drivePower);
         }   //toString
 
@@ -342,8 +332,9 @@ public class FtcAuto extends FtcOpMode
             "Start delay time:", null, 0.0, 30.0, 1.0, 0.0, " %.0f sec");
         FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", startDelayMenu);
         FtcChoiceMenu<AutoStrategy> strategyMenu = new FtcChoiceMenu<>("Auto Strategies:", allianceMenu);
-        FtcChoiceMenu<FreightDelivery> freightDeliveryMenu = new FtcChoiceMenu<>("Freight Delivery:", strategyMenu);
-        FtcChoiceMenu<Carousel>carouselMenu=new FtcChoiceMenu<>("Carousel:", freightDeliveryMenu);
+        FtcChoiceMenu<Boolean> freightDeliveryMenu = new FtcChoiceMenu<>("Freight Delivery:", strategyMenu);
+        FtcChoiceMenu<Boolean> ourGamePieceDeliveryMenu = new FtcChoiceMenu<>("Our Game Piece Delivery", freightDeliveryMenu);
+        FtcChoiceMenu<Boolean>carouselMenu=new FtcChoiceMenu<>("Carousel:", ourGamePieceDeliveryMenu);
         FtcChoiceMenu<Parking>parkingMenu=new FtcChoiceMenu<>("Parking:", carouselMenu);
 
         FtcValueMenu xTargetMenu = new FtcValueMenu(
@@ -375,11 +366,15 @@ public class FtcAuto extends FtcOpMode
         strategyMenu.addChoice("Auto Test", AutoStrategy.AUTO_TEST, false);
         strategyMenu.addChoice("Do nothing", AutoStrategy.DO_NOTHING, false);
 
-        freightDeliveryMenu.addChoice("Do Delivery", FreightDelivery.DO_DELIVERY, true, carouselMenu);
-        freightDeliveryMenu.addChoice("No Delivery", FreightDelivery.NO_DELIVERY, false, carouselMenu);
+        freightDeliveryMenu.addChoice("Do Delivery", true, true, ourGamePieceDeliveryMenu);
+        freightDeliveryMenu.addChoice("No Delivery", false, false, ourGamePieceDeliveryMenu);
 
-        carouselMenu.addChoice("Do Carousel", Carousel.DO_CAROUSEL, true, parkingMenu);
-        carouselMenu.addChoice("No Carousel", Carousel.NO_CAROUSEL, false, parkingMenu);
+        ourGamePieceDeliveryMenu.addChoice("Do Our Game Piece Delivery ", true, true, carouselMenu);
+        ourGamePieceDeliveryMenu.addChoice("No Our Game Piece Delivery", false, false , carouselMenu);
+
+
+        carouselMenu.addChoice("Do Carousel", true, true, parkingMenu);
+        carouselMenu.addChoice("No Carousel", false, false, parkingMenu);
 
         parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, true);
         parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, false);
@@ -395,6 +390,7 @@ public class FtcAuto extends FtcOpMode
         autoChoices.alliance = allianceMenu.getCurrentChoiceObject();
         autoChoices.strategy = strategyMenu.getCurrentChoiceObject();
         autoChoices.freightDelivery = freightDeliveryMenu.getCurrentChoiceObject();
+        autoChoices.ourGamePieceDelivery = ourGamePieceDeliveryMenu.getCurrentChoiceObject();
         autoChoices.doCarousel = carouselMenu.getCurrentChoiceObject();
         autoChoices.parking = parkingMenu.getCurrentChoiceObject();
         autoChoices.xTarget = xTargetMenu.getCurrentValue();

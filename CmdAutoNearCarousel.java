@@ -25,9 +25,12 @@ package Ftc2022FreightFrenzy_3543;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcEvent;
+import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
+import TrcCommonLib.trclib.TrcUtil;
+import TrcFtcLib.ftclib.FtcTensorFlow;
 
 class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 {
@@ -41,6 +44,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         SPIN_CAROUSEL,
         DRIVE_TO_ALLIANCE_SHIPPING_HUB,
         DUMP_FREIGHT,
+
+        PREP_FOR_FINDING_GAME_PIECE,
+        FIND_OUR_GAME_PIECE,
+        DRIVE_TO_OUR_GAME_PIECE,
+        DO_INTAKE,
+
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE,
         RETRACT_ODOMETRY_WHEELS,
@@ -110,7 +119,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     public boolean cmdPeriodic(double elapsedTime)
     {
         State state = sm.checkReadyAndGetState();
-
         if (state == null)
         {
             robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
@@ -121,6 +129,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
             String msg;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
+            Double  expireTime = null;
+            FtcTensorFlow.TargetInfo targetInfo = null;
             switch (state)
             {
                 case START_DELAY:
@@ -165,7 +175,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
 
                 case DRIVE_TO_CAROUSEL:
-                    if (autoChoices.doCarousel == FtcAuto.Carousel.NO_CAROUSEL)
+                    if (!autoChoices.doCarousel)
                     {
                         // We are not doing carousel, skip to next state.
                         sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
@@ -191,6 +201,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case GET_TO_CAROUSEL:
                     // We are still about an inch from the carousel, drive slowly towards it for 400 msec to touch it.
+                    //fire and forget 
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
                     timer.set(
                             autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.4: 0.5, event);
@@ -209,10 +220,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-                    if (autoChoices.freightDelivery == FtcAuto.FreightDelivery.NO_DELIVERY)
+                    if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to next state.
-                        sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                        sm.setState(State.FIND_OUR_GAME_PIECE);
                     }
                     else
                     {
@@ -237,7 +248,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 robot.robotDrive.pathPoint(-distanceToHub, 0.9, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
+
                         robot.arm.setLevel(duckPosition);
+                        //after we dump the duck to the right level for the bonus, any subsequent dumps will be to the top
+                        duckPosition = 3;
                         sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     }
                     break;
@@ -245,8 +259,65 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 1.25, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                    sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     break;
+
+                case PREP_FOR_FINDING_GAME_PIECE:
+                    if(!autoChoices.ourGamePieceDelivery){
+                        sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                    }
+                    else{
+                        robot.robotDrive.purePursuitDrive.start(
+                                event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, 0, 180));
+                        sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
+                    }
+                    break;
+                case FIND_OUR_GAME_PIECE:
+
+                    targetInfo = robot.vision.getBestDetectedTargetInfo(Vision.LABEL_DUCK);
+                    if(targetInfo!=null){
+                        sm.setState(State.DRIVE_TO_OUR_GAME_PIECE);
+                    }
+                    else  if(expireTime==null){
+                        expireTime = TrcUtil.getCurrentTime()+3;
+                    }
+                    else if (TrcUtil.getCurrentTime()>expireTime){
+                        //if time is up and we still havent found the thing than give up and do parking
+                        sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
+                    }
+
+
+                    break;
+
+                case DRIVE_TO_OUR_GAME_PIECE:
+                    // Call pure pursuit using robot field position +
+                    //after tuning distanceFromCenter will be real world distance from robot where robot is (0, 0)
+                    //turns such that the robot is inline with the game piece and moves forward
+                    //assumes distance from game object gives distance from computer to actual object
+
+                    TrcPose2D ourGamePiecePosition =
+                            new TrcPose2D(
+                                    //minus bc robot is facing backwards in its y orientationso if it says target at  right target actually at left
+                                    robot.robotDrive.driveBase.getXPosition()-targetInfo.distanceFromCenter.x,
+                                    //robot is in opposite y orientation as the field
+                                    robot.robotDrive.driveBase.getYPosition()-targetInfo.distanceFromCenter.y,
+                                    //degrees is always the same
+                                    robot.robotDrive.driveBase.getHeading()+targetInfo.angle
+                                    );
+                    robot.robotDrive.purePursuitDrive.start(
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            ourGamePiecePosition);
+
+                    sm.waitForSingleEvent(event, State.DO_INTAKE);
+                    break;
+
+                case DO_INTAKE:
+                    robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
+                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
+
+                    break;
+
 
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
                     if (autoChoices.parking == FtcAuto.Parking.NO_PARKING)

@@ -165,7 +165,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     }
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-                    if (autoChoices.freightDelivery == FtcAuto.FreightDelivery.NO_DELIVERY)
+                    if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to the next state.
                         sm.setState(State.DRIVE_TO_CAROUSEL);
@@ -210,7 +210,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_CAROUSEL:
-                    if (autoChoices.doCarousel == FtcAuto.Carousel.NO_CAROUSEL)
+                    if (!autoChoices.doCarousel)
                     {
                         // We are not doing carousel, skip to next state.
                         sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
@@ -291,7 +291,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                 case DRIVE_TO_WAREHOUSE:
                     // We are heading to the warehouse but we could be coming from starting position, alliance hub
                     // or carousel.
-                    if (autoChoices.doCarousel == FtcAuto.Carousel.NO_CAROUSEL)
+                    if (!autoChoices.doCarousel)
                     {
                         // We either came from starting position or alliance hub. This would be a 1-point path.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
@@ -343,8 +343,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
                     timer.set(0.8, event);
                     sm.waitForSingleEvent(
-                        event, autoChoices.doCarousel == FtcAuto.Carousel.DO_CAROUSEL?
-                            State.GET_TO_WAREHOUSE_CENTER: State.DONE);
+                        event, autoChoices.doCarousel? State.GET_TO_WAREHOUSE_CENTER: State.DONE);
                     break;
 
                 case GET_TO_WAREHOUSE_CENTER:
