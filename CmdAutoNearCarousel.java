@@ -299,12 +299,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     TrcPose2D ourGamePiecePosition =
                             new TrcPose2D(
                                     //minus bc robot is facing backwards in its y orientationso if it says target at  right target actually at left
-                                    robot.robotDrive.driveBase.getXPosition()-targetInfo.distanceFromCenter.x,
+                                    robot.robotDrive.driveBase.getXPosition()-targetInfo.distanceFromCamera.x,
                                     //robot is in opposite y orientation as the field
-                                    robot.robotDrive.driveBase.getYPosition()-targetInfo.distanceFromCenter.y,
-                                    //degrees is always the same
-                                    robot.robotDrive.driveBase.getHeading()+targetInfo.angle
-                                    );
+                                    robot.robotDrive.driveBase.getYPosition()-targetInfo.distanceFromCamera.y,
+                                    180.0);
                     robot.robotDrive.purePursuitDrive.start(
                             event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             ourGamePiecePosition);

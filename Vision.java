@@ -578,7 +578,7 @@ public class Vision
                    aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
                    area <= TARGET_SIZE_TOLERANCE_UPPER &&
                    area >= TARGET_SIZE_TOLERANCE_LOWER &&
-                   Math.abs(targetInfo.distanceFromCenter.y) <= distanceYTolerance;
+                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
         }   //validateDuck
 
         /**
@@ -595,11 +595,11 @@ public class Vision
             {
                 double oneSixthImageWidth = targetInfo.imageWidth/6.0;
 
-                if (targetInfo.distanceFromCenter.x <= -oneSixthImageWidth)
+                if (targetInfo.distanceFromImageCenter.x <= -oneSixthImageWidth)
                 {
                     pos = 1;
                 }
-                else if (targetInfo.distanceFromCenter.x >= oneSixthImageWidth)
+                else if (targetInfo.distanceFromImageCenter.x >= oneSixthImageWidth)
                 {
                     pos = 3;
                 }
