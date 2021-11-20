@@ -46,6 +46,8 @@ public class FtcAuto extends FtcOpMode
     public enum AutoStrategy
     {
         AUTO_NEAR_CAROUSEL,
+
+        AUTO_SHUTTLE_BACK_AND_FORTH,
         AUTO_FAR_CAROUSEL,
         PID_DRIVE,
         TIMED_DRIVE,
@@ -161,6 +163,13 @@ public class FtcAuto extends FtcOpMode
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     autoCommand = new CmdAutoFarCarousel(robot, autoChoices);
+                }
+                break;
+
+            case AUTO_SHUTTLE_BACK_AND_FORTH:
+                if (!RobotParams.Preferences.visionOnly)
+                {
+                    autoCommand = new CmdAutoShuttleBackAndForth(robot, autoChoices);
                 }
                 break;
 
@@ -361,6 +370,8 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
+        //the cmd shuttle back and forth does nto require choices
+        strategyMenu.addChoice("Shuttle Back and Forth Autonomous", AutoStrategy.AUTO_SHUTTLE_BACK_AND_FORTH, false);
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
         strategyMenu.addChoice("Auto Test", AutoStrategy.AUTO_TEST, false);
