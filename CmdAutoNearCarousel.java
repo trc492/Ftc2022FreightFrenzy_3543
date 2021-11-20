@@ -223,7 +223,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to next state.
-                        sm.setState(State.FIND_OUR_GAME_PIECE);
+                        sm.setState(State.PREP_FOR_FINDING_GAME_PIECE);
                     }
                     else
                     {

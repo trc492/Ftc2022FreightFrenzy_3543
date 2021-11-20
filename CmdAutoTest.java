@@ -23,8 +23,11 @@
 package Ftc2022FreightFrenzy_3543;
 
 import TrcCommonLib.trclib.TrcEvent;
+import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
+import TrcCommonLib.trclib.TrcUtil;
+import TrcFtcLib.ftclib.FtcTensorFlow;
 
 class CmdAutoTest implements TrcRobot.RobotCommand
 {
@@ -33,7 +36,12 @@ class CmdAutoTest implements TrcRobot.RobotCommand
     private enum State
     {
         START,
-        DRIVE_TO_ALLIANCE_STORAGE_UNIT,
+
+
+        FIND_OUR_GAME_PIECE,
+        DRIVE_TO_OUR_GAME_PIECE,
+        DO_INTAKE,
+
         DONE
     }   //enum State
 
@@ -91,7 +99,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
     public boolean cmdPeriodic(double elapsedTime)
     {
         State state = sm.checkReadyAndGetState();
-
+        Double expireTime = null;
+        FtcTensorFlow.TargetInfo targetInfo = null;
         if (state == null)
         {
             robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
@@ -103,15 +112,60 @@ class CmdAutoTest implements TrcRobot.RobotCommand
             robot.dashboard.displayPrintf(1, "State: %s", state);
             switch (state)
             {
+                //put in code to test robot driving up to game piece  if it sees it
                 case START:
                     robot.robotDrive.driveBase.setFieldPosition(
-                        robot.robotDrive.pathPoint(-1.4, -1.0, 90.0));
+
+                                    RobotParams.STARTPOS_RED_NEAR );
+                    sm.setState(State.FIND_OUR_GAME_PIECE);
+                    break;
+
+                case FIND_OUR_GAME_PIECE:
+
+                    targetInfo = robot.vision.getBestDetectedTargetInfo(Vision.LABEL_DUCK);
+                    if(targetInfo!=null){
+                        sm.setState(CmdAutoTest.State.DRIVE_TO_OUR_GAME_PIECE);
+                    }
+                    else  if(expireTime==null){
+                        expireTime = TrcUtil.getCurrentTime()+3;
+                    }
+                    else if (TrcUtil.getCurrentTime()>expireTime){
+                        //if time is up and we still havent found the thing than give up and do parking
+                        sm.setState(State.DONE);
+                    }
+
+
+                    break;
+
+                case DRIVE_TO_OUR_GAME_PIECE:
+                    // Call pure pursuit using robot field position +
+                    //after tuning distanceFromCenter will be real world distance from robot where robot is (0, 0)
+                    //turns such that the robot is inline with the game piece and moves forward
+                    //assumes distance from game object gives distance from computer to actual object
+
+
+                    //keep angle because it will go to a point and then turn
+                    //use incremental path so then it doesnt matter where robot is and we can just use distanceFromCamera
+
+                    TrcPose2D ourGamePiecePosition =
+                            new TrcPose2D(
+                                    //minus bc robot is facing backwards in its y orientationso if it says target at  right target actually at left
+                                    targetInfo.distanceFromCamera.x,
+                                    //robot is in opposite y orientation as the field
+                                    targetInfo.distanceFromCamera.y,
+                                    targetInfo.angle);
                     robot.robotDrive.purePursuitDrive.start(
-                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        robot.robotDrive.pathPoint(-2.5, -1.5, 90.0));
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), true,
+                            ourGamePiecePosition);
+
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
+                case DO_INTAKE:
+                    robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
+                    sm.waitForSingleEvent(event, State.DONE);
+
+                    break;
                 case DONE:
                 default:
                     //
