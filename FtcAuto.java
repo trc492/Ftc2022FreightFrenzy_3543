@@ -46,9 +46,8 @@ public class FtcAuto extends FtcOpMode
     public enum AutoStrategy
     {
         AUTO_NEAR_CAROUSEL,
-
-        AUTO_SHUTTLE_BACK_AND_FORTH,
         AUTO_FAR_CAROUSEL,
+        AUTO_SHUTTLE_BACK_AND_FORTH,
         PID_DRIVE,
         TIMED_DRIVE,
         AUTO_TEST,

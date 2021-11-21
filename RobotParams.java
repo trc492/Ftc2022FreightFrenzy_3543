@@ -224,12 +224,13 @@ public class RobotParams
     //
     static final double INTAKE_POWER_PICKUP                     = -1.0;
     static final double INTAKE_POWER_DUMP                       = 0.7;
+    static final double INTAKE_DUMP_TIME                        = 1.25;
     //
     // Spinner subsystem.
     //
     static final double SPINNER_POWER_RED                       = 1.0;
     static final double SPINNER_POWER_BLUE                      = -1.0;
-    static final double SPINNER_TIME                            = 3.0;
+    static final double SPINNER_TIME                            = 2.0;
     //
     // Odometry Wheel Deployer subsystem.
     //

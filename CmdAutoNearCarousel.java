@@ -258,11 +258,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, 1.25, event);
+                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     break;
 
                 case PREP_FOR_FINDING_GAME_PIECE:
+                    robot.arm.setLevel(0.5, 1);
                     if(!autoChoices.ourGamePieceDelivery){
                         sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
                     }
