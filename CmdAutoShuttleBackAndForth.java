@@ -182,17 +182,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
-                                robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
-                                robot.robotDrive.pathPoint(-0.5, -distanceToHub, 90.0));
+                                robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
-                                robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
-                                robot.robotDrive.pathPoint(-0.5, distanceToHub, 90.0));
+                                robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                         }
                         // Raise arm to the detected duck level at the same time.
 
@@ -239,6 +235,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         expireTime = TrcUtil.getCurrentTime() + 5.0;
                     }
+                    //need code to check if grabberHasPickedBlock
                     else if (grabberHasPickedBlock || TrcUtil.getCurrentTime() >= expireTime)
                     {
                         //reset expireTIme so that next time we try to pick up freight from warehouse it still works
@@ -255,7 +252,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         //keep driving forward while doing the intake power pickup
                         robot.intake.set(RobotParams.INTAKE_POWER_PICKUP);
                         // Code Review: driving forward full power for 5 seconds???
-                        robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
+                        robot.robotDrive.driveBase.holonomicDrive(0.0, 0.3, 0.0);
                     }
                     break;
 
