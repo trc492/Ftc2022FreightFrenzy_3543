@@ -70,7 +70,7 @@ public class Robot
     //
     public RobotDrive robotDrive = null;
     public FtcMotorActuator arm = null;
-    public FtcDcMotor intake = null;
+    public Intake intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
     public FtcServoActuator pickupHook = null;
@@ -161,7 +161,7 @@ public class Robot
                     arm.setBeep(androidTone);
                     arm.zeroCalibrate();
                 }
-                intake = new FtcDcMotor(RobotParams.HWNAME_INTAKE);
+                intake = new Intake(RobotParams.HWNAME_INTAKE);
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();
                 //
