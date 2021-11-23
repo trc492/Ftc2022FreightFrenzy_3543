@@ -199,12 +199,14 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state
+                    robot.intake.acquireExclusiveAccess(moduleName);
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
                 case DRIVE_INTO_WAREHOUSE:
                     //fire and forget with lowering arm
+                    robot.intake.releaseExclusiveAccess(moduleName);
                     robot.arm.setLevel(0.3, 1);
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {

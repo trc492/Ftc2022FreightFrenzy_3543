@@ -82,7 +82,25 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
             //
             super.set(power);
         }
-    }
+    }   //set
+
+    /**
+     * This method sets the motor output value for the set period of time. The motor will be turned off after the
+     * set time expires.The value can be power or velocity percentage depending on whether the motor controller is in
+     * power mode or velocity mode.
+     *
+     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
+     * @param value specifies the percentage power or velocity (range -1.0 to 1.0) to be set.
+     * @param time specifies the time period in seconds to have power set.
+     * @param event specifies the event to signal when time has expired.
+     */
+    public void set(String owner, double value, double time, TrcEvent event)
+    {
+        if (validateOwnership(owner))
+        {
+            super.set(value, time, event);
+        }
+    }   //set
 
     /**
      * This method is an auto-assist operation. It allows the caller to start the intake spinning at the given power
