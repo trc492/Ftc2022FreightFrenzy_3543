@@ -34,16 +34,15 @@ class Intake extends FtcDcMotor
     private static final double FREIGHT_THRESHOLD = 3.0;
     private static final double[] thresholds = {FREIGHT_THRESHOLD};
     private final FtcDistanceSensor sensor;
-    private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> sensorTrigger;
+    private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
     private final TrcTimer timer;
     private TrcEvent onFinishEvent = null;
-    private boolean gotFreight = false;
 
     public Intake(String instanceName)
     {
         super(instanceName);
         sensor = new FtcDistanceSensor(moduleName + "Sensor");
-        sensorTrigger = new TrcAnalogSensorTrigger<>(
+        distanceTrigger = new TrcAnalogSensorTrigger<>(
             moduleName + "SensorTrigger", sensor, 0, FtcDistanceSensor.DataType.DISTANCE_INCH, thresholds,
             this::triggerHandler, false);
         timer = new TrcTimer(moduleName + "Timer");
@@ -51,9 +50,7 @@ class Intake extends FtcDcMotor
 
     public void pickUpFreight(double power, TrcEvent event, double timeout)
     {
-        gotFreight =
-            sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_INCH).value > FREIGHT_THRESHOLD;
-        if (gotFreight)
+        if (hasFreight())
         {
             event.signal();
         }
@@ -62,20 +59,20 @@ class Intake extends FtcDcMotor
             super.set(power);
             this.onFinishEvent = event;
             timer.set(timeout, this::timeoutHandler);
-            sensorTrigger.setEnabled(true);
+            distanceTrigger.setEnabled(true);
         }
     }   //pickupFreight
 
     public boolean hasFreight()
     {
-        return gotFreight;
+        return sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_INCH).value > FREIGHT_THRESHOLD;
     }   //hasFreight
 
     private void cancel()
     {
         super.set(0.0);
         onFinishEvent.signal();
-        sensorTrigger.setEnabled(false);
+        distanceTrigger.setEnabled(false);
     }   //cancel
 
     private void triggerHandler(int currZone, int prevZone, double zoneValue)
@@ -84,7 +81,6 @@ class Intake extends FtcDcMotor
         {
             // We got freight.
             cancel();
-            gotFreight = true;
         }
     }   //triggerHandler
 
