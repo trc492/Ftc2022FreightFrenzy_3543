@@ -50,7 +50,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         DUMP_FREIGHT,
         DRIVE_INTO_WAREHOUSE,
         PICK_UP_FREIGHT_FROM_WAREHOUSE,
-        DRIVE_OUT_OF_WAREHOUSE,
+        DETERMINE_ROUND_TRIP_OR_DONE,
+        DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB,
 
         DONE
     }   //enum State
@@ -122,28 +123,25 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
             String msg;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
-            Double  expireTime = null;
+            Double  expireTime = 30-ROUND_TRIP_TIME;
             FtcTensorFlow.TargetInfo targetInfo = null;
-            switch (state)
-            {
+            switch (state) {
                 case START_DELAY:
                     //
                     // Do start delay if any.
                     //
                     robot.robotDrive.driveBase.setFieldPosition(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE ?
                                     RobotParams.STARTPOS_RED_FAR : RobotParams.STARTPOS_BLUE_FAR);
                     // Call vision at the beginning to figure out the position of the duck.
-                    if (robot.vision != null)
-                    {
+                    if (robot.vision != null) {
                         duckPosition = robot.vision.getLastDuckPosition();
                         msg = String.format(Locale.US, "Duck found at position %d.", duckPosition);
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
 
-                    if (duckPosition == 0)
-                    {
+                    if (duckPosition == 0) {
                         //
                         // We still can't see the duck, default to level 3.
                         //
@@ -153,15 +151,12 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         robot.speak(msg);
                     }
 
-                    if (autoChoices.startDelay == 0.0)
-                    {
+                    if (autoChoices.startDelay == 0.0) {
                         //
                         // Intentionally falling through to the next state.
                         //
                         sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-                    }
-                    else
-                    {
+                    } else {
                         timer.set(autoChoices.startDelay, event);
                         sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                         break;
@@ -170,33 +165,29 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
                     // Drive to alliance shipping hub. We could be coming from starting position or the warehouse.
                     // Note: the smaller the number the closer to the hub.
-                    if (elapsedTime >= ROUND_TRIP_TIME)
-                    {
-                        sm.setState(State.DRIVE_INTO_WAREHOUSE);
-                    }
-                    else
-                    {
-                        double distanceToHub = duckPosition == 3? 1.3: duckPosition == 2? 1.45: 1.4;
+//                    if (elapsedTime >= ROUND_TRIP_TIME)
+//                    {
+//                        sm.setState(State.DRIVE_INTO_WAREHOUSE);
+//                    }
 
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
+                    double distanceToHub = duckPosition == 3 ? 1.3 : duckPosition == 2 ? 1.45 : 1.4;
+
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
+                        robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
-                        }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
+                    } else {
+                        robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
-                        }
-                        // Raise arm to the detected duck level at the same time.
-
-                        robot.arm.setLevel(duckPosition);
-                        //after we dump the duck to the right level for the bonus, any subsequent dumps will be to the top
-                        duckPosition = 3;
-                        sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     }
+                    // Raise arm to the detected duck level at the same time.
+
+                    robot.arm.setLevel(duckPosition);
+                    //after we dump the duck to the right level for the bonus, any subsequent dumps will be to the top
+                    duckPosition = 3;
+                    sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
+
                     break;
 
                 case DUMP_FREIGHT:
@@ -207,79 +198,79 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DRIVE_INTO_WAREHOUSE:
                     //fire and forget with lowering arm
-                    robot.arm.setLevel(1);  // Code Review: can't do it immediately!
-                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                    {
+                    robot.arm.setLevel(0.3, 1);
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE) {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(0.9, -2.6,  90.0),
-                            robot.robotDrive.pathPoint(1.5, -2.6, 90.0));
-                    }
-                    else
-                    {
+                                event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(0.9, -2.6, 90.0),
+                                robot.robotDrive.pathPoint(1.5, -2.6, 90.0));
+                    } else {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(0.9, 2.6,  90.0),
-                            robot.robotDrive.pathPoint(1.5, 2.6, 90.0));
+                                event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(0.9, 2.6, 90.0),
+                                robot.robotDrive.pathPoint(1.5, 2.6, 90.0));
                     }
-                    sm.waitForSingleEvent(event,State.PICK_UP_FREIGHT_FROM_WAREHOUSE );
+                    sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
 
                 case PICK_UP_FREIGHT_FROM_WAREHOUSE:
                     //if there are only 10 seconds left in autonomous we go to done because we are already in the warehouse
-                    if  (elapsedTime >= ROUND_TRIP_TIME)
-                    {
-                        sm.setState(State.DONE);
-                    }
-                    else if (expireTime == null)
-                    {
-                        expireTime = TrcUtil.getCurrentTime() + 5.0;
-                    }
-                    //need code to check if grabberHasPickedBlock
-                    else if (grabberHasPickedBlock || TrcUtil.getCurrentTime() >= expireTime)
-                    {
-                        //reset expireTIme so that next time we try to pick up freight from warehouse it still works
-                        expireTime = null;
-                        robot.intake.set(0);
-                        //code to turn off holonomic drive
-                        robot.robotDrive.driveBase.holonomicDrive(0.0, 0.0, 0.0);
-                        // Code Review: still going out if you don't have a block???
-                        sm.setState(State.DRIVE_OUT_OF_WAREHOUSE);
-                    }
-                    else
-                    {
-                        //robot is facing 90 so y is forward(i think)
-                        //keep driving forward while doing the intake power pickup
-                        robot.intake.set(RobotParams.INTAKE_POWER_PICKUP);
-                        // Code Review: driving forward full power for 5 seconds???
-                        robot.robotDrive.driveBase.holonomicDrive(0.0, 0.3, 0.0);
-                    }
+                    //timeout is  timeleft-roundtriptime
+                    double timeout = 30 - elapsedTime - ROUND_TRIP_TIME;
+                    robot.intake.pickUpFreight(RobotParams.INTAKE_POWER_PICKUP, event, timeout);
+                    //keep running drive base until next event is signaled
+                    robot.robotDrive.driveBase.holonomicDrive(0.0, 0.3, 0.0);
+                    //event is signaled by intake when robot picked up a block or timeout expired
+                    sm.waitForSingleEvent(event, State.DETERMINE_ROUND_TRIP_OR_DONE);
+
+
                     break;
 
-                case DRIVE_OUT_OF_WAREHOUSE:
-                    // Code Review: leave the warehouse only if we have at least ROUND_TRIP_TIME.
-                    if (elapsedTime >= 20)
-                    {
+
+                case DETERMINE_ROUND_TRIP_OR_DONE:
+                    //turn off holonomic drive
+                    robot.robotDrive.driveBase.holonomicDrive(0.0, 0.0, 0.0);
+                    //if intake has freight and there are more than round trip time left
+                    if(robot.intake.hasFreight()&&30-elapsedTime>ROUND_TRIP_TIME){
+                        //if it has freight, keep running intake so block doesnt fall out
+                        robot.intake.set(RobotParams.INTAKE_POWER_PICKUP);
+                        //next state is driving out of warehouse (to try to dump the block)
+                        sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
+                    }
+                    else{
+                        //turn off intake, set state to done
+                        robot.intake.set(0);
                         sm.setState(State.DONE);
                     }
-                    else
-                    {
-                        //back out to around the place where we start but still facing the warehouse
+
+
+
+
+                case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
+                    distanceToHub =  1.4;
+                    //raise arm while driving
+                    robot.arm.setLevel(3);
+                    //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                         if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.5, -2.6,  90.0));
+                                robot.robotDrive.pathPoint(0.2, -2.6,  90.0),
+                                robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0));
+
+
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.5, 2.6,  90.0));
+                                robot.robotDrive.pathPoint(0.2, 2.6,  90.0),
+                            robot.robotDrive.pathPoint(-0.5, -distanceToHub, 180));
+
                         }
-                        // Code Review: this needs to be a different state because the path is different from start.
-                        sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-                    }
+                        //next state is dumping
+                        sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
+
                     break;
 
                 case DONE:
