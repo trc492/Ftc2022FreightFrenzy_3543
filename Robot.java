@@ -27,6 +27,8 @@ import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDigitalInput;
 import TrcCommonLib.trclib.TrcMotor;
+import TrcCommonLib.trclib.TrcPidActuator;
+import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcServo;
@@ -69,7 +71,7 @@ public class Robot
     // Subsystems.
     //
     public RobotDrive robotDrive = null;
-    public FtcMotorActuator arm = null;
+    public TrcPidActuator arm = null;
     public Intake intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
@@ -145,10 +147,11 @@ public class Robot
             {
                 if (RobotParams.Preferences.useArm)
                 {
-                    final FtcMotorActuator.Parameters armParams = new FtcMotorActuator.Parameters()
+                    final TrcPidActuator.Parameters armParams = new TrcPidActuator.Parameters()
                         .setPosRange(RobotParams.ARM_MIN_POS, RobotParams.ARM_MAX_POS)
                         .setScaleOffset(RobotParams.ARM_DEG_PER_COUNT, RobotParams.ARM_OFFSET)
-                        .setPidParams(RobotParams.ARM_KP, RobotParams.ARM_KI, RobotParams.ARM_KD, RobotParams.ARM_TOLERANCE)
+                        .setPidParams(new TrcPidController.PidParameters(
+                            RobotParams.ARM_KP, RobotParams.ARM_KI, RobotParams.ARM_KD, RobotParams.ARM_TOLERANCE))
                         .setMotorParams(
                             RobotParams.ARM_MOTOR_INVERTED,
                             RobotParams.ARM_HAS_LOWER_LIMIT_SWITCH, RobotParams.ARM_LOWER_LIMIT_INVERTED,
@@ -157,7 +160,7 @@ public class Robot
                         .setStallProtectionParams(
                             RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
                         .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
-                    arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams);
+                    arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams).getPidActuator();
                     arm.setBeep(androidTone);
                     arm.zeroCalibrate();
                 }
@@ -217,7 +220,7 @@ public class Robot
         if (arm != null)
         {
             // Raise the arm a little at start so it will not get caught on the floor tile.
-            arm.setPosition(RobotParams.ARM_MIN_POS + 5.0);
+            arm.setTarget(RobotParams.ARM_MIN_POS + 5.0);
         }
 
         if (robotDrive != null)
