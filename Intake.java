@@ -49,7 +49,6 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
     private final TrcTimer timer;
     private TrcEvent onFinishEvent = null;
     private TrcNotifier.Receiver onFinishCallback = null;
-    private String ownerID = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -130,8 +129,6 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
         //
         if (validateOwnership(owner))
         {
-            ownerID = owner;
-
             if (hasFreight())
             {
                 if (event != null)
@@ -141,10 +138,8 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 
                 if (callback != null)
                 {
-                    callback.notify(ownerID);
+                    callback.notify(null);
                 }
-
-                ownerID = null;
             }
             else
             {
@@ -207,10 +202,9 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 
         if (onFinishCallback != null)
         {
-            onFinishCallback.notify(ownerID);
+            onFinishCallback.notify(null);
         }
 
-        ownerID = null;
         distanceTrigger.setEnabled(false);
     }   //cancel
 

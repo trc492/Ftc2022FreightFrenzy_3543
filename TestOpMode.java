@@ -74,9 +74,9 @@ public class TestOpMode extends FtcOpMode
         }
     }   //gamepadButtonEvent
 
-    private void intakeCompletion(Object owner)
+    private void intakeCompletion(Object context)
     {
-        intake.releaseExclusiveAccess((String) owner);
+        intake.releaseExclusiveAccess(intakeOwner);
         intakeOwner = null;
     }   //intakeCompletion
 
