@@ -70,18 +70,27 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * This method spins the intake with the given power. It will only do this if nobody acquires exclusive access
      * to the intake already.
      *
+     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
+     * @param power specifies the power value to spin the intake.
+     */
+    public void set(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            super.set(power);
+        }
+    }   //set
+
+    /**
+     * This method spins the intake with the given power. It will only do this if nobody acquires exclusive access
+     * to the intake already.
+     *
      * @param power specifies the power value to spin the intake.
      */
     @Override
     public void set(double power)
     {
-        if (hasOwnership(null))
-        {
-            //
-            // Nobody has ownership, go ahead to take over.
-            //
-            super.set(power);
-        }
+        set(null, power);
     }   //set
 
     /**

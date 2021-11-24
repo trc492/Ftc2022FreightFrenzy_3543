@@ -14,7 +14,7 @@ public class TestOpMode extends FtcOpMode
     FtcDashboard dashboard;
     FtcGamepad gamepad;
     Intake intake;
-    TrcEvent event;
+    String intakeOwner = null;
 
     @Override
     public void initRobot()
@@ -23,14 +23,12 @@ public class TestOpMode extends FtcOpMode
         gamepad = new FtcGamepad("GamePad", gamepad1, this::gamepadButtonEvent);
         gamepad.setYInverted(true);
         intake = new Intake("intakeMotor");
-        event = new TrcEvent("intakeEvent");
-        event.signal();
     }   //initRobot
 
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        if (event.isSignaled())
+        if (intakeOwner == null)
         {
             intake.set(gamepad.getRightStickY(true));
         }
@@ -48,8 +46,8 @@ public class TestOpMode extends FtcOpMode
             case FtcGamepad.GAMEPAD_A:
                 if (pressed && intake.acquireExclusiveAccess(ownerID))
                 {
-                    event.clear();
-                    intake.pickupFreight(ownerID, -1.0, null, this::intakeCallback, 0.0);
+                    intakeOwner = ownerID;
+                    intake.pickupFreight(ownerID, -1.0, null, this::intakeCompletion, 0.0);
                 }
                 break;
 
@@ -76,9 +74,10 @@ public class TestOpMode extends FtcOpMode
         }
     }   //gamepadButtonEvent
 
-    private void intakeCallback(Object owner)
+    private void intakeCompletion(Object owner)
     {
         intake.releaseExclusiveAccess((String) owner);
-    }   //intakeCallback
+        intakeOwner = null;
+    }   //intakeCompletion
 
 }   //class TestOpMode
