@@ -272,9 +272,19 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else
                     {
-                        robot.robotDrive.purePursuitDrive.start(
-                            event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-1.5, 0, 180));
+                        if(autoChoices.alliance ==FtcAuto.Alliance.RED_ALLIANCE){
+                            robot.robotDrive.purePursuitDrive.start(
+                                    event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(-1.5, 0, 180));
+
+
+                        }
+                        else{
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(-1.5, 0, 90));
+                        }
+
                         sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     }
                     break;
@@ -308,9 +318,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             //robot is in opposite y orientation as the field
                             robot.robotDrive.driveBase.getYPosition()-targetInfo.distanceFromCamera.y,
                             180.0);
-                    robot.robotDrive.purePursuitDrive.start(
-                        event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        ourGamePiecePosition);
+                    if(autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE){
+                        robot.robotDrive.purePursuitDrive.start(
+                                event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                ourGamePiecePosition);
+                    }
+
                     sm.waitForSingleEvent(event, State.DO_INTAKE);
                     break;
 

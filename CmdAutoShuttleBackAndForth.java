@@ -51,7 +51,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         DETERMINE_ROUND_TRIP_OR_DONE,
         DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB,
 
-        DONE
+        DONE;
     }   //enum State
 
     /**
@@ -199,49 +199,69 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state
-                    robot.intake.acquireExclusiveAccess(moduleName);
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
                 case DRIVE_INTO_WAREHOUSE:
                     //fire and forget with lowering arm
-                    robot.intake.releaseExclusiveAccess(moduleName);
                     robot.arm.setLevel(0.3, 1);
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.9, -2.6, 90.0),
+                                robot.robotDrive.pathPoint(0.5, -2.6, 90.0),
                                 robot.robotDrive.pathPoint(1.5, -2.6, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(0.9, 2.6, 90.0),
+                                robot.robotDrive.pathPoint(0.5, 2.6, 90.0),
                                 robot.robotDrive.pathPoint(1.5, 2.6, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
 
+
+
                 case PICK_UP_FREIGHT_FROM_WAREHOUSE:
                     // If there are only 10 seconds left in autonomous, we go to done because we are already in the
                     // warehouse timeout is timeleft-roundtriptime
-                    robot.intake.acquireExclusiveAccess(moduleName);
+                    //owner id is autonomous cmd shuttle back and forth
                     robot.intake.pickupFreight(
                         moduleName, RobotParams.INTAKE_POWER_PICKUP, event, null,
                         30.0 - elapsedTime - ROUND_TRIP_TIME);
                     //keep running drive base until next event is signaled
-                    robot.robotDrive.driveBase.holonomicDrive(0.0, 0.3, 0.0);
-                    //event is signaled by intake when robot picked up a block or timeout expired
+
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.3);
+                    switch(autoChoices.alliance){
+
+                        case RED_ALLIANCE:
+                                robot.robotDrive.purePursuitDrive.start(
+
+                                        null, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(2.6, -2.6, 90.0));
+                            //event is signaled by intake when robot picked up a block or timeout expired
+                            break;
+                        case BLUE_ALLIANCE:
+                            robot.robotDrive.purePursuitDrive.start(
+
+                                   null,  5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(2.6, 2.6, 90.0));
+                            //event is signaled by intake when robot picked up a block or timeout expired
+                            break;
+
+
+
+
+                    }
                     sm.waitForSingleEvent(event, State.DETERMINE_ROUND_TRIP_OR_DONE);
                     break;
 
+
                 case DETERMINE_ROUND_TRIP_OR_DONE:
-                    //turn off holonomic drive
-                    robot.robotDrive.driveBase.stop();
-                    robot.intake.releaseExclusiveAccess(moduleName);
+
                     //if intake has freight and there are more than round trip time left
                     if (robot.intake.hasFreight() && 30.0 - elapsedTime > ROUND_TRIP_TIME)
                     {
