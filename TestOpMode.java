@@ -47,7 +47,7 @@ public class TestOpMode extends FtcOpMode
                 if (pressed && intake.acquireExclusiveAccess(ownerID))
                 {
                     intakeOwner = ownerID;
-                    intake.pickupFreight(ownerID, -1.0, null, this::intakeCompletion, 0.0);
+                    intake.pickupFreight(ownerID, -1.0, null, this::intakeCompletion, 10.0);
                 }
                 break;
 
