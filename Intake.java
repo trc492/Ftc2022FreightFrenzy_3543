@@ -42,13 +42,14 @@ import TrcFtcLib.ftclib.FtcDistanceSensor;
 class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 {
     private static final String moduleName = "Intake";
-    private static final double FREIGHT_THRESHOLD = 3.8;    //in cm
+    private static final double FREIGHT_THRESHOLD = 2.8;    //in cm
     private static final double[] thresholds = {FREIGHT_THRESHOLD};
     private final FtcDistanceSensor sensor;
     private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
     private final TrcTimer timer;
     private TrcEvent onFinishEvent = null;
     private TrcNotifier.Receiver onFinishCallback = null;
+    private boolean autoAssistActive = false;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -151,6 +152,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
                     timer.set(timeout, this::timeoutHandler);
                 }
                 distanceTrigger.setEnabled(true);
+                autoAssistActive = true;
             }
         }
     }   //pickupFreight
@@ -193,19 +195,24 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     private void cancel()
     {
-        super.set(0.0);
-
-        if (onFinishEvent != null)
+        if (autoAssistActive)
         {
-            onFinishEvent.signal();
-        }
+            // AutoAssist is still in progress, cancel it.
+            autoAssistActive = false;
+            super.set(0.0);
+            timer.cancel();
+            distanceTrigger.setEnabled(false);
 
-        if (onFinishCallback != null)
-        {
-            onFinishCallback.notify(null);
-        }
+            if (onFinishEvent != null)
+            {
+                onFinishEvent.signal();
+            }
 
-        distanceTrigger.setEnabled(false);
+            if (onFinishCallback != null)
+            {
+                onFinishCallback.notify(null);
+            }
+        }
     }   //cancel
 
     /**
