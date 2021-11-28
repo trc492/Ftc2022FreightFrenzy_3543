@@ -164,7 +164,10 @@ public class Robot
                     arm.setBeep(androidTone);
                     arm.zeroCalibrate();
                 }
-                intake = new Intake(RobotParams.HWNAME_INTAKE);
+                if (RobotParams.Preferences.useIntake)
+                {
+                    intake = new Intake(RobotParams.HWNAME_INTAKE);
+                }
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();
                 //
