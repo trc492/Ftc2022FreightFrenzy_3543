@@ -54,16 +54,26 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName
+     * @param instanceName specifies the hardware name.
      */
     public Intake(String instanceName)
     {
         super(instanceName);
-        sensor = new FtcDistanceSensor(moduleName + "Sensor");
-        distanceTrigger = new TrcAnalogSensorTrigger<>(
-            moduleName + "SensorTrigger", sensor, 0, FtcDistanceSensor.DataType.DISTANCE_CM, thresholds,
-            this::triggerHandler, false);
-        timer = new TrcTimer(moduleName + "Timer");
+        if (RobotParams.Preferences.hasIntakeSensor)
+        {
+            sensor = new FtcDistanceSensor(moduleName + "Sensor");
+            distanceTrigger = new TrcAnalogSensorTrigger<>(
+                 moduleName + "SensorTrigger", sensor, 0,
+                FtcDistanceSensor.DataType.DISTANCE_CM, thresholds, this::triggerHandler,
+                false);
+            timer = new TrcTimer(moduleName + "Timer");
+        }
+        else
+        {
+            sensor = null;
+            distanceTrigger = null;
+            timer = null;
+        }
     }   //Intake
 
     /**
@@ -125,6 +135,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public void pickupFreight(String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
     {
+        if (sensor == null) throw new RuntimeException("Must have sensor to AutoAssist picking up freight.");
         //
         // This is an auto-assist pickup, make sure the caller has ownership.
         //
@@ -176,7 +187,8 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public double getDistance()
     {
-        return sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_CM).value;
+        return sensor != null?
+                sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_CM).value: 0.0;
     }   //getDistance
 
     /**

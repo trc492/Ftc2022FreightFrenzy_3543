@@ -219,7 +219,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-                    robot.intake.releaseExclusiveAccess(moduleName);
+//                    if(intake!=null){
+//                        robot.intake.releaseExclusiveAccess(moduleName);
+//
+//                    }
                     if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to next state.
@@ -258,13 +261,15 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight for 2 seconds, when done signals event and goes to next state
-                    robot.intake.acquireExclusiveAccess(moduleName);
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    //robot.intake.acquireExclusiveAccess(moduleName);
+                        robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+
+
                     sm.waitForSingleEvent(event, State.PREP_FOR_FINDING_GAME_PIECE);
                     break;
 
                 case PREP_FOR_FINDING_GAME_PIECE:
-                    robot.intake.releaseExclusiveAccess(moduleName);
+                    //robot.intake.releaseExclusiveAccess(moduleName);
                     robot.arm.setLevel(0.5, 1);
                     if(!autoChoices.ourGamePieceDelivery)
                     {
@@ -328,8 +333,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DO_INTAKE:
-                    robot.intake.acquireExclusiveAccess(moduleName);
-                    robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
+                    //robot.intake.acquireExclusiveAccess(moduleName);
+                        robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
+
+
                     sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
 

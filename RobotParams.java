@@ -36,7 +36,8 @@ public class RobotParams
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = true;
         static boolean useArm = true;
-        static boolean useIntake = false;
+        static boolean useIntake = true;
+        static boolean hasIntakeSensor = false;
         static boolean usePickupHook = false;
         static boolean useBlinkin = true;
         static boolean useVuforia = false;
@@ -88,7 +89,7 @@ public class RobotParams
     // Robot dimensions.
     //
     static final double ROBOT_LENGTH                            = 17.0;
-    static final double ROBOT_WIDTH                             = 17.0;
+    static final double ROBOT_WIDTH                             = 13.0;
     //
     // Game positions.
     //
@@ -194,7 +195,7 @@ public class RobotParams
     static final String TRACKABLE_IMAGES_FILE                   = "FreightFrenzy";
     static final double CAMERA_FRONT_OFFSET                     = 7.5;  //Camera offset from front of robot in inches
     static final double CAMERA_HEIGHT_OFFSET                    = 16.0; //Camera offset from floor in inches
-    static final double CAMERA_LEFT_OFFSET                      = 8.875;//Camera offset from left of robot in inches
+    static final double CAMERA_LEFT_OFFSET                      = 6.0;  //Camera offset from left of robot in inches
     //
     // Arm subsystem.
     //
@@ -242,7 +243,7 @@ public class RobotParams
     static final double ODWHEEL_X_RETRACT_POS                   = 0.25;
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
-    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 8.3527984931543701389098271890307e-4;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 9.1466595069665623421946454755915e-4;
     //
     // Pickup Hook subsystem.
     //
