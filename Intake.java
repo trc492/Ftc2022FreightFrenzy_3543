@@ -202,10 +202,20 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
     }   //hasFreight
 
     /**
+     * This method checks if auto-assist pickup is active.
+     *
+     * @return true if auto-assist is in progress, false otherwise.
+     */
+    public boolean isAutoAssistActive()
+    {
+        return autoAssistActive;
+    }   //isAutoAssistActive
+
+    /**
      * This method is called internally either at the end of the timeout or when freight is detected to stop the
      * intake's spinning and signal or notify the caller for completion.
      */
-    private void cancel()
+    public void cancelAutoAssist()
     {
         if (autoAssistActive)
         {
@@ -225,7 +235,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
                 onFinishCallback.notify(null);
             }
         }
-    }   //cancel
+    }   //cancelAutoAssist
 
     /**
      * This method is called when freight is detected in the intake.
@@ -239,7 +249,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
         if (currZone < prevZone)
         {
             // We got freight.
-            cancel();
+            cancelAutoAssist();
         }
     }   //triggerHandler
 
@@ -250,7 +260,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     private void timeoutHandler(Object timer)
     {
-        cancel();
+        cancelAutoAssist();
     }   //timeoutHandler
 
 }   //class Intake

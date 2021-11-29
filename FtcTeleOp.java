@@ -298,6 +298,7 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_A:
                 if (robot.intake != null)
                 {
+                    robot.intake.cancelAutoAssist();    //cancel auto-assist if it is active.
                     robot.intake.set(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
                 }
                 break;
@@ -321,6 +322,7 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_Y:
                 if (robot.intake != null)
                 {
+                    robot.intake.cancelAutoAssist();    //cancel auto-assist if it is active.
                     robot.intake.set(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
                 }
                 break;
