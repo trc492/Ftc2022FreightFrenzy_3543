@@ -42,6 +42,7 @@ public class FtcTeleOp extends FtcOpMode
     private boolean invertedDrive = false;
     private double drivePowerScale = 1.0;
     private double armPowerScale = 1.0;
+    private String intakeOwner = null;
 
     //
     // Implements FtcOpMode abstract method.
@@ -178,7 +179,8 @@ public class FtcTeleOp extends FtcOpMode
 
         if (robot.intake != null)
         {
-            robot.dashboard.displayPrintf(4, "Intake: Power=%.1f", robot.intake.getPower());
+            robot.dashboard.displayPrintf(
+                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getDistance());
         }
 
         if (robot.spinner != null)
@@ -286,6 +288,8 @@ public class FtcTeleOp extends FtcOpMode
      */
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
+        final String ownerID = "autoAssistPickup";
+
         robot.dashboard.displayPrintf(
             7, "%s: %04x->%s", gamepad, button, pressed? "Pressed": "Released");
 
@@ -350,6 +354,12 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_LEFT:
+                if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
+                {
+                    intakeOwner = ownerID;
+                    robot.intake.pickupFreight(
+                        ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_RIGHT:
@@ -363,5 +373,11 @@ public class FtcTeleOp extends FtcOpMode
                 break;
         }
     }   //operatorButtonEvent
+
+    private void intakeCompletion(Object context)
+    {
+        robot.intake.releaseExclusiveAccess(intakeOwner);
+        intakeOwner = null;
+    }   //intakeCompletion
 
 }   //class FtcTeleOp

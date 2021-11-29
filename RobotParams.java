@@ -37,7 +37,7 @@ public class RobotParams
         static boolean useExternalOdometry = true;
         static boolean useArm = true;
         static boolean useIntake = true;
-        static boolean hasIntakeSensor = false;
+        static boolean hasIntakeSensor = true;
         static boolean usePickupHook = false;
         static boolean useBlinkin = true;
         static boolean useVuforia = false;
@@ -224,8 +224,8 @@ public class RobotParams
     //
     // Intake subsystem.
     //
-    static final double INTAKE_POWER_PICKUP                     = -1.0;
-    static final double INTAKE_POWER_DUMP                       = 0.7;
+    static final double INTAKE_POWER_PICKUP                     = 1.0;
+    static final double INTAKE_POWER_DUMP                       = -0.8;
     static final double INTAKE_DUMP_TIME                        = 1.25;
     //
     // Spinner subsystem.

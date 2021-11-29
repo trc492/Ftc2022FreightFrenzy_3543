@@ -42,7 +42,7 @@ import TrcFtcLib.ftclib.FtcDistanceSensor;
 class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 {
     private static final String moduleName = "Intake";
-    private static final double FREIGHT_THRESHOLD = 2.8;    //in cm
+    private static final double FREIGHT_THRESHOLD = 4.8;    //in cm
     private static final double[] thresholds = {FREIGHT_THRESHOLD};
     private final FtcDistanceSensor sensor;
     private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
