@@ -2,6 +2,7 @@ package Ftc2022FreightFrenzy_3543;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcGameController;
 import TrcFtcLib.ftclib.FtcDashboard;
@@ -22,7 +23,7 @@ public class TestOpMode extends FtcOpMode
         dashboard = FtcDashboard.getInstance();
         gamepad = new FtcGamepad("GamePad", gamepad1, this::gamepadButtonEvent);
         gamepad.setYInverted(true);
-        intake = new Intake("intakeMotor");
+        intake = new Intake("intakeMotor", TrcDbgTrace.getGlobalTracer());
     }   //initRobot
 
     @Override

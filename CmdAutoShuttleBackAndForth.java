@@ -205,7 +205,9 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DRIVE_INTO_WAREHOUSE:
                     //fire and forget with lowering arm
-                    robot.arm.setLevel(0.3, 1);
+                    //robot.arm.setTarget(0.3, RobotParams.ARM_MIN_POS, false, null, 1.0);
+
+                    robot.arm.zeroCalibrate();
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
@@ -229,8 +231,9 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     // If there are only 10 seconds left in autonomous, we go to done because we are already in the
                     // warehouse timeout is timeleft-roundtriptime
                     //owner id is autonomous cmd shuttle back and forth
+                    robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
                     robot.intake.pickupFreight(
-                        moduleName, RobotParams.INTAKE_POWER_PICKUP, event, null,
+                        null, RobotParams.INTAKE_POWER_PICKUP, event, null,
                         30.0 - elapsedTime - ROUND_TRIP_TIME);
                     //keep running drive base until next event is signaled
 

@@ -270,7 +270,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case PREP_FOR_FINDING_GAME_PIECE:
                     //robot.intake.releaseExclusiveAccess(moduleName);
-                    robot.arm.setLevel(0.5, 1);
+                    //delay not really working
+                    robot.arm.setLevel(1.5, 1);
                     if(!autoChoices.ourGamePieceDelivery)
                     {
                         sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);

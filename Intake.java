@@ -23,6 +23,7 @@
 package Ftc2022FreightFrenzy_3543;
 
 import TrcCommonLib.trclib.TrcAnalogSensorTrigger;
+import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcExclusiveSubsystem;
 import TrcCommonLib.trclib.TrcNotifier;
@@ -44,6 +45,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
     private static final String moduleName = "Intake";
     private static final double FREIGHT_THRESHOLD = 4.8;    //in cm
     private static final double[] thresholds = {FREIGHT_THRESHOLD};
+    private final TrcDbgTrace tracer;
     private final FtcDistanceSensor sensor;
     private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
     private final TrcTimer timer;
@@ -55,10 +57,12 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the hardware name.
+     * @param tracer specifies the tracer to use to log events, can be null.
      */
-    public Intake(String instanceName)
+    public Intake(String instanceName, TrcDbgTrace tracer)
     {
         super(instanceName);
+        this.tracer = tracer;
         if (RobotParams.Preferences.hasIntakeSensor)
         {
             sensor = new FtcDistanceSensor(moduleName + "Sensor");
@@ -135,14 +139,26 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public void pickupFreight(String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
     {
+        final String funcName = "pickupFreight";
+
         if (sensor == null) throw new RuntimeException("Must have sensor to AutoAssist picking up freight.");
         //
         // This is an auto-assist pickup, make sure the caller has ownership.
         //
         if (validateOwnership(owner))
         {
+            if (event != null)
+            {
+                event.clear();
+            }
+
             if (hasFreight())
             {
+                if (tracer != null)
+                {
+                    tracer.traceInfo(funcName, "Already have a freight.");
+                }
+
                 if (event != null)
                 {
                     event.signal();
@@ -155,6 +171,11 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
             }
             else
             {
+                if (tracer != null)
+                {
+                    tracer.traceInfo(funcName, "power=%.1f, event=%s, timeout=%.3f",
+                            power, event, timeout);
+                }
                 super.set(power);
                 this.onFinishEvent = event;
                 this.onFinishCallback = callback;
@@ -198,6 +219,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public boolean hasFreight()
     {
+        //robot.speak("sdfsdf");
         return getDistance() < FREIGHT_THRESHOLD;
     }   //hasFreight
 
@@ -244,10 +266,21 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * @param prevZone specifies the previous threshold zone.
      * @param zoneValue specifies the sensor value.
      */
-    private void triggerHandler(int currZone, int prevZone, double zoneValue)
-    {
+    private void triggerHandler(int currZone, int prevZone, double zoneValue) {
+        final String funcName = "triggerHandler";
+
+        if (tracer != null)
+        {
+            tracer.traceInfo(funcName, "currZone=%d, prevZone=%d, value=%.3f",
+                    currZone, prevZone, zoneValue);
+        }
+
         if (currZone < prevZone)
         {
+            if (tracer != null)
+            {
+                tracer.traceInfo(funcName, "Got freight.");
+            }
             // We got freight.
             cancelAutoAssist();
         }
@@ -260,6 +293,12 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     private void timeoutHandler(Object timer)
     {
+        final String funcName = "timeoutHandler";
+
+        if (tracer != null)
+        {
+            tracer.traceInfo(funcName, "Timed out.");
+        }
         cancelAutoAssist();
     }   //timeoutHandler
 

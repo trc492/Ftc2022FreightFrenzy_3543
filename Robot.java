@@ -166,7 +166,7 @@ public class Robot
                 }
                 if (RobotParams.Preferences.useIntake)
                 {
-                    intake = new Intake(RobotParams.HWNAME_INTAKE);
+                    intake = new Intake(RobotParams.HWNAME_INTAKE, globalTracer);
                 }
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();
