@@ -23,7 +23,7 @@ public class TestOpMode extends FtcOpMode
         dashboard = FtcDashboard.getInstance();
         gamepad = new FtcGamepad("GamePad", gamepad1, this::gamepadButtonEvent);
         gamepad.setYInverted(true);
-        intake = new Intake("intakeMotor", TrcDbgTrace.getGlobalTracer());
+        intake = new Intake("intakeMotor", null);
     }   //initRobot
 
     @Override

@@ -23,7 +23,6 @@
 package Ftc2022FreightFrenzy_3543;
 
 import TrcCommonLib.trclib.TrcAnalogSensorTrigger;
-import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcExclusiveSubsystem;
 import TrcCommonLib.trclib.TrcNotifier;
@@ -44,8 +43,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 {
     private static final String moduleName = "Intake";
     private static final double FREIGHT_THRESHOLD = 4.8;    //in cm
-    private static final double[] thresholds = {FREIGHT_THRESHOLD};
-    private final TrcDbgTrace tracer;
+    private final Robot robot;
     private final FtcDistanceSensor sensor;
     private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
     private final TrcTimer timer;
@@ -57,18 +55,18 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the hardware name.
-     * @param tracer specifies the tracer to use to log events, can be null.
+     * @param robot specifies the robot object, can be null if not provided.
      */
-    public Intake(String instanceName, TrcDbgTrace tracer)
+    public Intake(String instanceName, Robot robot)
     {
         super(instanceName);
-        this.tracer = tracer;
+        this.robot = robot;
         if (RobotParams.Preferences.hasIntakeSensor)
         {
             sensor = new FtcDistanceSensor(moduleName + "Sensor");
             distanceTrigger = new TrcAnalogSensorTrigger<>(
                  moduleName + "SensorTrigger", sensor, 0,
-                FtcDistanceSensor.DataType.DISTANCE_CM, thresholds, this::triggerHandler,
+                FtcDistanceSensor.DataType.DISTANCE_CM, new double[] {FREIGHT_THRESHOLD}, this::triggerHandler,
                 false);
             timer = new TrcTimer(moduleName + "Timer");
         }
@@ -137,7 +135,8 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * @param timeout specifies a timeout value at which point it will give up and signal completion. The caller
      *                must call hasFreight to figure out if it has given up.
      */
-    public void pickupFreight(String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
+    public synchronized void pickupFreight(
+        String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
     {
         final String funcName = "pickupFreight";
 
@@ -154,9 +153,11 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
 
             if (hasFreight())
             {
-                if (tracer != null)
+                if (robot != null)
                 {
-                    tracer.traceInfo(funcName, "Already have a freight.");
+                    final String msg = "Already got freight.";
+                    robot.globalTracer.traceInfo(funcName, msg);
+                    robot.speak(msg);
                 }
 
                 if (event != null)
@@ -171,10 +172,10 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
             }
             else
             {
-                if (tracer != null)
+                if (robot != null)
                 {
-                    tracer.traceInfo(funcName, "power=%.1f, event=%s, timeout=%.3f",
-                            power, event, timeout);
+                    robot.globalTracer.traceInfo(
+                        funcName, "power=%.1f, event=%s, timeout=%.3f", power, event, timeout);
                 }
                 super.set(power);
                 this.onFinishEvent = event;
@@ -208,8 +209,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public double getDistance()
     {
-        return sensor != null?
-                sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_CM).value: 0.0;
+        return sensor != null? sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_CM).value: 0.0;
     }   //getDistance
 
     /**
@@ -219,7 +219,6 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      */
     public boolean hasFreight()
     {
-        //robot.speak("sdfsdf");
         return getDistance() < FREIGHT_THRESHOLD;
     }   //hasFreight
 
@@ -228,7 +227,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      *
      * @return true if auto-assist is in progress, false otherwise.
      */
-    public boolean isAutoAssistActive()
+    public synchronized boolean isAutoAssistActive()
     {
         return autoAssistActive;
     }   //isAutoAssistActive
@@ -237,7 +236,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * This method is called internally either at the end of the timeout or when freight is detected to stop the
      * intake's spinning and signal or notify the caller for completion.
      */
-    public void cancelAutoAssist()
+    public synchronized void cancelAutoAssist()
     {
         if (autoAssistActive)
         {
@@ -266,20 +265,22 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      * @param prevZone specifies the previous threshold zone.
      * @param zoneValue specifies the sensor value.
      */
-    private void triggerHandler(int currZone, int prevZone, double zoneValue) {
+    private synchronized void triggerHandler(int currZone, int prevZone, double zoneValue)
+    {
         final String funcName = "triggerHandler";
 
-        if (tracer != null)
+        if (robot != null)
         {
-            tracer.traceInfo(funcName, "currZone=%d, prevZone=%d, value=%.3f",
-                    currZone, prevZone, zoneValue);
+            robot.globalTracer.traceInfo(
+                funcName, "Zone=%d->%d, value=%.3f", prevZone, currZone, zoneValue);
         }
 
         if (currZone < prevZone)
         {
-            if (tracer != null)
+            if (robot != null)
             {
-                tracer.traceInfo(funcName, "Got freight.");
+                robot.globalTracer.traceInfo(funcName, "Trigger: Got freight.");
+                robot.speak("Freight triggered");
             }
             // We got freight.
             cancelAutoAssist();
@@ -291,15 +292,20 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
      *
      * @param timer specifies the timer that has expired.
      */
-    private void timeoutHandler(Object timer)
+    private synchronized void timeoutHandler(Object timer)
     {
         final String funcName = "timeoutHandler";
 
-        if (tracer != null)
+        if (!this.timer.isCanceled())
         {
-            tracer.traceInfo(funcName, "Timed out.");
+            if (robot != null)
+            {
+                final String msg = "Pickup timed out.";
+                robot.globalTracer.traceInfo(funcName, msg);
+                robot.speak(msg);
+            }
+            cancelAutoAssist();
         }
-        cancelAutoAssist();
     }   //timeoutHandler
 
 }   //class Intake

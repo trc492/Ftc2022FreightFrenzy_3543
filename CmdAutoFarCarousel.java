@@ -124,12 +124,12 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
             switch (state)
             {
                 case START_DELAY:
+                    //
+                    // Set robot starting position in the field.
+                    //
                     robot.robotDrive.driveBase.setFieldPosition(
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE ?
                             RobotParams.STARTPOS_RED_FAR : RobotParams.STARTPOS_BLUE_FAR);
-                    //
-                    // Do start delay if any.
-                    //
                     // Call vision at the beginning to figure out the position of the duck.
                     if (robot.vision != null)
                     {
@@ -149,7 +149,9 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
-
+                    //
+                    // Do start delay if any.
+                    //
                     if (autoChoices.startDelay == 0.0)
                     {
                         //
@@ -204,14 +206,12 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DUMP_FREIGHT:
-                    // Dumps the freight for 2 seconds, when done signals event and goes to next state.
-                    //robot.intake.acquireExclusiveAccess(moduleName);
+                    // Dumps the freight, when done signals event and goes to next state.
                     robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                     break;
 
                 case DRIVE_TO_CAROUSEL:
-                    //robot.intake.releaseExclusiveAccess(moduleName);
                     robot.arm.setLevel(0.5, 1);
                     if (!autoChoices.doCarousel)
                     {
@@ -241,17 +241,16 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case GET_TO_CAROUSEL:
-                    // We are still about an inch from the carousel, drive slowly towards it for 300 msec to touch it.
+                    // We are a few inches from the carousel, drive slowly towards it to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.2: 0.5, event);
+                    timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.2: 0.5, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
                 case SPIN_CAROUSEL:
                     // We touched the carousel, so stop the drive base.
                     robot.robotDrive.driveBase.stop();
-                    // Spin the carousel for 3 seconds.
+                    // Spin the carousel.
                     robot.spinner.set(
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE ?
                             RobotParams.SPINNER_POWER_RED : RobotParams.SPINNER_POWER_BLUE,
@@ -282,7 +281,6 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         }
                         else
                         {
-                            //pure pursuit alternative
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 1.5, 180.0));

@@ -148,6 +148,9 @@ public class RobotParams
     static final double GYRO_KD                                 = 0.001;
     static final double GYRO_TOLERANCE                          = 2.0;
 
+    static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 7.6301149255006038191364659148717e-4;
+
     static final double PIDDRIVE_STALL_TIMEOUT                  = 0.2;  //in seconds.
     //
     // Pure Pursuit parameters.
@@ -171,12 +174,12 @@ public class RobotParams
 
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 0.0;
-    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 639;
-    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_Y            = 0;
+    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 639.0;
+    static final double HOMOGRAPHY_CAMERA_TOPRIGHT_Y            = 0.0;
     static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_X          = 0.0;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y          = 479;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X         = 639;
-    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y         = 479;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y          = 479.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X         = 639.0;
+    static final double HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y         = 479.0;
 
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // Measurement unit: inches
@@ -242,8 +245,6 @@ public class RobotParams
     static final double ODWHEEL_YRIGHT_EXTEND_POS               = 0.78;
     static final double ODWHEEL_X_RETRACT_POS                   = 0.25;
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
-    static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
-    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 7.6301149255006038191364659148717e-4;
     //
     // Pickup Hook subsystem.
     //
