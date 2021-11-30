@@ -168,7 +168,7 @@ public class RobotParams
     static final double PPD_FOLLOWING_DISTANCE                  = 6.0;
     static final double PPD_POS_TOLERANCE                       = 2.0;
     static final double PPD_TURN_TOLERANCE                      = 1.0;
-    // TODO: Need to retune.
+
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPRIGHT_X            = 639;
@@ -182,13 +182,13 @@ public class RobotParams
     // Measurement unit: inches
     // TODO: Tune all of this
     static final double HOMOGRAPHY_WORLD_TOPLEFT_X              = -22.25;
-    static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 60;
-    static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 23;
-    static final double HOMOGRAPHY_WORLD_TOPRIGHT_Y             =60;
+    static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 60.0;
+    static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 23.0;
+    static final double HOMOGRAPHY_WORLD_TOPRIGHT_Y             = 60.0;
     static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_X           = -8.75;
-    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_Y           = 16;
+    static final double HOMOGRAPHY_WORLD_BOTTOMLEFT_Y           = 16.0;
     static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_X          = 7.5;
-    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 16;
+    static final double HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y          = 16.0;
     //
     // Vision subsystem.
     //
@@ -243,7 +243,7 @@ public class RobotParams
     static final double ODWHEEL_X_RETRACT_POS                   = 0.25;
     static final double ODWHEEL_X_EXTEND_POS                    = 0.78;
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
-    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 9.1466595069665623421946454755915e-4;
+    static final double ODWHEEL_Y_INCHES_PER_COUNT              = 7.6301149255006038191364659148717e-4;
     //
     // Pickup Hook subsystem.
     //
