@@ -277,12 +277,16 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 180.0));
+                            robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+                                (i) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d", i);});
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 0.0));
+                            robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+                                (i) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d", i);});
                         }
                         sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     }
