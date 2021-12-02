@@ -149,6 +149,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
+                    robot.arm.setLevel(1);
 
                     if (duckPosition == 0)
                     {
@@ -278,7 +279,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 180.0));
                             robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                                (i) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d", i);});
+                                (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
                         }
                         else
                         {
@@ -286,7 +287,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 0.0));
                             robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                                (i) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d", i);});
+                                (i, p) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d,waypoint=%s", i,
+                                                                        p);});
                         }
                         sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     }
@@ -378,17 +380,24 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            RobotParams.ROBOT_MAX_VELOCITY/10.0, RobotParams.ROBOT_MAX_ACCELERATION/10.0,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
+                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+                            (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
+                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+                            (i, p) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d,waypoint=%s", i,
+                                                                    p);});
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
