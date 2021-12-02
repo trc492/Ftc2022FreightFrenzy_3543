@@ -183,13 +183,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                     }
                     // Raise arm to the detected duck level at the same time.
@@ -201,7 +201,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.dumpFreight(null, RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
+                    //robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
@@ -212,16 +213,18 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.5, -2.6, 90.0),
-                            robot.robotDrive.pathPoint(1.5, -2.6, 90.0));
+                            robot.robotDrive.pathPoint(1.6, -2.6, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.5, 2.6, 90.0),
-                            robot.robotDrive.pathPoint(1.5, 2.6, 90.0));
+                            robot.robotDrive.pathPoint(1.6, 2.6, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
@@ -239,13 +242,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            null, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            null, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(2.6, -2.6, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            null, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            null, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(2.6, 2.6, 90.0));
                     }
                     //event is signaled by intake when robot picked up a block or timeout expired
@@ -277,14 +280,17 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 15.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.2, -2.6,  90.0),
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 15.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+
                             robot.robotDrive.pathPoint(0.2, 2.6,  90.0),
                             robot.robotDrive.pathPoint(-0.5, distanceToHub, 180));
                     }

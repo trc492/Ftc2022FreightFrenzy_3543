@@ -50,6 +50,7 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
     private TrcEvent onFinishEvent = null;
     private TrcNotifier.Receiver onFinishCallback = null;
     private boolean autoAssistActive = false;
+    private Boolean pickingUpFreight = null;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -186,10 +187,66 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
                 }
                 distanceTrigger.setEnabled(true);
                 autoAssistActive = true;
+                pickingUpFreight = true;
             }
         }
     }   //pickupFreight
+    public synchronized void dumpFreight(
+            String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
+    {
+        final String funcName = "dumpFreight";
 
+        if (sensor == null) throw new RuntimeException("Must have sensor to AutoAssist picking up freight.");
+        //
+        // This is an auto-assist pickup, make sure the caller has ownership.
+        //
+        if (validateOwnership(owner))
+        {
+            if (event != null)
+            {
+                event.clear();
+            }
+            //if no freight dont dump
+            if (!hasFreight())
+            {
+                if (robot != null)
+                {
+                    final String msg = "No freight";
+                    robot.globalTracer.traceInfo(funcName, msg);
+                    robot.speak(msg);
+                }
+
+                if (event != null)
+                {
+                    event.signal();
+                }
+
+                if (callback != null)
+                {
+                    callback.notify(null);
+                }
+            }
+            //there is freight in grabber
+            else
+            {
+                if (robot != null)
+                {
+                    robot.globalTracer.traceInfo(
+                            funcName, "power=%.1f, event=%s, timeout=%.3f", power, event, timeout);
+                }
+                super.set(power);
+                this.onFinishEvent = event;
+                this.onFinishCallback = callback;
+                if (timeout > 0.0)
+                {
+                    timer.set(timeout, this::timeoutHandler);
+                }
+                distanceTrigger.setEnabled(true);
+                autoAssistActive = true;
+                pickingUpFreight = false;
+            }
+        }
+    }   //dump freight
     /**
      * This method is an auto-assist operation. It allows the caller to start the intake spinning at the given power
      * and it will stop itself once freight is detected in the intake.
@@ -255,6 +312,8 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
             {
                 onFinishCallback.notify(null);
             }
+            pickingUpFreight = null;
+
         }
     }   //cancelAutoAssist
 
@@ -274,13 +333,24 @@ class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
             robot.globalTracer.traceInfo(
                 funcName, "Zone=%d->%d, value=%.3f", prevZone, currZone, zoneValue);
         }
-
-        if (currZone < prevZone)
+        //something just came in grabber bc we were trying to pick up freight
+        if (pickingUpFreight!=null&&pickingUpFreight&&currZone < prevZone)
         {
             if (robot != null)
             {
                 robot.globalTracer.traceInfo(funcName, "Trigger: Got freight.");
-                robot.speak("Freight triggered");
+                robot.speak("Trigger Got Freight");
+            }
+            // We got freight.
+
+            cancelAutoAssist();
+        }
+        //we just dumped the freight
+        else if (pickingUpFreight!=null&&!pickingUpFreight&&prevZone<currZone){
+            if (robot != null)
+            {
+                robot.globalTracer.traceInfo(funcName, "Trigger: Empty Bucket");
+                robot.speak("Trigger No Freight");
             }
             // We got freight.
             cancelAutoAssist();

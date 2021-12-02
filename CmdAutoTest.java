@@ -65,7 +65,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
             "purePursuitDrive", robot.robotDrive.driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
             robot.robotDrive.yPosPidCoeff, robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
-        purePursuitDrive.setMsgTracer(robot.globalTracer);
+//        purePursuitDrive.setMsgTracer(robot.globalTracer);
         robot.arm.setLevel(1);
         sm.start(State.START);
     }   //CmdAutoTest
@@ -131,8 +131,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                         robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                         robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                         robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
-                    robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                        (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
+//                    robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+//                        (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
