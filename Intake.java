@@ -22,360 +22,37 @@
 
 package Ftc2022FreightFrenzy_3543;
 
-import TrcCommonLib.trclib.TrcAnalogSensorTrigger;
-import TrcCommonLib.trclib.TrcEvent;
-import TrcCommonLib.trclib.TrcExclusiveSubsystem;
-import TrcCommonLib.trclib.TrcNotifier;
-import TrcCommonLib.trclib.TrcTimer;
+import TrcCommonLib.trclib.TrcIntake;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcDistanceSensor;
 
-/**
- * This class implements an auto-assist intake subsystem. It contains a motor and a distance sensor that detects if
- * the intake has picked up freight. It provides the pickupFreight method that allows the caller to call the intake
- * subsystem to pickup freight on a press of a button and the intake subsystem will stop itself once freight is
- * detected in the intake. While it provides the auto-assist functionality to pickup freight, it also supports
- * exclusive subsystem access by implementing TrcExclusiveSubsystem. This enables the intake subsystem to be aware
- * of multiple callers access to the subsystem. While one caller starts the intake for an operation, nobody can
- * access it until the previous caller is done with the operation.
- */
-class Intake extends FtcDcMotor implements TrcExclusiveSubsystem
+class Intake
 {
-    private static final String moduleName = "Intake";
-    private static final double FREIGHT_THRESHOLD = 4.8;    //in cm
-    private final Robot robot;
-    private final FtcDistanceSensor sensor;
-    private final TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> distanceTrigger;
-    private final TrcTimer timer;
-    private TrcEvent onFinishEvent = null;
-    private TrcNotifier.Receiver onFinishCallback = null;
-    private boolean autoAssistActive = false;
-    private Boolean pickingUpFreight = null;
+    private final TrcIntake<?> intake;
 
     /**
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the hardware name.
-     * @param robot specifies the robot object, can be null if not provided.
+     * @param params specifies the parameters for the Intake subsystem.
      */
-    public Intake(String instanceName, Robot robot)
+    public Intake(String instanceName, TrcIntake.Parameters params)
     {
-        super(instanceName);
-        this.robot = robot;
-        if (RobotParams.Preferences.hasIntakeSensor)
-        {
-            sensor = new FtcDistanceSensor(moduleName + "Sensor");
-            distanceTrigger = new TrcAnalogSensorTrigger<>(
-                 moduleName + "SensorTrigger", sensor, 0,
-                FtcDistanceSensor.DataType.DISTANCE_CM, new double[] {FREIGHT_THRESHOLD}, this::triggerHandler,
-                false);
-            timer = new TrcTimer(moduleName + "Timer");
-        }
-        else
-        {
-            sensor = null;
-            distanceTrigger = null;
-            timer = null;
-        }
+        FtcDcMotor motor = new FtcDcMotor(instanceName + ".motor");
+        FtcDistanceSensor sensor = RobotParams.Preferences.hasIntakeSensor?
+            new FtcDistanceSensor(instanceName + ".sensor"): null;
+        intake = new TrcIntake<>(
+            instanceName, motor, params, sensor, 0, FtcDistanceSensor.DataType.DISTANCE_CM);
     }   //Intake
 
     /**
-     * This method spins the intake with the given power. It will only do this if nobody acquires exclusive access
-     * to the intake already.
+     * This method returns the Intake subsystem created.
      *
-     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
-     * @param power specifies the power value to spin the intake.
+     * @return reference to the created Intake subsystem.
      */
-    public void set(String owner, double power)
+    public TrcIntake<?> getIntakeInstance()
     {
-        if (validateOwnership(owner))
-        {
-            super.set(power);
-        }
-    }   //set
-
-    /**
-     * This method spins the intake with the given power. It will only do this if nobody acquires exclusive access
-     * to the intake already.
-     *
-     * @param power specifies the power value to spin the intake.
-     */
-    @Override
-    public void set(double power)
-    {
-        set(null, power);
-    }   //set
-
-    /**
-     * This method sets the motor output value for the set period of time. The motor will be turned off after the
-     * set time expires.The value can be power or velocity percentage depending on whether the motor controller is in
-     * power mode or velocity mode.
-     *
-     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
-     * @param value specifies the percentage power or velocity (range -1.0 to 1.0) to be set.
-     * @param time specifies the time period in seconds to have power set.
-     * @param event specifies the event to signal when time has expired.
-     */
-    public void set(String owner, double value, double time, TrcEvent event)
-    {
-        if (validateOwnership(owner))
-        {
-            super.set(value, time, event);
-        }
-    }   //set
-
-    /**
-     * This method is an auto-assist operation. It allows the caller to start the intake spinning at the given power
-     * and it will stop itself once freight is detected in the intake at which time the given event will be signaled
-     * or it will notify the caller's handler.
-     *
-     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
-     * @param power specifies the power value to spin the intake.
-     * @param event specifies the event to signal when there is freight detected in the intake.
-     * @param callback specifies the callback handler to call when there is freight detected in the intake.
-     * @param timeout specifies a timeout value at which point it will give up and signal completion. The caller
-     *                must call hasFreight to figure out if it has given up.
-     */
-    public synchronized void pickupFreight(
-        String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
-    {
-        final String funcName = "pickupFreight";
-
-        if (sensor == null) throw new RuntimeException("Must have sensor to AutoAssist picking up freight.");
-        //
-        // This is an auto-assist pickup, make sure the caller has ownership.
-        //
-        if (validateOwnership(owner))
-        {
-            if (event != null)
-            {
-                event.clear();
-            }
-
-            if (hasFreight())
-            {
-                if (robot != null)
-                {
-                    final String msg = "Already got freight.";
-                    robot.globalTracer.traceInfo(funcName, msg);
-                    robot.speak(msg);
-                }
-
-                if (event != null)
-                {
-                    event.signal();
-                }
-
-                if (callback != null)
-                {
-                    callback.notify(null);
-                }
-            }
-            else
-            {
-                if (robot != null)
-                {
-                    robot.globalTracer.traceInfo(
-                        funcName, "power=%.1f, event=%s, timeout=%.3f", power, event, timeout);
-                }
-                super.set(power);
-                this.onFinishEvent = event;
-                this.onFinishCallback = callback;
-                if (timeout > 0.0)
-                {
-                    timer.set(timeout, this::timeoutHandler);
-                }
-                distanceTrigger.setEnabled(true);
-                autoAssistActive = true;
-                pickingUpFreight = true;
-            }
-        }
-    }   //pickupFreight
-    public synchronized void dumpFreight(
-            String owner, double power, TrcEvent event, TrcNotifier.Receiver callback, double timeout)
-    {
-        final String funcName = "dumpFreight";
-
-        if (sensor == null) throw new RuntimeException("Must have sensor to AutoAssist picking up freight.");
-        //
-        // This is an auto-assist pickup, make sure the caller has ownership.
-        //
-        if (validateOwnership(owner))
-        {
-            if (event != null)
-            {
-                event.clear();
-            }
-            //if no freight dont dump
-            if (!hasFreight())
-            {
-                if (robot != null)
-                {
-                    final String msg = "No freight";
-                    robot.globalTracer.traceInfo(funcName, msg);
-                    robot.speak(msg);
-                }
-
-                if (event != null)
-                {
-                    event.signal();
-                }
-
-                if (callback != null)
-                {
-                    callback.notify(null);
-                }
-            }
-            //there is freight in grabber
-            else
-            {
-                if (robot != null)
-                {
-                    robot.globalTracer.traceInfo(
-                            funcName, "power=%.1f, event=%s, timeout=%.3f", power, event, timeout);
-                }
-                super.set(power);
-                this.onFinishEvent = event;
-                this.onFinishCallback = callback;
-                if (timeout > 0.0)
-                {
-                    timer.set(timeout, this::timeoutHandler);
-                }
-                distanceTrigger.setEnabled(true);
-                autoAssistActive = true;
-                pickingUpFreight = false;
-            }
-        }
-    }   //dump freight
-    /**
-     * This method is an auto-assist operation. It allows the caller to start the intake spinning at the given power
-     * and it will stop itself once freight is detected in the intake.
-     *
-     * @param owner specifies the owner ID to check if the caller has ownership of the intake subsystem.
-     * @param power specifies the power value to spin the intake.
-     */
-    public void pickupFreight(String owner, double power)
-    {
-        pickupFreight(owner, power, null, null, 0.0);
-    }   //pickupFreight
-
-    /**
-     * This method reads the distance value from the distance sensor.
-     *
-     * @return distance value read from the distance sensor.
-     */
-    public double getDistance()
-    {
-        return sensor != null? sensor.getRawData(0, FtcDistanceSensor.DataType.DISTANCE_CM).value: 0.0;
-    }   //getDistance
-
-    /**
-     * This method checks if there is freight in the intake.
-     *
-     * @return true if there is freight in the intake, false otherwise.
-     */
-    public boolean hasFreight()
-    {
-        return getDistance() < FREIGHT_THRESHOLD;
-    }   //hasFreight
-
-    /**
-     * This method checks if auto-assist pickup is active.
-     *
-     * @return true if auto-assist is in progress, false otherwise.
-     */
-    public synchronized boolean isAutoAssistActive()
-    {
-        return autoAssistActive;
-    }   //isAutoAssistActive
-
-    /**
-     * This method is called internally either at the end of the timeout or when freight is detected to stop the
-     * intake's spinning and signal or notify the caller for completion.
-     */
-    public synchronized void cancelAutoAssist()
-    {
-        if (autoAssistActive)
-        {
-            // AutoAssist is still in progress, cancel it.
-            autoAssistActive = false;
-            super.set(0.0);
-            timer.cancel();
-            distanceTrigger.setEnabled(false);
-
-            if (onFinishEvent != null)
-            {
-                onFinishEvent.signal();
-            }
-
-            if (onFinishCallback != null)
-            {
-                onFinishCallback.notify(null);
-            }
-            pickingUpFreight = null;
-
-        }
-    }   //cancelAutoAssist
-
-    /**
-     * This method is called when freight is detected in the intake.
-     *
-     * @param currZone specifies the current threshold zone.
-     * @param prevZone specifies the previous threshold zone.
-     * @param zoneValue specifies the sensor value.
-     */
-    private synchronized void triggerHandler(int currZone, int prevZone, double zoneValue)
-    {
-        final String funcName = "triggerHandler";
-
-        if (robot != null)
-        {
-            robot.globalTracer.traceInfo(
-                funcName, "Zone=%d->%d, value=%.3f", prevZone, currZone, zoneValue);
-        }
-        //something just came in grabber bc we were trying to pick up freight
-        if (pickingUpFreight!=null&&pickingUpFreight&&currZone < prevZone)
-        {
-            if (robot != null)
-            {
-                robot.globalTracer.traceInfo(funcName, "Trigger: Got freight.");
-                robot.speak("Trigger Got Freight");
-            }
-            // We got freight.
-
-            cancelAutoAssist();
-        }
-        //we just dumped the freight
-        else if (pickingUpFreight!=null&&!pickingUpFreight&&prevZone<currZone){
-            if (robot != null)
-            {
-                robot.globalTracer.traceInfo(funcName, "Trigger: Empty Bucket");
-                robot.speak("Trigger No Freight");
-            }
-            // We got freight.
-            cancelAutoAssist();
-        }
-    }   //triggerHandler
-
-    /**
-     * This method is called when timeout expires.
-     *
-     * @param timer specifies the timer that has expired.
-     */
-    private synchronized void timeoutHandler(Object timer)
-    {
-        final String funcName = "timeoutHandler";
-
-        if (!this.timer.isCanceled())
-        {
-            if (robot != null)
-            {
-                final String msg = "Pickup timed out.";
-                robot.globalTracer.traceInfo(funcName, msg);
-                robot.speak(msg);
-            }
-            cancelAutoAssist();
-        }
-    }   //timeoutHandler
+        return intake;
+    }   //getIntakeInstance
 
 }   //class Intake

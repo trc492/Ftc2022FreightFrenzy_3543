@@ -260,7 +260,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state.
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.PREP_FOR_FINDING_GAME_PIECE);
                     break;
 
@@ -279,7 +279,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 180.0));
                             robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                                (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
+                                (i, p) -> robot.globalTracer.traceInfo(
+                                    "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
                         }
                         else
                         {
@@ -287,8 +288,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 0.0, 0.0));
                             robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                                (i, p) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d,waypoint=%s", i,
-                                                                        p);});
+                                (i, p) -> robot.globalTracer.traceInfo(
+                                    "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
                         }
                         sm.waitForSingleEvent(event, State.FIND_OUR_GAME_PIECE);
                     }
@@ -339,7 +340,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DO_INTAKE:
-                    robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
+                    robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB); //BUGBUG: Never ending loop here
                     break;
 
@@ -385,7 +386,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
                         robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                            (i, p) -> {robot.globalTracer.traceInfo("*** TEST RED ***", "index=%d,waypoint=%s", i, p);});
+                            (i, p) -> robot.globalTracer.traceInfo(
+                                "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
                     }
                     else
                     {
@@ -396,8 +398,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
                         robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                            (i, p) -> {robot.globalTracer.traceInfo("*** TEST BLUE ***", "index=%d,waypoint=%s", i,
-                                                                    p);});
+                            (i, p) -> robot.globalTracer.traceInfo(
+                                "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;

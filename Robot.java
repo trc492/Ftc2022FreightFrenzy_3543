@@ -26,6 +26,7 @@ import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDigitalInput;
+import TrcCommonLib.trclib.TrcIntake;
 import TrcCommonLib.trclib.TrcMotor;
 import TrcCommonLib.trclib.TrcPidActuator;
 import TrcCommonLib.trclib.TrcPidController;
@@ -72,7 +73,7 @@ public class Robot
     //
     public RobotDrive robotDrive = null;
     public TrcPidActuator arm = null;
-    public Intake intake = null;
+    public TrcIntake<?> intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
     public FtcServoActuator pickupHook = null;
@@ -166,7 +167,11 @@ public class Robot
                 }
                 if (RobotParams.Preferences.useIntake)
                 {
-                    intake = new Intake(RobotParams.HWNAME_INTAKE, this);
+                    TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
+                        .setMotorInverted(false)
+                        .setSensorThreshold(RobotParams.INTAKE_SENSOR_THRESHOLD, true)
+                        .setMsgTracer(globalTracer);
+                    intake = new Intake(RobotParams.HWNAME_INTAKE, intakeParams).getIntakeInstance();
                 }
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();

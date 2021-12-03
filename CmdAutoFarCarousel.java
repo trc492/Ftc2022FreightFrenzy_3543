@@ -207,7 +207,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state.
-                    robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                     break;
 

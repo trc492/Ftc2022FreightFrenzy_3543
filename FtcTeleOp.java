@@ -180,7 +180,7 @@ public class FtcTeleOp extends FtcOpMode
         if (robot.intake != null)
         {
             robot.dashboard.displayPrintf(
-                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getDistance());
+                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getSensorData());
         }
 
         if (robot.spinner != null)
@@ -299,7 +299,7 @@ public class FtcTeleOp extends FtcOpMode
                 if (robot.intake != null)
                 {
                     robot.intake.cancelAutoAssist();    //cancel auto-assist if it is active.
-                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
+                    robot.intake.setPower(pressed? RobotParams.INTAKE_POWER_DUMP: 0.0);
                 }
                 break;
 
@@ -323,7 +323,7 @@ public class FtcTeleOp extends FtcOpMode
                 if (robot.intake != null)
                 {
                     robot.intake.cancelAutoAssist();    //cancel auto-assist if it is active.
-                    robot.intake.set(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
+                    robot.intake.setPower(pressed? RobotParams.INTAKE_POWER_PICKUP: 0.0);
                 }
                 break;
 
@@ -359,7 +359,7 @@ public class FtcTeleOp extends FtcOpMode
                 if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
                 {
                     intakeOwner = ownerID;
-                    robot.intake.pickupFreight(
+                    robot.intake.autoAssist(
                         ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
                 }
                 break;

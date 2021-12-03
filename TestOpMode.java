@@ -3,8 +3,8 @@ package Ftc2022FreightFrenzy_3543;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
-import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcGameController;
+import TrcCommonLib.trclib.TrcIntake;
 import TrcFtcLib.ftclib.FtcDashboard;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcOpMode;
@@ -14,7 +14,7 @@ public class TestOpMode extends FtcOpMode
 {
     FtcDashboard dashboard;
     FtcGamepad gamepad;
-    Intake intake;
+    TrcIntake<?> intake;
     String intakeOwner = null;
 
     @Override
@@ -23,7 +23,11 @@ public class TestOpMode extends FtcOpMode
         dashboard = FtcDashboard.getInstance();
         gamepad = new FtcGamepad("GamePad", gamepad1, this::gamepadButtonEvent);
         gamepad.setYInverted(true);
-        intake = new Intake("intakeMotor", null);
+        TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
+            .setMotorInverted(true)
+            .setSensorThreshold(4.0, true)
+            .setMsgTracer(TrcDbgTrace.getGlobalTracer());
+        intake = new Intake("intake", intakeParams).getIntakeInstance();
     }   //initRobot
 
     @Override
@@ -31,9 +35,9 @@ public class TestOpMode extends FtcOpMode
     {
         if (intakeOwner == null)
         {
-            intake.set(gamepad.getRightStickY(true));
+            intake.setPower(gamepad.getRightStickY(true));
         }
-        dashboard.displayPrintf(1, "Distance: %.3f cm", intake.getDistance());
+        dashboard.displayPrintf(1, "Distance: %.3f cm", intake.getSensorData());
     }   //runPeriodic
 
     public void gamepadButtonEvent(TrcGameController gamepad, int button, boolean pressed)
@@ -48,11 +52,16 @@ public class TestOpMode extends FtcOpMode
                 if (pressed && intake.acquireExclusiveAccess(ownerID))
                 {
                     intakeOwner = ownerID;
-                    intake.pickupFreight(ownerID, -1.0, null, this::intakeCompletion, 10.0);
+                    intake.autoAssist(ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 5.0);
                 }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
+                if (pressed && intake.acquireExclusiveAccess(ownerID))
+                {
+                    intakeOwner = ownerID;
+                    intake.autoAssist(ownerID, RobotParams.INTAKE_POWER_DUMP, null, this::intakeCompletion, 5.0);
+                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:

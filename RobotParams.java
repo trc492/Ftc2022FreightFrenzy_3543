@@ -71,7 +71,7 @@ public class RobotParams
     static final String HWNAME_LEFT_BACK_WHEEL                  = "lbWheel";
     static final String HWNAME_RIGHT_BACK_WHEEL                 = "rbWheel";
     static final String HWNAME_ARM                              = "arm";
-    static final String HWNAME_INTAKE                           = "intakeMotor";
+    static final String HWNAME_INTAKE                           = "intake";
     static final String HWNAME_SPINNER                          = "spinnerMotor";
     static final String HWNAME_YLEFT_ODW_DEPLOYOR               = "yLeftOdwServo";
     static final String HWNAME_YRIGHT_ODW_DEPLOYOR              = "yRightOdwServo";
@@ -183,7 +183,6 @@ public class RobotParams
 
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // Measurement unit: inches
-    // TODO: Tune all of this
     static final double HOMOGRAPHY_WORLD_TOPLEFT_X              = -22.25;
     static final double HOMOGRAPHY_WORLD_TOPLEFT_Y              = 60.0;
     static final double HOMOGRAPHY_WORLD_TOPRIGHT_X             = 23.0;
@@ -228,8 +227,9 @@ public class RobotParams
     // Intake subsystem.
     //
     static final double INTAKE_POWER_PICKUP                     = 1.0;
-    static final double INTAKE_POWER_DUMP                       = -0.8;
+    static final double INTAKE_POWER_DUMP                       = -0.6;
     static final double INTAKE_DUMP_TIME                        = 1.25;
+    static final double INTAKE_SENSOR_THRESHOLD                 = 4.8;    //in cm
     //
     // Spinner subsystem.
     //

@@ -51,7 +51,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         DETERMINE_ROUND_TRIP_OR_DONE,
         DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB,
 
-        DONE;
+        DONE
     }   //enum State
 
     /**
@@ -201,7 +201,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state
-                    robot.intake.dumpFreight(null, RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
+                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
                     //robot.intake.set(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
@@ -233,9 +233,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     // If there are only 10 seconds left in autonomous, we go to done because we are already in the
                     // warehouse timeout is timeleft-roundtriptime
                     robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
-                    robot.intake.pickupFreight(
-                        null, RobotParams.INTAKE_POWER_PICKUP, event, null,
-                        30.0 - elapsedTime - ROUND_TRIP_TIME);
+                    robot.intake.autoAssist(
+                        RobotParams.INTAKE_POWER_PICKUP, event, null, 30.0 - elapsedTime - ROUND_TRIP_TIME);
                     //keep running drive base until next event is signaled
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.2);
 
@@ -258,10 +257,10 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                 case DETERMINE_ROUND_TRIP_OR_DONE:
                     // If intake has freight and there are more than round trip time left
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
-                    if (robot.intake.hasFreight() && 30.0 - elapsedTime > ROUND_TRIP_TIME)
+                    if (robot.intake.hasObject() && 30.0 - elapsedTime > ROUND_TRIP_TIME)
                     {
                         //if it has freight, keep running intake so block doesnt fall out
-                        robot.intake.set(RobotParams.INTAKE_POWER_PICKUP);
+                        robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
                         //next state is driving out of warehouse (to try to dump the block)
                         sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
                     }

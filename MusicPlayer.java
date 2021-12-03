@@ -67,8 +67,8 @@ public class MusicPlayer
             + "C6.8,Bb5.8,Ab5.8,G5.8,F5.8,Eb5.8,D5.8,C5.8,"
             + "G5.2+"
         };
-    private static final String starWarsSequence = "1,2,3";
-    private TrcSong starWars = new TrcSong("StarWars", starWarsSections, starWarsSequence);
+    private final String starWarsSequence = "1,2,3";
+    private final TrcSong starWars = new TrcSong("StarWars", starWarsSections, starWarsSequence);
     private boolean starWarsPlaying = false;
 
     public static final String lesMiserablesName = "Les Miserables";
