@@ -180,7 +180,7 @@ public class FtcTeleOp extends FtcOpMode
         if (robot.intake != null)
         {
             robot.dashboard.displayPrintf(
-                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getSensorData());
+                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getSensorValue());
         }
 
         if (robot.spinner != null)

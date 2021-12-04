@@ -14,7 +14,7 @@ public class TestOpMode extends FtcOpMode
 {
     FtcDashboard dashboard;
     FtcGamepad gamepad;
-    TrcIntake<?> intake;
+    TrcIntake intake;
     String intakeOwner = null;
 
     @Override
@@ -25,9 +25,10 @@ public class TestOpMode extends FtcOpMode
         gamepad.setYInverted(true);
         TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
             .setMotorInverted(true)
-            .setSensorThreshold(4.0, true)
+            .setTriggerInverted(true)
+            .setAnalogThreshold(4.0)
             .setMsgTracer(TrcDbgTrace.getGlobalTracer());
-        intake = new Intake("intake", intakeParams).getIntakeInstance();
+        intake = new Intake("intake", intakeParams).getIntake();
     }   //initRobot
 
     @Override
@@ -37,7 +38,7 @@ public class TestOpMode extends FtcOpMode
         {
             intake.setPower(gamepad.getRightStickY(true));
         }
-        dashboard.displayPrintf(1, "Distance: %.3f cm", intake.getSensorData());
+        dashboard.displayPrintf(1, "Distance: %.3f cm", intake.getSensorValue());
     }   //runPeriodic
 
     public void gamepadButtonEvent(TrcGameController gamepad, int button, boolean pressed)

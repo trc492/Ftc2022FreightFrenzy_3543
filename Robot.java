@@ -73,7 +73,7 @@ public class Robot
     //
     public RobotDrive robotDrive = null;
     public TrcPidActuator arm = null;
-    public TrcIntake<?> intake = null;
+    public TrcIntake intake = null;
     public FtcDcMotor spinner = null;
     public OdometryWheelDeployer odwDeployer = null;
     public FtcServoActuator pickupHook = null;
@@ -169,9 +169,10 @@ public class Robot
                 {
                     TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
                         .setMotorInverted(false)
-                        .setSensorThreshold(RobotParams.INTAKE_SENSOR_THRESHOLD, true)
+                        .setTriggerInverted(true)
+                        .setAnalogThreshold(RobotParams.INTAKE_SENSOR_THRESHOLD)
                         .setMsgTracer(globalTracer);
-                    intake = new Intake(RobotParams.HWNAME_INTAKE, intakeParams).getIntakeInstance();
+                    intake = new Intake(RobotParams.HWNAME_INTAKE, intakeParams).getIntake();
                 }
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();

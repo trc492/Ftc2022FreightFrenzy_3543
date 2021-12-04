@@ -22,13 +22,16 @@
 
 package Ftc2022FreightFrenzy_3543;
 
+import TrcCommonLib.trclib.TrcAnalogSensorTrigger;
 import TrcCommonLib.trclib.TrcIntake;
+import TrcCommonLib.trclib.TrcSensorTrigger;
 import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcDistanceSensor;
 
 class Intake
 {
-    private final TrcIntake<?> intake;
+    private final TrcIntake.Parameters params;
+    private final TrcIntake intake;
 
     /**
      * Constructor: Creates an instance of the object.
@@ -38,21 +41,59 @@ class Intake
      */
     public Intake(String instanceName, TrcIntake.Parameters params)
     {
+        this.params = params;
         FtcDcMotor motor = new FtcDcMotor(instanceName + ".motor");
-        FtcDistanceSensor sensor = RobotParams.Preferences.hasIntakeSensor?
-            new FtcDistanceSensor(instanceName + ".sensor"): null;
-        intake = new TrcIntake<>(
-            instanceName, motor, params, sensor, 0, FtcDistanceSensor.DataType.DISTANCE_CM);
+
+        if (RobotParams.Preferences.hasIntakeSensor)
+        {
+            FtcDistanceSensor sensor = new FtcDistanceSensor(instanceName + ".sensor");
+            TrcAnalogSensorTrigger<FtcDistanceSensor.DataType> analogTrigger =
+                new TrcAnalogSensorTrigger<>(
+                    instanceName + ".analogTrigger", sensor, 0, FtcDistanceSensor.DataType.DISTANCE_CM,
+                    new double[]{RobotParams.INTAKE_SENSOR_THRESHOLD}, this::analogTriggerEvent, false);
+            intake = new TrcIntake(instanceName, motor, params, analogTrigger);
+        }
+        else
+        {
+            intake = new TrcIntake(instanceName, motor, params, null);
+        }
     }   //Intake
 
     /**
-     * This method returns the Intake subsystem created.
+     * This method returns the TrcIntake object.
      *
-     * @return reference to the created Intake subsystem.
+     * @return TrcIntake object.
      */
-    public TrcIntake<?> getIntakeInstance()
+    public TrcIntake getIntake()
     {
         return intake;
-    }   //getIntakeInstance
+    }   //getIntake
+
+    /**
+     * This method is called when an analog sensor threshold has been crossed.
+     *
+     * @param currZone specifies the zone it is going into.
+     * @param prevZone specifies the zone it is coming out of.
+     * @param value specifies the actual sensor value.
+     */
+    private void analogTriggerEvent(int currZone, int prevZone, double value)
+    {
+        final String funcName = "analogTriggerEvent";
+
+        if (params.msgTracer != null)
+        {
+            params.msgTracer.traceInfo(funcName, "Zone=%d->%d, value=%.3f", prevZone, currZone, value);
+        }
+
+        if (intake.isAutoAssistActive() && prevZone != -1)
+        {
+            if (params.msgTracer != null)
+            {
+                params.msgTracer.traceInfo(funcName, "Trigger: hasObject=%s", intake.hasObject());
+            }
+
+            intake.cancelAutoAssist();
+        }
+    }   //analogTriggerEvent
 
 }   //class Intake
