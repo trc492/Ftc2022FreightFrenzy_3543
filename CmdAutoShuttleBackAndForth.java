@@ -183,13 +183,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                     }
                     // Raise arm to the detected duck level at the same time.
@@ -214,7 +214,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.5, -2.7, 90.0),
                             robot.robotDrive.pathPoint(1.6, -2.7, 90.0));
@@ -222,7 +222,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.5, 2.7, 90.0),
                             robot.robotDrive.pathPoint(1.6, 2.7, 90.0));
@@ -237,18 +237,18 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     robot.intake.autoAssist(
                         RobotParams.INTAKE_POWER_PICKUP, event, null, 30.0 - elapsedTime - ROUND_TRIP_TIME);
                     //keep running drive base until next event is signaled
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.3);
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
 
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            null, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            null, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(2.6, -2.7, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            null, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            null, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(2.6, 2.7, 90.0));
                     }
                     //event is signaled by intake when robot picked up a block or timeout expired
@@ -257,7 +257,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DETERMINE_ROUND_TRIP_OR_DONE:
                     // If intake has freight and there are more than round trip time left
-                    robot.robotDrive.cancel();
+                    robot.robotDrive.purePursuitDrive.cancel();
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
                     if (robot.intake.hasObject() && 30.0 - elapsedTime > ROUND_TRIP_TIME)
                     {
@@ -274,14 +274,14 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
-                    distanceToHub = 1.7;
+                    distanceToHub = 1.8;
                     //raise arm while driving
                     robot.arm.setLevel(3);
                     //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 15.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.2, -2.7,  90.0),
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0));
@@ -289,7 +289,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 15.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
 
                             robot.robotDrive.pathPoint(0.2, 2.7,  90.0),
@@ -311,7 +311,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
             if (traceState)
             {
-                robot.traceStateInfo(sm.getState());
+                robot.traceStateInfo(state);
             }
         }
 
