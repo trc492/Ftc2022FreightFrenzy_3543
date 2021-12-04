@@ -26,7 +26,7 @@ public class TestOpMode extends FtcOpMode
         TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
             .setMotorInverted(true)
             .setTriggerInverted(true)
-            .setAnalogThreshold(3.5)
+            .setAnalogThreshold(3.9)
             .setMsgTracer(TrcDbgTrace.getGlobalTracer());
         intake = new Intake("intake", intakeParams).getIntake();
     }   //initRobot
