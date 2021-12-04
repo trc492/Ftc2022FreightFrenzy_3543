@@ -610,6 +610,7 @@ public class FtcTest extends FtcTeleOp
         tuneKpMenu.setChildMenu(tuneKiMenu);
         tuneKiMenu.setChildMenu(tuneKdMenu);
         tuneKdMenu.setChildMenu(tuneKfMenu);
+        tuneKfMenu.setChildMenu(xTargetMenu);
         //
         // Traverse menus.
         //

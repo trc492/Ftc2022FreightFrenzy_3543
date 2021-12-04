@@ -143,7 +143,7 @@ public class RobotParams
     static final double ENCODER_Y_TOLERANCE                     = 1.0;
     static final double ENCODER_Y_INCHES_PER_COUNT              = 0.02166184604662450653409090909091;
 
-    static final double GYRO_KP                                 = 0.025;
+    static final double GYRO_KP                                 = 0.023;
     static final double GYRO_KI                                 = 0.0;
     static final double GYRO_KD                                 = 0.001;
     static final double GYRO_TOLERANCE                          = 2.0;
@@ -170,7 +170,7 @@ public class RobotParams
     static final double ROBOT_VEL_KF                            = 1.0 / ROBOT_MAX_VELOCITY;
     static final double PPD_FOLLOWING_DISTANCE                  = 6.0;
     static final double PPD_POS_TOLERANCE                       = 2.0;
-    static final double PPD_TURN_TOLERANCE                      = 1.0;
+    static final double PPD_TURN_TOLERANCE                      = 2.0;
 
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 0.0;
@@ -228,8 +228,8 @@ public class RobotParams
     //
     static final double INTAKE_POWER_PICKUP                     = 1.0;
     static final double INTAKE_POWER_DUMP                       = -0.6;
-    static final double INTAKE_DUMP_TIME                        = 1.25;
-    static final double INTAKE_SENSOR_THRESHOLD                 = 4.8;    //in cm
+    static final double INTAKE_DUMP_TIME                        = 1.2;
+    static final double INTAKE_SENSOR_THRESHOLD                 = 4.0;    //in cm
     //
     // Spinner subsystem.
     //

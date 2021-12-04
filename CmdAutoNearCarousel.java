@@ -231,7 +231,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         // Drive to alliance shipping hub. We could be coming from starting position or carousel.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3? 1.3: duckPosition == 2? 1.45: 1.4;
+                        double distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.45: 1.4;
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
@@ -239,7 +239,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, -0.9, 90.0));
+                                robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
                         }
                         else
                         {
@@ -260,7 +260,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state.
-                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+//                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
                     sm.waitForSingleEvent(event, State.PREP_FOR_FINDING_GAME_PIECE);
                     break;
 
@@ -381,25 +382,25 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            RobotParams.ROBOT_MAX_VELOCITY/10.0, RobotParams.ROBOT_MAX_ACCELERATION/10.0,
+                            //RobotParams.ROBOT_MAX_VELOCITY/10.0, RobotParams.ROBOT_MAX_ACCELERATION/10.0,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
-                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                            (i, p) -> robot.globalTracer.traceInfo(
-                                "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
+//                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+//                            (i, p) -> robot.globalTracer.traceInfo(
+//                                "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                           // RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-2.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
-                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-                            (i, p) -> robot.globalTracer.traceInfo(
-                                "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
+//                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
+//                            (i, p) -> robot.globalTracer.traceInfo(
+//                                "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
@@ -416,7 +417,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case GET_INTO_WAREHOUSE:
                     // Run full speed into the warehouse crossing the barriers.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(0.9, event);
+                    timer.set(0.7, event);
                     sm.waitForSingleEvent(event, State.GET_TO_WAREHOUSE_CENTER);
                     break;
 

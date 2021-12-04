@@ -299,14 +299,14 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                                 robot.robotDrive.pathPoint(0.5, -2.1, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                                 robot.robotDrive.pathPoint(0.5, 2.1, 90.0));
                         }
                     }
@@ -317,7 +317,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                                 robot.robotDrive.pathPoint(-2.0, 0.0, 0.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                                 robot.robotDrive.pathPoint(0.5, -1.7, 90.0));
@@ -326,7 +326,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                    //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
 
                                     robot.robotDrive.pathPoint(-2.0, 0.0, 180.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
@@ -347,7 +347,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(0.8, event);
+                    timer.set(0.6, event);
                     sm.waitForSingleEvent(
                         event, autoChoices.doCarousel? State.GET_TO_WAREHOUSE_CENTER: State.DONE);
                     break;
