@@ -486,11 +486,11 @@ public class Vision
         private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
 
         private final float TFOD_MIN_CONFIDENCE = 0.5f;
-        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.65;
-        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.2;
+        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.5;
+        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.5;
         // Target size is area of target rect.
         private final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
-        private final double TARGET_SIZE_TOLERANCE_UPPER = 22000.0;
+        private final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
 
         private FtcTensorFlow tensorFlow = null;
 
@@ -574,10 +574,10 @@ public class Vision
             double distanceYTolerance = targetInfo.imageHeight/6.0;
 
             return targetInfo.label.equals(LABEL_DUCK) &&
-                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
-                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
-                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
+//                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+//                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+//                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
+//                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
                    Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
         }   //validateDuck
 
