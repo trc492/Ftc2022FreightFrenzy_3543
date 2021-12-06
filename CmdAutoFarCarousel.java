@@ -180,7 +180,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                            distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.85: 1.85;
+                            distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.95: 1.95;
                         }
                         else
                         {
@@ -347,7 +347,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(0.6, event);
+                    timer.set(0.8, event);
                     sm.waitForSingleEvent(
                         event, autoChoices.doCarousel? State.GET_TO_WAREHOUSE_CENTER: State.DONE);
                     break;

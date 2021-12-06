@@ -231,7 +231,17 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         // Drive to alliance shipping hub. We could be coming from starting position or carousel.
                         // Note: the smaller the number the closer to the hub.
-                        double distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.45: 1.4;
+                        double distanceToHub;
+                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                        {
+                             distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.45: 1.4;
+
+                        }
+                        else
+                        {
+                            distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.5: 1.3;
+
+                        }
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
@@ -247,7 +257,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
                                 robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, 0.9, 90.0));
+                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -260,8 +270,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state.
-//                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
-                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
+                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    //robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
                     sm.waitForSingleEvent(event, State.PREP_FOR_FINDING_GAME_PIECE);
                     break;
 

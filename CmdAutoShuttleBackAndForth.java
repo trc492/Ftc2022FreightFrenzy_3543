@@ -28,6 +28,7 @@ import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
+import TrcCommonLib.trclib.TrcTimerMgr;
 
 class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 {
