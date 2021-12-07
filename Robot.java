@@ -344,21 +344,41 @@ public class Robot
                 TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
                 TrcPose2D targetPose = robotDrive.pidDrive.getAbsoluteTargetPose();
 
+                msg.append(" RobotPose=\"(");
+
                 if (robotDrive.encoderXPidCtrl != null)
                 {
-                    msg.append(String.format(Locale.US, " xPos=%6.2f xTarget=%6.2f", robotPose.x, targetPose.x));
+                    msg.append(String.format(Locale.US, " %.2f", robotPose.x));
                 }
 
                 if (robotDrive.encoderYPidCtrl != null)
                 {
-                    msg.append(String.format(Locale.US, " yPos=%6.2f yTarget=%6.2f", robotPose.y, targetPose.y));
+                    msg.append(String.format(Locale.US, " %.2f", robotPose.y));
                 }
 
                 if (robotDrive.gyroPidCtrl != null)
                 {
-                    msg.append(String.format(Locale.US, " heading=%6.2f headingTarget=%6.2f",
-                                             robotPose.angle, targetPose.angle));
+                    msg.append(String.format(Locale.US, " %.2f", robotPose.angle));
                 }
+
+                msg.append(")\" TargetPose=\"(");
+
+                if (robotDrive.encoderXPidCtrl != null)
+                {
+                    msg.append(String.format(Locale.US, " %.2f", targetPose.x));
+                }
+
+                if (robotDrive.encoderYPidCtrl != null)
+                {
+                    msg.append(String.format(Locale.US, " %.2f", targetPose.y));
+                }
+
+                if (robotDrive.gyroPidCtrl != null)
+                {
+                    msg.append(String.format(Locale.US, " %.2f", targetPose.angle));
+                }
+
+                msg.append(")\"");
             }
             else if (robotDrive.purePursuitDrive.isActive())
             {
@@ -366,32 +386,52 @@ public class Robot
                 TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
                 TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition();
 
+                msg.append(" RobotPose=\"(");
+
                 if (robotDrive.xPosPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " xPos=%6.2f xTarget=%6.2f", robotPose.x, targetPose.x));
+                    msg.append(String.format(Locale.US, "%.2f", robotPose.x));
                 }
 
                 if (robotDrive.yPosPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " yPos=%6.2f yTarget=%6.2f", robotPose.y, targetPose.y));
+                    msg.append(String.format(Locale.US, ",%.2f", robotPose.y));
                 }
 
                 if (robotDrive.turnPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " heading=%6.2f headingTarget=%6.2f",
-                                             robotPose.angle, targetPose.angle));
+                    msg.append(String.format(Locale.US, ",%.2f", robotPose.angle));
                 }
+
+                msg.append(")\" TargetPose=\"(");
+
+                if (robotDrive.xPosPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, "%.2f", targetPose.x));
+                }
+
+                if (robotDrive.yPosPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, ",%.2f", targetPose.y));
+                }
+
+                if (robotDrive.turnPidCoeff != null)
+                {
+                    msg.append(String.format(Locale.US, ",%.2f", targetPose.angle));
+                }
+
+                msg.append(")\"");
 
                 if (robotDrive.velPidCoeff != null)
                 {
-                    msg.append(String.format(Locale.US, " vel=%6.2f", TrcUtil.magnitude(robotVel.x, robotVel.y)));
+                    msg.append(String.format(Locale.US, " vel=\"%.2f\"", TrcUtil.magnitude(robotVel.x, robotVel.y)));
                 }
             }
 
             if (battery != null)
             {
                 msg.append(String.format(
-                    Locale.US, " volt=\"%5.2fV(%5.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
+                    Locale.US, " volt=\"%.2fV(%.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
             }
 
             globalTracer.logEvent(funcName, "StateInfo", "%s", msg);

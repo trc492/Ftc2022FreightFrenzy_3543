@@ -80,6 +80,9 @@ public class FtcTest extends FtcTeleOp
         double driveTime = 0.0;
         double drivePower = 0.0;
         TrcPidController.PidCoefficients tunePidCoeff = null;
+        double tuneDistance = 0.0;
+        double tuneHeading = 0.0;
+        double tuneDrivePower = 0.0;
 
         @Override
         public String toString()
@@ -179,8 +182,8 @@ public class FtcTest extends FtcTeleOp
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
-                        testChoices.tunePidCoeff, new TrcPose2D(testChoices.xTarget*12.0, 0.0, 0.0));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(testChoices.tuneDistance*12.0, 0.0, 0.0));
                 }
                 break;
 
@@ -188,8 +191,8 @@ public class FtcTest extends FtcTeleOp
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
-                        testChoices.tunePidCoeff, new TrcPose2D(0.0, testChoices.yTarget*12.0, 0.0));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(0.0, testChoices.tuneDistance*12.0, 0.0));
                 }
                 break;
 
@@ -197,8 +200,8 @@ public class FtcTest extends FtcTeleOp
                 if (!RobotParams.Preferences.visionOnly)
                 {
                     testCommand = new CmdPidDrive(
-                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower,
-                        testChoices.tunePidCoeff, new TrcPose2D(0.0, 0.0, testChoices.turnTarget));
+                        robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
+                        testChoices.tunePidCoeff, new TrcPose2D(0.0, 0.0, testChoices.tuneHeading));
                 }
                 break;
 
@@ -583,11 +586,20 @@ public class FtcTest extends FtcTeleOp
         FtcValueMenu tuneKpMenu = new FtcValueMenu(
             "Kp:", testMenu, 0.0, 1.0, 0.001, this::getTuneKp, " %f");
         FtcValueMenu tuneKiMenu = new FtcValueMenu(
-            "Ki:", testMenu, 0.0, 1.0, 0.0001, this::getTuneKi, " %f");
+            "Ki:", tuneKpMenu, 0.0, 1.0, 0.0001, this::getTuneKi, " %f");
         FtcValueMenu tuneKdMenu = new FtcValueMenu(
-            "Kd:", testMenu, 0.0, 1.0, 0.0001, this::getTuneKd, " %f");
+            "Kd:", tuneKiMenu, 0.0, 1.0, 0.0001, this::getTuneKd, " %f");
         FtcValueMenu tuneKfMenu = new FtcValueMenu(
-            "Kf:", testMenu, 0.0, 1.0, 0.001, this::getTuneKf, " %f");
+            "Kf:", tuneKdMenu, 0.0, 1.0, 0.001, this::getTuneKf, " %f");
+        FtcValueMenu tuneDistanceMenu = new FtcValueMenu(
+            "PID Tune distance:", tuneKfMenu, -10.0, 10.0, 0.5, 8.0,
+            " %.1f ft");
+        FtcValueMenu tuneHeadingMenu = new FtcValueMenu(
+            "PID Tune heading:", tuneDistanceMenu, -180.0, 180.0, 5.0, 0.0,
+            " %.0f deg");
+        FtcValueMenu tuneDrivePowerMenu = new FtcValueMenu(
+            "PID Tune drive power:", tuneHeadingMenu, -1.0, 1.0, 0.1, 0.5,
+            " %.1f");
         //
         // Populate menus.
         //
@@ -610,7 +622,9 @@ public class FtcTest extends FtcTeleOp
         tuneKpMenu.setChildMenu(tuneKiMenu);
         tuneKiMenu.setChildMenu(tuneKdMenu);
         tuneKdMenu.setChildMenu(tuneKfMenu);
-        tuneKfMenu.setChildMenu(xTargetMenu);
+        tuneKfMenu.setChildMenu(tuneDistanceMenu);
+        tuneDistanceMenu.setChildMenu(tuneHeadingMenu);
+        tuneHeadingMenu.setChildMenu(tuneDrivePowerMenu);
         //
         // Traverse menus.
         //
@@ -627,6 +641,9 @@ public class FtcTest extends FtcTeleOp
         testChoices.tunePidCoeff = new TrcPidController.PidCoefficients(
             tuneKpMenu.getCurrentValue(), tuneKiMenu.getCurrentValue(),
             tuneKdMenu.getCurrentValue(),tuneKfMenu.getCurrentValue());
+        testChoices.tuneDistance = tuneDistanceMenu.getCurrentValue();
+        testChoices.tuneHeading = tuneHeadingMenu.getCurrentValue();
+        testChoices.tuneDrivePower = tuneDrivePowerMenu.getCurrentValue();
 
         TrcPidController tunePidCtrl = getTunePidController(testChoices.test);
         if (tunePidCtrl != null)

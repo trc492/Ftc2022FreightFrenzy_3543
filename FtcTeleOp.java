@@ -356,12 +356,12 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_LEFT:
-                if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
-                {
-                    intakeOwner = ownerID;
-                    robot.intake.autoAssist(
-                        ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
-                }
+//                if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
+//                {
+//                    intakeOwner = ownerID;
+//                    robot.intake.autoAssist(
+//                        ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
+//                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_RIGHT:
