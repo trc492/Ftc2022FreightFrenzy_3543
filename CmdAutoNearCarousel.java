@@ -243,13 +243,14 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                         }
 
+
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
+                                robot.robotDrive.pathPoint(-distanceToHub, -0.9, 90.0));
                         }
                         else
                         {

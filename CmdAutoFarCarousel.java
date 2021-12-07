@@ -300,14 +300,14 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(0.5, -2.1, 90.0));
+                                robot.robotDrive.pathPoint(0.5, -1.9, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(0.5, 2.1, 90.0));
+                                robot.robotDrive.pathPoint(0.5, 1.8, 90.0));
                         }
                     }
                     else
