@@ -32,7 +32,7 @@ public class RobotParams
 {
     public static class Preferences
     {
-        static boolean visionOnly = false;
+        static boolean noRobot = false;
         static boolean initSubsystems = true;
         static boolean useExternalOdometry = true;
         static boolean useArm = true;

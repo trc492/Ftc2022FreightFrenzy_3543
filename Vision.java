@@ -573,12 +573,12 @@ public class Vision
             double area = targetInfo.rect.width*targetInfo.rect.height;
             double distanceYTolerance = targetInfo.imageHeight/6.0;
 
-            return targetInfo.label.equals(LABEL_DUCK);
-//                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-//                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
-//                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
-//                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
-//                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
+            return targetInfo.label.equals(LABEL_DUCK) &&
+                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
+                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
+                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
         }   //validateDuck
 
         /**
@@ -662,7 +662,7 @@ public class Vision
         {
             final String funcName = "getDetectedDuckPositions";
             int[] duckPositions = null;
-            FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, this::validateDuck);
+            FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, null);
 
             if (targetInfo != null && targetInfo.length > 0)
             {

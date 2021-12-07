@@ -110,7 +110,7 @@ public class Robot
         // If visionOnly is true, the robot controller is disconnected from the robot for testing vision.
         // In this case, we should not instantiate any robot hardware.
         //
-        if (!RobotParams.Preferences.visionOnly)
+        if (!RobotParams.Preferences.noRobot)
         {
             //
             // Create and initialize sensors and indicators.
@@ -127,15 +127,15 @@ public class Robot
                 }
             }
 
+            if (RobotParams.Preferences.useBatteryMonitor)
+            {
+                battery = new FtcRobotBattery();
+            }
+
             androidTone = new FtcAndroidTone("androidTone");
             if (RobotParams.Preferences.playSongs)
             {
                 musicPlayer = new MusicPlayer(androidTone);
-            }
-
-            if (RobotParams.Preferences.useBatteryMonitor)
-            {
-                battery = new FtcRobotBattery();
             }
             //
             // Create and initialize RobotDrive.
@@ -162,9 +162,11 @@ public class Robot
                             RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
                         .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
                     arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams).getPidActuator();
+                    arm.setMsgTracer(globalTracer);
                     arm.setBeep(androidTone);
                     arm.zeroCalibrate();
                 }
+
                 if (RobotParams.Preferences.useIntake)
                 {
                     TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
@@ -172,7 +174,7 @@ public class Robot
                         .setTriggerInverted(true)
                         .setAnalogThreshold(RobotParams.INTAKE_SENSOR_THRESHOLD)
                         .setMsgTracer(globalTracer);
-                    intake = new Intake(RobotParams.HWNAME_INTAKE, intakeParams).getIntake();
+                    intake = new Intake(RobotParams.HWNAME_INTAKE, intakeParams).getTrcIntake();
                 }
                 spinner = new FtcDcMotor(RobotParams.HWNAME_SPINNER);
                 odwDeployer = new OdometryWheelDeployer();

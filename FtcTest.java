@@ -36,6 +36,7 @@ import TrcCommonLib.trclib.TrcGameController;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
+import TrcCommonLib.trclib.TrcTone;
 import TrcCommonLib.trclib.TrcUtil;
 import TrcFtcLib.ftclib.FtcChoiceMenu;
 import TrcFtcLib.ftclib.FtcDcMotor;
@@ -95,8 +96,12 @@ public class FtcTest extends FtcTeleOp
                 "turnTarget=%1f " +
                 "driveTime=%.1f " +
                 "drivePower=%.1f " +
-                "tunePidCoeff=%s",
-                test, xTarget, yTarget, turnTarget, driveTime, drivePower, tunePidCoeff);
+                "tunePidCoeff=%s " +
+                "tuneDistance=%.1f " +
+                "tuneHeading=%.1f " +
+                "tuneDrivePower=%.1f",
+                test, xTarget, yTarget, turnTarget, driveTime, drivePower, tunePidCoeff, tuneDistance, tuneHeading,
+                tuneDrivePower);
         }   //toString
 
     }   //class TestChoices
@@ -112,6 +117,7 @@ public class FtcTest extends FtcTeleOp
     private double maxDriveAcceleration = 0.0;
     private double prevTime = 0.0;
     private double prevVelocity = 0.0;
+    private String intakeOwner = null;
 
     //
     // Overrides FtcOpMode abstract method.
@@ -142,7 +148,7 @@ public class FtcTest extends FtcTeleOp
         switch (testChoices.test)
         {
             case DRIVE_MOTORS_TEST:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdDriveMotorsTest(
                         new FtcDcMotor[] {robot.robotDrive.leftFrontWheel, robot.robotDrive.rightFrontWheel,
@@ -152,7 +158,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case X_TIMED_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdTimedDrive(
                         robot.robotDrive.driveBase, 0.0, testChoices.driveTime,
@@ -161,7 +167,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case Y_TIMED_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdTimedDrive(
                         robot.robotDrive.driveBase, 0.0, testChoices.driveTime,
@@ -170,7 +176,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case PID_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdPidDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.drivePower, null,
@@ -179,7 +185,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case TUNE_X_PID:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdPidDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
@@ -188,7 +194,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case TUNE_Y_PID:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdPidDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
@@ -197,7 +203,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case TUNE_TURN_PID:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdPidDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.pidDrive, 0.0, testChoices.tuneDrivePower,
@@ -206,7 +212,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case PURE_PURSUIT_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     testCommand = new CmdPurePursuitDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.xPosPidCoeff, robot.robotDrive.yPosPidCoeff,
@@ -336,7 +342,7 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        if (shouldDoTeleOp())
+        if (allowTeleOp())
         {
             //
             // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
@@ -375,7 +381,7 @@ public class FtcTest extends FtcTeleOp
         switch (testChoices.test)
         {
             case DRIVE_SPEED_TEST:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     double currTime = TrcUtil.getCurrentTime();
                     TrcPose2D velPose = robot.robotDrive.driveBase.getFieldVelocity();
@@ -407,7 +413,7 @@ public class FtcTest extends FtcTeleOp
 
             case X_TIMED_DRIVE:
             case Y_TIMED_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     robot.dashboard.displayPrintf(8, "Timed Drive: %.0f sec", testChoices.driveTime);
                     robot.dashboard.displayPrintf(
@@ -425,7 +431,7 @@ public class FtcTest extends FtcTeleOp
             case TUNE_X_PID:
             case TUNE_Y_PID:
             case TUNE_TURN_PID:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     robot.dashboard.displayPrintf(
                         8, "xPos=%.1f,yPos=%.1f,heading=%.1f,raw=lf:%.0f,rf:%.0f,lb:%.0f,rb:%.0f",
@@ -449,7 +455,7 @@ public class FtcTest extends FtcTeleOp
                 break;
 
             case PURE_PURSUIT_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     robot.dashboard.displayPrintf(
                         8, "xPos=%.1f,yPos=%.1f,heading=%.1f,rawEnc=lf:%.0f,rf:%.0f,rb:%.0f",
@@ -485,7 +491,7 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void driverButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
-        if (shouldDoTeleOp())
+        if (allowTeleOp())
         {
             boolean processed = false;
             //
@@ -496,6 +502,38 @@ public class FtcTest extends FtcTeleOp
                 7, "%s: %04x->%s", gamepad, button, pressed ? "Pressed" : "Released");
             switch (button)
             {
+                case FtcGamepad.GAMEPAD_A:
+                    if (robot.musicPlayer != null && pressed)
+                    {
+                        robot.musicPlayer.toggleSong(MusicPlayer.starWarsName);
+                    }
+                    processed = true;
+                    break;
+
+                case FtcGamepad.GAMEPAD_B:
+                    if (robot.musicPlayer != null && pressed)
+                    {
+                        robot.musicPlayer.toggleSong(MusicPlayer.lesMiserablesName);
+                    }
+                    processed = true;
+                    break;
+
+                case FtcGamepad.GAMEPAD_X:
+                    if (pressed)
+                    {
+                        robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 1000.0, 1.0, 1.0);
+                    }
+                    processed = true;
+                    break;
+
+                case FtcGamepad.GAMEPAD_Y:
+                    if (pressed)
+                    {
+                        robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 440.0, 1.0, 1.0);
+                    }
+                    processed = true;
+                    break;
+
                 case FtcGamepad.GAMEPAD_DPAD_UP:
                     break;
 
@@ -528,8 +566,9 @@ public class FtcTest extends FtcTeleOp
     @Override
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
-        if (shouldDoTeleOp())
+        if (allowTeleOp())
         {
+            final String ownerID = "autoAssistPickup";
             boolean processed = false;
             //
             // In addition to or instead of the gamepad controls handled by FtcTeleOp, we can add to or override the
@@ -546,6 +585,13 @@ public class FtcTest extends FtcTeleOp
                     break;
 
                 case FtcGamepad.GAMEPAD_DPAD_LEFT:
+                    if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
+                    {
+                        intakeOwner = ownerID;
+                        robot.intake.autoAssist(
+                            ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
+                    }
+                    processed = true;
                     break;
 
                 case FtcGamepad.GAMEPAD_DPAD_RIGHT:
@@ -775,7 +821,7 @@ public class FtcTest extends FtcTeleOp
         // Read all sensors and display on the dashboard.
         // Drive the robot around to sample different locations of the field.
         //
-        if (!RobotParams.Preferences.visionOnly)
+        if (!RobotParams.Preferences.noRobot)
         {
             robot.dashboard.displayPrintf(
                 8, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
@@ -824,10 +870,16 @@ public class FtcTest extends FtcTeleOp
      *
      * @return true to allow and false otherwise.
      */
-    private boolean shouldDoTeleOp()
+    private boolean allowTeleOp()
     {
-        return !RobotParams.Preferences.visionOnly &&
+        return !RobotParams.Preferences.noRobot &&
                (testChoices.test == Test.SUBSYSTEMS_TEST || testChoices.test == Test.DRIVE_SPEED_TEST);
-    }   //shouldDoTeleOp
+    }   //allowTeleOp
+
+    private void intakeCompletion(Object context)
+    {
+        robot.intake.releaseExclusiveAccess(intakeOwner);
+        intakeOwner = null;
+    }   //intakeCompletion
 
 }   //class FtcTest

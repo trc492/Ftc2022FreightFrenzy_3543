@@ -131,7 +131,7 @@ public class FtcAuto extends FtcOpMode
         final String funcName = "initRobot";
         //
         // Create and initialize robot object.
-        // calls hardware, subsystems, etc.
+        //
         robot = new Robot(TrcRobot.getRunMode());
         //
         // Open trace log.
@@ -152,28 +152,28 @@ public class FtcAuto extends FtcOpMode
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
                 }
                 break;
 
             case AUTO_FAR_CAROUSEL:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdAutoFarCarousel(robot, autoChoices);
                 }
                 break;
 
             case AUTO_SHUTTLE_BACK_AND_FORTH:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdAutoShuttleBackAndForth(robot, autoChoices);
                 }
                 break;
 
             case PID_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdPidDrive(
                         robot.robotDrive.driveBase, robot.robotDrive.pidDrive, autoChoices.startDelay,
@@ -183,7 +183,7 @@ public class FtcAuto extends FtcOpMode
                 break;
 
             case TIMED_DRIVE:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdTimedDrive(
                         robot.robotDrive.driveBase, autoChoices.startDelay, autoChoices.driveTime,
@@ -192,7 +192,7 @@ public class FtcAuto extends FtcOpMode
                 break;
 
             case AUTO_TEST:
-                if (!RobotParams.Preferences.visionOnly)
+                if (!RobotParams.Preferences.noRobot)
                 {
                     autoCommand = new CmdAutoTest(robot);
                 }

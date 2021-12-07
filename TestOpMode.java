@@ -28,7 +28,7 @@ public class TestOpMode extends FtcOpMode
             .setTriggerInverted(true)
             .setAnalogThreshold(3.9)
             .setMsgTracer(TrcDbgTrace.getGlobalTracer());
-        intake = new Intake("intake", intakeParams).getIntake();
+        intake = new Intake("intake", intakeParams).getTrcIntake();
     }   //initRobot
 
     @Override

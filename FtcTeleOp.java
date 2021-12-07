@@ -26,7 +26,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import TrcCommonLib.trclib.TrcGameController;
 import TrcCommonLib.trclib.TrcRobot;
-import TrcCommonLib.trclib.TrcTone;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcOpMode;
 
@@ -42,7 +41,6 @@ public class FtcTeleOp extends FtcOpMode
     private boolean invertedDrive = false;
     private double drivePowerScale = 1.0;
     private double armPowerScale = 1.0;
-    private String intakeOwner = null;
 
     //
     // Implements FtcOpMode abstract method.
@@ -223,31 +221,15 @@ public class FtcTeleOp extends FtcOpMode
         switch (button)
         {
             case FtcGamepad.GAMEPAD_A:
-                if (robot.musicPlayer != null && pressed)
-                {
-                    robot.musicPlayer.toggleSong(MusicPlayer.starWarsName);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_B:
-                if (robot.musicPlayer != null && pressed)
-                {
-                    robot.musicPlayer.toggleSong(MusicPlayer.lesMiserablesName);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_X:
-                if (pressed)
-                {
-                    robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 1000.0, 1.0, 1.0);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_Y:
-                if (pressed)
-                {
-                    robot.androidTone.playTone(TrcTone.Waveform.TRIANGLE_WAVE, 440.0, 1.0, 1.0);
-                }
                 break;
 
             case FtcGamepad.GAMEPAD_LBUMPER:
@@ -288,8 +270,6 @@ public class FtcTeleOp extends FtcOpMode
      */
     public void operatorButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
-        final String ownerID = "autoAssistPickup";
-
         robot.dashboard.displayPrintf(
             7, "%s: %04x->%s", gamepad, button, pressed? "Pressed": "Released");
 
@@ -356,12 +336,6 @@ public class FtcTeleOp extends FtcOpMode
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_LEFT:
-//                if (robot.intake != null && pressed && robot.intake.acquireExclusiveAccess(ownerID))
-//                {
-//                    intakeOwner = ownerID;
-//                    robot.intake.autoAssist(
-//                        ownerID, RobotParams.INTAKE_POWER_PICKUP, null, this::intakeCompletion, 10.0);
-//                }
                 break;
 
             case FtcGamepad.GAMEPAD_DPAD_RIGHT:
@@ -375,11 +349,5 @@ public class FtcTeleOp extends FtcOpMode
                 break;
         }
     }   //operatorButtonEvent
-
-    private void intakeCompletion(Object context)
-    {
-        robot.intake.releaseExclusiveAccess(intakeOwner);
-        intakeOwner = null;
-    }   //intakeCompletion
 
 }   //class FtcTeleOp
