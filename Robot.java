@@ -231,7 +231,7 @@ public class Robot
         if (arm != null)
         {
             // Raise the arm a little at start so it will not get caught on the floor tile.
-            arm.setTarget(RobotParams.ARM_MIN_POS + 5.0);
+            arm.setTarget(RobotParams.ARM_TRAVEL_POS);
         }
 
         if (robotDrive != null)

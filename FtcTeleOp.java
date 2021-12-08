@@ -286,7 +286,6 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_B:
                 if (robot.spinner != null)
                 {
-                    // Spin the red carousel for set amount of time.
                     robot.spinner.set(pressed? RobotParams.SPINNER_POWER_RED: 0.0);
                 }
                 break;
@@ -294,7 +293,6 @@ public class FtcTeleOp extends FtcOpMode
             case FtcGamepad.GAMEPAD_X:
                 if (robot.spinner != null)
                 {
-                    // Spin the blue carousel for set amount of time.
                     robot.spinner.set(pressed? RobotParams.SPINNER_POWER_BLUE: 0.0);
                 }
                 break;

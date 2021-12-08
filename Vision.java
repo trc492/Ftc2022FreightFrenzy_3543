@@ -146,6 +146,16 @@ public class Vision
     }   //setupBlinkin
 
     /**
+     * This method checks if Vuforia vision is initialized.
+     *
+     * @return true if Vuforia vision is initialized, false otherwise.
+     */
+    public boolean isVuforiaVisionInitialized()
+    {
+        return vuforiaVision != null;
+    }   //isVuforiaVisionInitialized
+
+    /**
      * This method enables/disables Vuforia Vision.
      *
      * @param enabled specifies true to enable Vuforia Vision, false to disable.
@@ -196,6 +206,16 @@ public class Vision
             new TrcPose2D(translation.get(0)/TrcUtil.MM_PER_INCH, translation.get(1)/TrcUtil.MM_PER_INCH,
                           -orientation.thirdAngle - 90.0);
     }   //getRobotPose
+
+    /**
+     * This method checks if TensorFlow vision is initialized.
+     *
+     * @return true if TensorFlow vision is initialized, false otherwise.
+     */
+    public boolean isTensorFlowVisionInitialized()
+    {
+        return tensorFlowVision != null;
+    }   //isTensorFlowVisionInitialized
 
     /**
      * This method enables/disables TensorFlow.
