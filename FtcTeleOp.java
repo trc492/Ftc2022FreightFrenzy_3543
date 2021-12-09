@@ -156,10 +156,7 @@ public class FtcTeleOp extends FtcOpMode
                 }
             }
 
-            robot.dashboard.displayPrintf(2, "DriveBase: x=%.2f,y=%.2f,heading=%.2f",
-                                          robot.robotDrive.driveBase.getXPosition(),
-                                          robot.robotDrive.driveBase.getYPosition(),
-                                          robot.robotDrive.driveBase.getHeading());
+            robot.dashboard.displayPrintf(2, "Pose:%s", robot.robotDrive.driveBase.getFieldPosition());
         }
         //
         // Other subsystems.
@@ -170,7 +167,7 @@ public class FtcTeleOp extends FtcOpMode
 
             robot.arm.setPower(armPower*armPowerScale);
             robot.dashboard.displayPrintf(
-                3, "Arm: Power=%.1f,Pos=%.1f,LimitSwitches=[%b, %b]",
+                3, "Arm: Pow=%.1f,Pos=%.1f,Lim=(%b,%b)",
                 armPower, robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(),
                 robot.arm.isUpperLimitSwitchActive());
         }
@@ -178,27 +175,18 @@ public class FtcTeleOp extends FtcOpMode
         if (robot.intake != null)
         {
             robot.dashboard.displayPrintf(
-                4, "Intake: Power=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getSensorValue());
+                4, "Intake: Pow=%.1f,sensor=%.2f", robot.intake.getPower(), robot.intake.getSensorValue());
         }
 
         if (robot.spinner != null)
         {
-            robot.dashboard.displayPrintf(5, "Spinner: Power=%.1f", robot.spinner.getPower());
+            robot.dashboard.displayPrintf(5, "Spinner: Pow=%.1f", robot.spinner.getPower());
         }
 
-        double pickupHookPower =
-            robot.pickupHook != null?
-                driverGamepad.getLeftTrigger(true) - driverGamepad.getRightTrigger(true): 0.0;
-        if (robot.pickupHook != null)
+        if (robot.odwDeployer != null)
         {
-            robot.pickupHook.setPower(pickupHookPower);
-        }
-
-        if (robot.odwDeployer != null || robot.pickupHook != null)
-        {
-            robot.dashboard.displayPrintf(6, "odwDeployer: deployed=%s; pickupHook: power=%.1f",
-                                          robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed(),
-                                          pickupHookPower);
+            robot.dashboard.displayPrintf(
+                6, "odwDep: deployed=%s", robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed());
         }
     }   //runPeriodic
 

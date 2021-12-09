@@ -43,6 +43,7 @@ import TrcFtcLib.ftclib.FtcDcMotor;
 import TrcFtcLib.ftclib.FtcGamepad;
 import TrcFtcLib.ftclib.FtcMenu;
 import TrcFtcLib.ftclib.FtcPidCoeffCache;
+import TrcFtcLib.ftclib.FtcTensorFlow;
 import TrcFtcLib.ftclib.FtcValueMenu;
 
 /**
@@ -824,7 +825,7 @@ public class FtcTest extends FtcTeleOp
         if (!RobotParams.Preferences.noRobot)
         {
             robot.dashboard.displayPrintf(
-                8, LABEL_WIDTH, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
+                8, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
                 robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
                 robot.robotDrive.leftBackWheel.getPosition(), robot.robotDrive.rightBackWheel.getPosition());
         }
@@ -832,15 +833,8 @@ public class FtcTest extends FtcTeleOp
         if (robot.robotDrive.gyro != null)
         {
             robot.dashboard.displayPrintf(
-                9, LABEL_WIDTH, "Gyro: ", "Rate=%.3f,Heading=%.1f",
+                9, "Gyro: ", "Rate=%.3f,Heading=%.1f",
                 robot.robotDrive.gyro.getZRotationRate().value, robot.robotDrive.gyro.getZHeading().value);
-        }
-
-        if (robot.arm != null)
-        {
-            robot.dashboard.displayPrintf(
-                10, LABEL_WIDTH, "Arm: ", "pos=%.0f,lowLimit=%s,upLimit=%s",
-                robot.arm.getPosition(), robot.arm.isLowerLimitSwitchActive(), robot.arm.isUpperLimitSwitchActive());
         }
     }   //doSensorsTest
 
@@ -851,16 +845,35 @@ public class FtcTest extends FtcTeleOp
     {
         if (robot.vision != null)
         {
+            if (RobotParams.Preferences.useTensorFlow)
+            {
+                FtcTensorFlow.TargetInfo[] targetsInfo = robot.vision.getDetectedTargetsInfo(null, null);
+                final int maxNumLines = 3;
+                int lineIndex = 10;
+                int endLine = lineIndex + maxNumLines;
+
+                if (targetsInfo != null)
+                {
+                    int numTargets = Math.min(targetsInfo.length, maxNumLines);
+                    for (int i = 0; i < numTargets; i++)
+                    {
+                        robot.dashboard.displayPrintf(lineIndex, "%s", targetsInfo[i]);
+                        lineIndex++;
+                    }
+                }
+
+                while (lineIndex < endLine)
+                {
+                    robot.dashboard.displayPrintf(lineIndex, "");
+                    lineIndex++;
+                }
+            }
+
             if (RobotParams.Preferences.useVuforia)
             {
                 TrcPose2D robotPose = robot.vision.getRobotPose(null, false);
-                robot.dashboard.displayPrintf(11, "RobotLocation %s: %s",
+                robot.dashboard.displayPrintf(13, "RobotLoc %s: %s",
                                               robot.vision.getLastSeenVuforiaImageName(), robotPose);
-            }
-
-            if (RobotParams.Preferences.useTensorFlow)
-            {
-                robot.vision.getBestDuckPosition();
             }
         }
     }   //doVisionTest

@@ -244,6 +244,40 @@ public class Vision
     }   //tensorFlowShutdown
 
     /**
+     * This method detects targets that matches the given label and filtering criteria.
+     *
+     * @param label specifies the target label to detect, can be null if detects any target.
+     * @param filter specifies the filter method to call to filter out false positives, can be null if not provided.
+     *
+     * @return an array of detected targets, null if none found at the moment.
+     */
+    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+    {
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+
+        return tensorFlowVision.getDetectedTargetsInfo(label, filter);
+    }   //getDetectedTargetsInfo
+
+    /**
+     * This method returns target info of the closest freight detected.
+     *
+     * @return closest freight target info.
+     */
+    public FtcTensorFlow.TargetInfo getClosestFreightInfo()
+    {
+        FtcTensorFlow.TargetInfo closestFreight = null;
+        FtcTensorFlow.TargetInfo[] targetsInfo = getDetectedTargetsInfo(null, tensorFlowVision::validateFreight);
+
+        if (targetsInfo != null)
+        {
+            Arrays.sort(targetsInfo, this::compareCameraAngle);
+            closestFreight = targetsInfo[0];
+        }
+
+        return closestFreight;
+    }   //getClosestFreightInfo
+
+    /**
      * This method returns the best detected targets from TensorFlow vision.
      *
      * @param label specifies the label of the targets to detect for, can be null for detecting any target.
@@ -253,8 +287,22 @@ public class Vision
     {
         if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        return tensorFlowVision.getDetectedTargetsInfo(label, null)[0];
+        FtcTensorFlow.TargetInfo[] targets = tensorFlowVision.getDetectedTargetsInfo(label, null);
+        return targets != null? targets[0]: null;
     }   //getBestDetectedTargetInfo
+
+    /**
+     * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
+     *
+     * @param a specifies the first target
+     * @param b specifies the second target.
+     * @return negative value if a has smaller camera angle than b, 0 if a and b have equal camera angle, positive
+     *         value if a has larger camera angle than b.
+     */
+    private int compareCameraAngle(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
+    {
+        return (int)((Math.abs(a.angle) - Math.abs(b.angle))*1000);
+    }   //compareCameraAngle
 
     /**
      * This method calls vision to detect the best duck and returns its barcode position.
@@ -600,6 +648,19 @@ public class Vision
                    area >= TARGET_SIZE_TOLERANCE_LOWER &&
                    Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
         }   //validateDuck
+
+        /**
+         * This method is called to validate the detected target as either a cube or a ball.
+         *
+         * @param target specifies the target to be validated.
+         * @return true if target is valid, false if false positive.
+         */
+        private boolean validateFreight(Recognition target)
+        {
+            FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
+
+            return targetInfo.label.equals(LABEL_CUBE) || targetInfo.label.equals(LABEL_BALL);
+        }   //validateFreight
 
         /**
          * This method determines the duck's barcode position 1, 2, or 3 (0 if no valid duck found).
