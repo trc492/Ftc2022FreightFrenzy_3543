@@ -81,6 +81,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
+//        robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
         //robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.6);
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel

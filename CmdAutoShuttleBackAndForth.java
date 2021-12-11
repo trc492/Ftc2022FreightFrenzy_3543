@@ -31,6 +31,13 @@ import TrcCommonLib.trclib.TrcTimer;
 
 class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 {
+    static final double FAST_ENCODER_X_KP                            = 0.1;
+    static final double FAST_ENCODER_X_KI                            = 0.0;
+    static final double FAST_ENCODER_X_KD                            = 0.0095;
+
+    static final double FAST_ENCODER_Y_KP                            = 0.04;
+    static final double FAST_ENCODER_Y_KI                            = 0.0;
+    static final double FAST_ENCODER_Y_KD                            = 0.004;
 
     private static final String moduleName = "CmdAutoShuttleBackAndForth";
     private static final double ROUND_TRIP_TIME = 8.0;
@@ -69,6 +76,15 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
+
+//        robot.robotDrive.purePursuitDrive.setXPositionPidCoefficients(new TrcPidController.PidCoefficients(
+//                FAST_ENCODER_X_KP, FAST_ENCODER_X_KI, FAST_ENCODER_X_KD));
+//
+//       robot.robotDrive.purePursuitDrive.setYPositionPidCoefficients(new TrcPidController.PidCoefficients(FAST_ENCODER_Y_KP, FAST_ENCODER_Y_KI, FAST_ENCODER_Y_KD));
+//
+//
+//       robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
+
         sm.start(State.START_DELAY);
     }   //CmdAutoShuttleBackAndForth
 
@@ -173,7 +189,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
-                        distanceToHub = duckPosition == 3? 1.8: duckPosition == 2? 1.85: 1.85;
+                        distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.95: 1.95;
                     }
                     else
                     {
@@ -203,29 +219,31 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     // Dumps the freight, when done signals event and goes to next state
                     //robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
 
-                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.setPower(-0.5, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
                 case DRIVE_INTO_WAREHOUSE:
                     // Fire and forget with lowering the arm.
                     //robot.arm.setTarget(0.3, RobotParams.ARM_MIN_POS, false, null, 1.0);
-                    robot.arm.zeroCalibrate();
+                    robot.arm.setTarget(RobotParams.ARM_TRAVEL_POS);
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                            robot.robotDrive.pathPoint(0.5, -2.7, 90.0),
-                            robot.robotDrive.pathPoint(1.6, -2.7, 90.0));
+                            robot.robotDrive.pathPoint(-0.5, -2, 0),
+                            robot.robotDrive.pathPoint(0.5, -2.55, 90.0),
+                            robot.robotDrive.pathPoint(1.6, -2.55, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                            robot.robotDrive.pathPoint(0.5, 2.7, 90.0),
-                            robot.robotDrive.pathPoint(1.6, 2.7, 90.0));
+                                robot.robotDrive.pathPoint(-0.5, 2, 0),
+                                robot.robotDrive.pathPoint(0.5, 2.55, 90.0),
+                                robot.robotDrive.pathPoint(1.6, 2.55, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
@@ -275,7 +293,6 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
                     distanceToHub = 1.8;
-                    //raise arm while driving
                     robot.arm.setLevel(3);
                     //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
