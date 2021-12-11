@@ -25,6 +25,7 @@ package Ftc2022FreightFrenzy_3543;
 import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcEvent;
+import TrcCommonLib.trclib.TrcPurePursuitDrive;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
@@ -80,6 +81,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
+        //robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.6);
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel
 
@@ -211,7 +213,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case GET_TO_CAROUSEL:
                     // We are a few inches from the carousel, drive slowly towards it to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.4: 0.5, event);
+                    timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.6: 0.6, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -239,12 +241,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         double distanceToHub;
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                             distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.45: 1.4;
+                             distanceToHub = duckPosition == 3? 1.5: duckPosition == 2? 1.5: 1.4;
 
                         }
                         else
                         {
-                            distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.5: 1.3;
+                            distanceToHub = duckPosition == 3? 1.5: duckPosition == 2? 1.55: 1.4;
 
                         }
 
@@ -262,7 +264,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
                                 robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
-                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
+                                robot.robotDrive.pathPoint(-distanceToHub, 0.9, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -432,7 +434,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                 case GET_INTO_WAREHOUSE:
                     // Run full speed into the warehouse crossing the barriers.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
-                    timer.set(0.7, event);
+                    timer.set(0.9, event);
                     sm.waitForSingleEvent(event, State.GET_TO_WAREHOUSE_CENTER);
                     break;
 

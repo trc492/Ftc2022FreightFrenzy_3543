@@ -38,6 +38,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
         LOOK_FOR_FREIGHT,
         PICKING_UP_FREIGHT,
         BACKUP,
+        BACKUP_TO_TRY_AGAIN,
 //        DO_PURE_PURSUIT,
 //
 //        FIND_OUR_GAME_PIECE,
@@ -140,14 +141,24 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 
                 case PICKING_UP_FREIGHT:
                     robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
-                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event, null, 0.0);
+                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event, null, 4);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
                     robot.robotDrive.purePursuitDrive.start(
                         null, 3.0, robot.robotDrive.driveBase.getFieldPosition(), true,
                         new TrcPose2D(freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y - 8.0,
                                       freightInfo.angle));
-                    sm.waitForSingleEvent(event, State.BACKUP);
+                    if(robot.intake.hasObject()){
+                        sm.waitForSingleEvent(event, State.BACKUP);
+                    }
+                    else{
+                        sm.waitForSingleEvent(event, State.BACKUP_TO_TRY_AGAIN);
+                    }
                     break;
+                case BACKUP_TO_TRY_AGAIN:
+                    //timer.set(0.8, event);
+                    robot.robotDrive.driveBase.holonomicDrive(0, 0.3, 0);
+
+
 
                 case BACKUP:
                     robot.robotDrive.purePursuitDrive.cancel();
