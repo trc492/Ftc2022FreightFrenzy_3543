@@ -234,9 +234,9 @@ public class RobotParams
     //
     // Spinner subsystem.
     //
-    static final double SPINNER_POWER_RED                       = 1.0;
-    static final double SPINNER_POWER_BLUE                      = -1.0;
-    static final double SPINNER_TIME                            = 2.0;
+    static final double SPINNER_POWER_RED                       = 0.8;
+    static final double SPINNER_POWER_BLUE                      = -0.8;
+    static final double SPINNER_TIME                            = 2.5;
     //
     // Odometry Wheel Deployer subsystem.
     //
