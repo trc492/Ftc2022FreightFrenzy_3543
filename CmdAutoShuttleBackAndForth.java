@@ -233,8 +233,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-0.5, -2, 0),
-                            robot.robotDrive.pathPoint(0.5, -2.55, 90.0),
-                            robot.robotDrive.pathPoint(1.6, -2.55, 90.0));
+                            robot.robotDrive.pathPoint(0.5, -2.65, 90.0),
+                            robot.robotDrive.pathPoint(1.6, -2.65, 90.0));
                     }
                     else
                     {
@@ -242,8 +242,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                                 robot.robotDrive.pathPoint(-0.5, 2, 0),
-                                robot.robotDrive.pathPoint(0.5, 2.55, 90.0),
-                                robot.robotDrive.pathPoint(1.6, 2.55, 90.0));
+                                robot.robotDrive.pathPoint(0.5, 2.65, 90.0),
+                                robot.robotDrive.pathPoint(1.6, 2.65, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
