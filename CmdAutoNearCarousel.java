@@ -257,6 +257,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
+                                robot.robotDrive.pathPoint(-2, -0.9, 90),
                                 robot.robotDrive.pathPoint(-distanceToHub, -0.9, 90.0));
                         }
                         else
@@ -265,6 +266,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
                                 robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
+                                    robot.robotDrive.pathPoint(-2, 0.9, 90),
                                 robot.robotDrive.pathPoint(-distanceToHub, 0.9, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
