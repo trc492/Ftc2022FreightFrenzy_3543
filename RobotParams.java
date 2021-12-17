@@ -132,16 +132,24 @@ public class RobotParams
     static final double DRIVE_MOTOR_MAX_VELOCITY_PPS            = GOBILDA_5203_312_MAX_VELOCITY_PPS;
 
     // 12/11/2021 - Fast mode: 0.1, 0.0, 0.0095
-    static final double ENCODER_X_KP                            = 0.095;
+    // Old: 0.095, 0.0, 0.001
+//    static final double ENCODER_X_KP                            = 0.095;
+//    static final double ENCODER_X_KI                            = 0.0;
+//    static final double ENCODER_X_KD                            = 0.001;
+    static final double ENCODER_X_KP                            = 0.1;
     static final double ENCODER_X_KI                            = 0.0;
-    static final double ENCODER_X_KD                            = 0.001;
+    static final double ENCODER_X_KD                            = 0.0095;
     static final double ENCODER_X_TOLERANCE                     = 1.0;
     static final double ENCODER_X_INCHES_PER_COUNT              = 0.01924724265461924299065420560748;
 
     // 12/11/2021 - Fast mode: 0.04, 0.0, 0.004
-    static final double ENCODER_Y_KP                            = 0.06;
+    // Old: 0.06, 0.0, 0.002
+//    static final double ENCODER_Y_KP                            = 0.06;
+//    static final double ENCODER_Y_KI                            = 0.0;
+//    static final double ENCODER_Y_KD                            = 0.002;
+    static final double ENCODER_Y_KP                            = 0.04;
     static final double ENCODER_Y_KI                            = 0.0;
-    static final double ENCODER_Y_KD                            = 0.002;
+    static final double ENCODER_Y_KD                            = 0.004;
     static final double ENCODER_Y_TOLERANCE                     = 1.0;
     static final double ENCODER_Y_INCHES_PER_COUNT              = 0.02166184604662450653409090909091;
 

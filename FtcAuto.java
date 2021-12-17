@@ -270,8 +270,8 @@ public class FtcAuto extends FtcOpMode
             robot.battery.setEnabled(true);
         }
 
-        robot.robotDrive.pidDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid, robot.battery);
-        robot.robotDrive.purePursuitDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid, robot.battery);
+        robot.robotDrive.pidDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid);
+        robot.robotDrive.purePursuitDrive.setMsgTracer(robot.globalTracer, logEvents, debugPid);
     }   //startMode
 
     /**

@@ -428,10 +428,17 @@ public class FtcTest extends FtcTeleOp
                 }
                 break;
 
-            case PID_DRIVE:
             case TUNE_X_PID:
             case TUNE_Y_PID:
             case TUNE_TURN_PID:
+                if (!RobotParams.Preferences.noRobot && testChoices.tunePidCoeff != null)
+                {
+                    robot.dashboard.displayPrintf(7, "TunePid=%s", testChoices.tunePidCoeff);
+                }
+                //
+                // Intentionally falling through.
+                //
+            case PID_DRIVE:
                 if (!RobotParams.Preferences.noRobot)
                 {
                     robot.dashboard.displayPrintf(
@@ -633,19 +640,19 @@ public class FtcTest extends FtcTeleOp
         FtcValueMenu tuneKpMenu = new FtcValueMenu(
             "Kp:", testMenu, 0.0, 1.0, 0.001, this::getTuneKp, " %f");
         FtcValueMenu tuneKiMenu = new FtcValueMenu(
-            "Ki:", tuneKpMenu, 0.0, 1.0, 0.0001, this::getTuneKi, " %f");
+            "Ki:", tuneKpMenu, 0.0, 1.0, 0.001, this::getTuneKi, " %f");
         FtcValueMenu tuneKdMenu = new FtcValueMenu(
-            "Kd:", tuneKiMenu, 0.0, 1.0, 0.0001, this::getTuneKd, " %f");
+            "Kd:", tuneKiMenu, 0.0, 1.0, 0.001, this::getTuneKd, " %f");
         FtcValueMenu tuneKfMenu = new FtcValueMenu(
             "Kf:", tuneKdMenu, 0.0, 1.0, 0.001, this::getTuneKf, " %f");
         FtcValueMenu tuneDistanceMenu = new FtcValueMenu(
-            "PID Tune distance:", tuneKfMenu, -10.0, 10.0, 0.5, 8.0,
+            "PID Tune distance:", tuneKfMenu, -10.0, 10.0, 0.5, 0.0,
             " %.1f ft");
         FtcValueMenu tuneHeadingMenu = new FtcValueMenu(
             "PID Tune heading:", tuneDistanceMenu, -180.0, 180.0, 5.0, 0.0,
             " %.0f deg");
         FtcValueMenu tuneDrivePowerMenu = new FtcValueMenu(
-            "PID Tune drive power:", tuneHeadingMenu, -1.0, 1.0, 0.1, 0.5,
+            "PID Tune drive power:", tuneHeadingMenu, -1.0, 1.0, 0.1, 1.0,
             " %.1f");
         //
         // Populate menus.
