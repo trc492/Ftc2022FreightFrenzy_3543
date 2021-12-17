@@ -301,6 +301,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(0.2, -2.7,  90.0),
+                            robot.robotDrive.pathPoint(-0.5, -2.5, 0 ),
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0));
                     }
                     else
@@ -310,6 +311,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
 
                             robot.robotDrive.pathPoint(0.2, 2.7,  90.0),
+                            robot.robotDrive.pathPoint(-0.5, -2.7, 180),
                             robot.robotDrive.pathPoint(-0.5, distanceToHub, 180));
                     }
                     //next state is dumping
