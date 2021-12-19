@@ -136,9 +136,9 @@ public class RobotParams
 //    static final double ENCODER_X_KP                            = 0.095;
 //    static final double ENCODER_X_KI                            = 0.0;
 //    static final double ENCODER_X_KD                            = 0.001;
-    static final double ENCODER_X_KP                            = 0.1;
+    static final double ENCODER_X_KP                            = 0.095;
     static final double ENCODER_X_KI                            = 0.0;
-    static final double ENCODER_X_KD                            = 0.0095;
+    static final double ENCODER_X_KD                            = 0;//0.0095;
     static final double ENCODER_X_TOLERANCE                     = 1.0;
     static final double ENCODER_X_INCHES_PER_COUNT              = 0.01924724265461924299065420560748;
 

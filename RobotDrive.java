@@ -151,7 +151,7 @@ public class RobotDrive
         gyroPidCtrl.setAbsoluteSetPoint(true);
         // FTC robots generally have USB performance issues where the sampling rate of the gyro is not high enough.
         // If the robot turns too fast, PID will cause oscillation. By limiting turn power, the robot turns slower.
-        gyroPidCtrl.setOutputLimit(RobotParams.TURN_POWER_LIMIT);
+//        gyroPidCtrl.setOutputLimit(RobotParams.TURN_POWER_LIMIT);
 
         pidDrive = new TrcPidDrive("pidDrive", driveBase, encoderXPidCtrl, encoderYPidCtrl, gyroPidCtrl);
         // AbsoluteTargetMode eliminates cumulative errors on multi-segment runs because drive base is keeping track
