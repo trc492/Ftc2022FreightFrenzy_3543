@@ -153,10 +153,10 @@ public class RobotParams
     static final double ENCODER_Y_TOLERANCE                     = 1.0;
     static final double ENCODER_Y_INCHES_PER_COUNT              = 0.02166184604662450653409090909091;
 
-    static final double GYRO_KP                                 = 0.023;
+    static final double GYRO_KP                                 = 0.013;
     static final double GYRO_KI                                 = 0.0;
-    static final double GYRO_KD                                 = 0.001;
-    static final double GYRO_TOLERANCE                          = 2.0;
+    static final double GYRO_KD                                 = 0.0;
+    static final double GYRO_TOLERANCE                          = 1.0;
 
     static final double ODWHEEL_X_INCHES_PER_COUNT              = 7.6150160901199168116026724971383e-4;
     static final double ODWHEEL_Y_INCHES_PER_COUNT              = 7.6301149255006038191364659148717e-4;
