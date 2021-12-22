@@ -219,8 +219,8 @@ public class RobotParams
     // https://www.gobilda.com/super-duty-worm-drive-pan-kit-28-1-ratio/
     static final double ARM_GEAR_RATIO                          = 28.0;
     static final double ARM_DEG_PER_COUNT                       = 360.0/(ARM_ENCODER_PPR*ARM_GEAR_RATIO);
-    static final double ARM_OFFSET                              = 33.0;
-    static final double ARM_MIN_POS                             = 32.0;
+    static final double ARM_OFFSET                              = 35.0;
+    static final double ARM_MIN_POS                             = 35.0;
     static final double ARM_MAX_POS                             = 135.0;
     static final double ARM_TRAVEL_POS                          = ARM_MIN_POS + 3.0;
     static final boolean ARM_MOTOR_INVERTED                     = true;
@@ -240,7 +240,7 @@ public class RobotParams
     static final double INTAKE_POWER_PICKUP                     = 1.0;
     static final double INTAKE_POWER_DUMP                       = -0.6;
     static final double INTAKE_DUMP_TIME                        = 1.2;
-    static final double INTAKE_SENSOR_THRESHOLD                 = 4.0;    //in cm
+    static final double INTAKE_SENSOR_THRESHOLD                 = 4.4;    //in cm
     //
     // Spinner subsystem.
     //

@@ -158,7 +158,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     {
                         if (robot.blinkin != null)
                         {
-                            robot.blinkin.setPatternState(Vision.sawFreight, true);
+                            robot.blinkin.setPatternState(Vision.sawTarget, true);
                         }
                         sm.setState(State.PICKING_UP_FREIGHT);
                     }
@@ -185,7 +185,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     {
                         if (robot.blinkin != null)
                         {
-                            robot.blinkin.setPatternState(Vision.gotFreight, true);
+                            robot.blinkin.setPatternState(Vision.gotTarget, true);
                         }
                         sm.setState(State.GO_HOME);
                     }

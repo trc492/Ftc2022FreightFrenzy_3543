@@ -66,15 +66,15 @@ public class Vision
     public static final String duckPos1 = "DuckPos1";
     public static final String duckPos2 = "DuckPos2";
     public static final String duckPos3 = "DuckPos3";
-    public static final String gotFreight = "GotFreight";
-    public static final String sawFreight = "SawFreight";
+    public static final String gotTarget = "GotTarget";
+    public static final String sawTarget = "SawTarget";
     private final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
         new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
             .add(duckPos1, TrcRevBlinkin.LEDPattern.SolidRed)
             .add(duckPos2, TrcRevBlinkin.LEDPattern.SolidGreen)
             .add(duckPos3, TrcRevBlinkin.LEDPattern.SolidBlue)
-            .add(gotFreight, TrcRevBlinkin.LEDPattern.SolidViolet)
-            .add(sawFreight, TrcRevBlinkin.LEDPattern.SolidAqua)
+            .add(gotTarget, TrcRevBlinkin.LEDPattern.SolidViolet)
+            .add(sawTarget, TrcRevBlinkin.LEDPattern.SolidAqua)
             .add(redStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeRed)
             .add(blueStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeBlue)
             .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseRed)
@@ -557,7 +557,7 @@ public class Vision
     {
         private final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
         private final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-        private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER};
+        private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK};//, LABEL_MARKER};
 
         private final float TFOD_MIN_CONFIDENCE = 0.5f;
         private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.5;

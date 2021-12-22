@@ -388,6 +388,7 @@ public class Robot
                 TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
                 TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition();
 
+                msg.append(String.format(" Path=%s", robotDrive.purePursuitDrive.getPath()));
                 msg.append(" RobotPose=\"(");
 
                 if (robotDrive.xPosPidCoeff != null)
