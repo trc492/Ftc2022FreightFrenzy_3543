@@ -34,16 +34,17 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 
     private enum State
     {
-        START,
-        LOOK_FOR_FREIGHT,
-        PICKING_UP_FREIGHT,
-        BACKUP,
-        BACKUP_TO_TRY_AGAIN,
+//        START,
+//        LOOK_FOR_FREIGHT,
+//        PICKING_UP_FREIGHT,
+//        BACKUP,
+//        BACKUP_TO_TRY_AGAIN,
 //        DO_PURE_PURSUIT,
 //
 //        FIND_OUR_GAME_PIECE,
 //        DRIVE_TO_OUR_GAME_PIECE,
 //        DO_INTAKE,
+        PP_DRIVE,
 
         DONE
     }   //enum State
@@ -73,8 +74,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 //            RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
 //            robot.robotDrive.yPosPidCoeff, robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
 //        purePursuitDrive.setMsgTracer(robot.globalTracer);
-        robot.arm.zeroCalibrate();
-        sm.start(State.START);
+//        robot.arm.zeroCalibrate();
+        sm.start(State.PP_DRIVE);
     }   //CmdAutoTest
 
     //
@@ -126,47 +127,47 @@ class CmdAutoTest implements TrcRobot.RobotCommand
             robot.dashboard.displayPrintf(1, "State: %s", state);
             switch (state)
             {
-                case START:
-                    robot.robotDrive.driveBase.setFieldPosition(startPos);
-                    sm.setState(State.LOOK_FOR_FREIGHT);
-                    break;
-
-                case LOOK_FOR_FREIGHT:
-                    freightInfo = robot.vision.getClosestFreightInfo();
-                    if (freightInfo != null)
-                    {
-                        sm.setState(State.PICKING_UP_FREIGHT);
-                    }
-                    break;
-
-                case PICKING_UP_FREIGHT:
-                    robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
-                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event, null, 4);
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
-                    robot.robotDrive.purePursuitDrive.start(
-                        null, 3.0, robot.robotDrive.driveBase.getFieldPosition(), true,
-                        new TrcPose2D(freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y - 8.0,
-                                      freightInfo.angle));
-                    if(robot.intake.hasObject()){
-                        sm.waitForSingleEvent(event, State.BACKUP);
-                    }
-                    else{
-                        sm.waitForSingleEvent(event, State.BACKUP_TO_TRY_AGAIN);
-                    }
-                    break;
-                case BACKUP_TO_TRY_AGAIN:
-                    //timer.set(0.8, event);
-                    robot.robotDrive.driveBase.holonomicDrive(0, 0.3, 0);
-
-
-
-                case BACKUP:
-                    robot.robotDrive.purePursuitDrive.cancel();
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
-                    robot.robotDrive.purePursuitDrive.start(
-                        event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false, startPos);
-                    sm.waitForSingleEvent(event, State.DONE);
-                    break;
+//                case START:
+//                    robot.robotDrive.driveBase.setFieldPosition(startPos);
+//                    sm.setState(State.LOOK_FOR_FREIGHT);
+//                    break;
+//
+//                case LOOK_FOR_FREIGHT:
+//                    freightInfo = robot.vision.getClosestFreightInfo();
+//                    if (freightInfo != null)
+//                    {
+//                        sm.setState(State.PICKING_UP_FREIGHT);
+//                    }
+//                    break;
+//
+//                case PICKING_UP_FREIGHT:
+//                    robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
+//                    robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event, null, 4);
+//                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
+//                    robot.robotDrive.purePursuitDrive.start(
+//                        null, 3.0, robot.robotDrive.driveBase.getFieldPosition(), true,
+//                        new TrcPose2D(freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y - 8.0,
+//                                      freightInfo.angle));
+//                    if(robot.intake.hasObject()){
+//                        sm.waitForSingleEvent(event, State.BACKUP);
+//                    }
+//                    else{
+//                        sm.waitForSingleEvent(event, State.BACKUP_TO_TRY_AGAIN);
+//                    }
+//                    break;
+//                case BACKUP_TO_TRY_AGAIN:
+//                    //timer.set(0.8, event);
+//                    robot.robotDrive.driveBase.holonomicDrive(0, 0.3, 0);
+//
+//
+//
+//                case BACKUP:
+//                    robot.robotDrive.purePursuitDrive.cancel();
+//                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
+//                    robot.robotDrive.purePursuitDrive.start(
+//                        event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false, startPos);
+//                    sm.waitForSingleEvent(event, State.DONE);
+//                    break;
 //                case DO_PURE_PURSUIT:
 //                    robot.robotDrive.purePursuitDrive.start(
 //                        event, 20.0, robot.robotDrive.driveBase.getFieldPosition(), false,
@@ -225,6 +226,15 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 //                    sm.waitForSingleEvent(event, State.DONE);
 //
 //                    break;
+
+                case PP_DRIVE:
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
+                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
+                    robot.robotDrive.purePursuitDrive.start(
+                        event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), true,
+                        new TrcPose2D(0.0, 24.0, 0.0));
+                    sm.waitForSingleEvent(event, State.DONE);
+                    break;
 
                 case DONE:
                 default:
