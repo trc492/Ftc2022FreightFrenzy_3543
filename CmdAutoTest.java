@@ -45,7 +45,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 //        DRIVE_TO_OUR_GAME_PIECE,
 //        DO_INTAKE,
 
-//        PP_DRIVE,
+        PP_DRIVE,
 
         DONE
     }   //enum State
@@ -105,6 +105,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
     public void cancel()
     {
         robot.robotDrive.cancel();
+        robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
+        robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(false);
         sm.stop();
     }   //cancel
 
@@ -166,6 +168,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
                     robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, pickupEvent, null, 0.0);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
+                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
                     robot.robotDrive.purePursuitDrive.start(
                         driveEvent, robot.robotDrive.driveBase.getFieldPosition(), true,
                         new TrcPose2D(freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y - 8.0,
@@ -176,6 +179,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     break;
 
                 case CHECK_FOR_FREIGHT:
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
+                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(false);
                     if (robot.intake.hasObject())
                     {
                         if (robot.blinkin != null)
@@ -191,7 +196,6 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     break;
 
                 case RETRY_PICKUP:
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
                     robot.robotDrive.purePursuitDrive.start(
                         driveEvent, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
                     sm.waitForSingleEvent(driveEvent, State.LOOK_FOR_FREIGHT);
@@ -266,15 +270,15 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 //                    robot.intake.set(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
 //                    sm.waitForSingleEvent(event, State.DONE);
 //                    break;
-//
-//                case PP_DRIVE:
-//                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
-//                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
-//                    robot.robotDrive.purePursuitDrive.start(
-//                        event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), true,
-//                        new TrcPose2D(0.0, 24.0, 0.0));
-//                    sm.waitForSingleEvent(event, State.DONE);
-//                    break;
+
+                case PP_DRIVE:
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
+                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
+                    robot.robotDrive.purePursuitDrive.start(
+                        driveEvent, robot.robotDrive.driveBase.getFieldPosition(), true,
+                        new TrcPose2D(0.0, 24.0, 0.0));
+                    sm.waitForSingleEvent(driveEvent, State.DONE);
+                    break;
 
                 case DONE:
                 default:
