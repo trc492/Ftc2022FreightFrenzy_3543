@@ -69,6 +69,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     private Double expireTime = null;
     private boolean deliveringDuck = false;
     private int retryCount = 0;
+    private Double parkWarehouseTime = 8.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -181,6 +182,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         sm.waitForSingleEvent(event, State.DRIVE_TO_CAROUSEL);
                         break;
                     }
+
 
                 case DRIVE_TO_CAROUSEL:
                     if (!autoChoices.doCarousel)
@@ -314,7 +316,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case FIND_THE_DUCK:
-                    targetInfo = robot.vision.getBestDetectedTargetInfo(Vision.LABEL_DUCK);
+                    targetInfo = robot.vision.getRealDuck();
                     if (targetInfo != null)
                     {
                         if (robot.blinkin != null)
@@ -340,7 +342,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                            robot.speak("Turn back and go forward to look again.");
                            robot.robotDrive.purePursuitDrive.start(
                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                               robot.robotDrive.pathPoint(-2.0, -2.0, 180.0));
+                               robot.robotDrive.pathPoint(-2.5, -1.5, 180.0));
                            sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                            expireTime = null;
                            retryCount++;
@@ -399,10 +401,11 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         // We are not parking anywhere, just stop and be done.
                         sm.setState(State.DONE);
                     }
-                    else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING)
+                    else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING  && 30.0-elapsedTime>parkWarehouseTime)
                     {
                         // CodeReview: check to see if we have enough time. If not, park at storage unit instead.
                         // We are parking at the warehouse.
+
                         sm.setState(State.DRIVE_TO_WAREHOUSE);
                     }
                     else
@@ -452,7 +455,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     // for them to be done.
                     robot.arm.setLevel(1);
                     robot.odwDeployer.retract();
-                    timer.set(2.0, event);
+                    timer.set(30-elapsedTime-3, event);
                     sm.waitForSingleEvent(event, State.GET_INTO_WAREHOUSE);
                     break;
 

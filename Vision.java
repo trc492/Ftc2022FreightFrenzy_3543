@@ -297,6 +297,16 @@ public class Vision
         return targets != null? targets[0]: null;
     }   //getBestDetectedTargetInfo
 
+    public FtcTensorFlow.TargetInfo getRealDuck()
+    {
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+
+        FtcTensorFlow.TargetInfo[] targets = tensorFlowVision.getDetectedTargetsInfo(
+                LABEL_DUCK, tensorFlowVision::validateDuck);
+
+        return targets != null? targets[0]: null;
+    }   //getRealDuck
+
     /**
      * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
      *
@@ -560,8 +570,8 @@ public class Vision
         private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK};//, LABEL_MARKER};
 
         private final float TFOD_MIN_CONFIDENCE = 0.5f;
-        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.5;
-        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.5;
+        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.9;
+        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.1;
         // Target size is area of target rect.
         private final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
         private final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
@@ -649,10 +659,10 @@ public class Vision
 
             return targetInfo.label.equals(LABEL_DUCK) &&
                    aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
-                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
-                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
-                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
+                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER;
+//                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
+//                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
+//                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
         }   //validateDuck
 
         /**

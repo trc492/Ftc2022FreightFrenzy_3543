@@ -854,6 +854,7 @@ public class FtcTest extends FtcTeleOp
         {
             if (RobotParams.Preferences.useTensorFlow)
             {
+                //FtcTensorFlow.TargetInfo[] targetsInfo = {robot.vision.getRealDuck()};
                 FtcTensorFlow.TargetInfo[] targetsInfo = robot.vision.getDetectedTargetsInfo(null, null);
                 final int maxNumLines = 3;
                 int lineIndex = 10;

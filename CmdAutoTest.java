@@ -73,7 +73,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
         pickupEvent = new TrcEvent(moduleName + ".pickupEvent");
         sm = new TrcStateMachine<>(moduleName);
         startPos = robot.robotDrive.pathPoint(0.5, -2.7, 90.0);
-        lookingPos = robot.robotDrive.pathPoint(1.5, 2.7, 90.0);
+        lookingPos = robot.robotDrive.pathPoint(1.5, -2.7, 90.0);
 //        purePursuitDrive = new TrcHolonomicPurePursuitDrive(
 //            "purePursuitDrive", robot.robotDrive.driveBase,
 //            RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,

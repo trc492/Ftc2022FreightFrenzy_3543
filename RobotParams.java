@@ -222,7 +222,7 @@ public class RobotParams
     static final double ARM_OFFSET                              = 35.0;
     static final double ARM_MIN_POS                             = 35.0;
     static final double ARM_MAX_POS                             = 135.0;
-    static final double ARM_TRAVEL_POS                          = ARM_MIN_POS + 3.0;
+    static final double ARM_TRAVEL_POS                          = ARM_MIN_POS;//+3;
     static final boolean ARM_MOTOR_INVERTED                     = true;
     static final boolean ARM_HAS_LOWER_LIMIT_SWITCH             = true;
     static final boolean ARM_LOWER_LIMIT_INVERTED               = false;
