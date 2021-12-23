@@ -26,7 +26,6 @@ import java.util.Locale;
 
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcPose2D;
-import TrcCommonLib.trclib.TrcPurePursuitDrive;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
@@ -48,9 +47,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
         PREP_FOR_FINDING_THE_DUCK,
         FIND_THE_DUCK,
-        DRIVE_TO_THE_DUCK,
-        PICKUP_THE_DUCK,
-        CHECK_FOR_DUCK,
+        GO_PICKUP_DUCK,
+        DONE_PICKUP_DUCK,
 
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE,
@@ -65,14 +63,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
     private final FtcAuto.AutoChoices autoChoices;
     private final TrcTimer timer;
     private final TrcEvent event;
-    private final TrcEvent event2;
     private final TrcStateMachine<State> sm;
     private int duckPosition = 0;
     private FtcTensorFlow.TargetInfo targetInfo = null;
     private Double expireTime = null;
     private boolean deliveringDuck = false;
     private int retryCount = 0;
-    private TrcPose2D saveLocation;
 
     /**
      * Constructor: Create an instance of the object.
@@ -88,7 +84,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         this.autoChoices = autoChoices;
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
-        event2 = new TrcEvent(moduleName+ "2");
         sm = new TrcStateMachine<>(moduleName);
         robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
         sm.start(State.START_DELAY);
@@ -144,14 +139,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
             switch (state)
             {
                 case START_DELAY:
-                    //
-                    // Disable TensorFlow if we are not using it to improve PurePursuitDrive performance.
-                    //
-//                    if (robot.vision != null && robot.vision.isTensorFlowVisionInitialized())
-//                    {
-//                        robot.globalTracer.traceInfo(moduleName + ".cmdPeriodic", "Disabling TensorFlow.");
-//                        robot.vision.setTensorFlowEnabled(false);
-//                    }
                     //
                     // Set robot starting position in the field.
                     //
@@ -239,7 +226,6 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-
                     if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to next state.
@@ -253,29 +239,28 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                              distanceToHub = duckPosition == 3? 1.3: duckPosition == 2? 1.4: 1.4;
-
                         }
                         else
                         {
                             distanceToHub = duckPosition == 3? 1.4: duckPosition == 2? 1.55: 1.4;
 
                         }
-                        if(deliveringDuck){
+
+                        if (deliveringDuck)
+                        {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-
-                                    robot.robotDrive.pathPoint(-2, -1, 90),
-                                    robot.robotDrive.pathPoint(-1.25, -1, 90.0));
+                                event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0),
+                                robot.robotDrive.pathPoint(-1.25, -1.0, 90.0));
                         }
-
                         else if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -2.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -0.9, 0.0),
-                                robot.robotDrive.pathPoint(-2, -1, 90),
-                                robot.robotDrive.pathPoint(-distanceToHub, -1, 90.0));
+                                robot.robotDrive.pathPoint(-2.0, -1.0, 90.0),
+                                robot.robotDrive.pathPoint(-distanceToHub, -1.0, 90.0));
                         }
                         else
                         {
@@ -283,8 +268,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                                 event, 5.0, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, 2.0, 180.0),
                                 robot.robotDrive.pathPoint(-2.5, 0.9, 180.0),
-                                    robot.robotDrive.pathPoint(-2, 1, 90),
-                                robot.robotDrive.pathPoint(-distanceToHub, 1, 90.0));
+                                robot.robotDrive.pathPoint(-2.0, 1.0, 90.0),
+                                robot.robotDrive.pathPoint(-distanceToHub, 1.0, 90.0));
                         }
                         // Raise arm to the detected duck level at the same time.
                         robot.arm.setLevel(duckPosition);
@@ -296,19 +281,16 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DUMP_FREIGHT:
-                    // Dumps the freight, when done signals event and goes to next state.
+                    // Dumps the freight, when done, signals event and goes to next state.
                     robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
-                    //robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
-                    //sm.setState(deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.PREP_FOR_FINDING_THE_DUCK);
                     sm.waitForSingleEvent(
                         event, deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.PREP_FOR_FINDING_THE_DUCK);
-
-
                     break;
 
                 case PREP_FOR_FINDING_THE_DUCK:
                     robot.arm.setLevel(0.25, 0);
-                    if (!autoChoices.duckDelivery)
+                    // If we did not do Carousel, there is no duck on the floor, so skip it.
+                    if (!autoChoices.duckDelivery || !autoChoices.doCarousel)
                     {
                         sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
                     }
@@ -319,18 +301,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.0, -1.0, 180.0));
-//                            robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-//                                (i, p) -> robot.globalTracer.traceInfo(
-//                                    "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, 2, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.0, 1.0, -20.0));
-//                            robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-//                                (i, p) -> robot.globalTracer.traceInfo(
-//                                    "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
+                                robot.robotDrive.pathPoint(-2.0, 1.0, -0.0));
                         }
                         retryCount = 0;
                         sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
@@ -339,19 +315,17 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 
                 case FIND_THE_DUCK:
                     targetInfo = robot.vision.getBestDetectedTargetInfo(Vision.LABEL_DUCK);
-
                     if (targetInfo != null)
                     {
                         if (robot.blinkin != null)
                         {
                             robot.blinkin.setPatternState(Vision.sawTarget, true);
                         }
-                        String msg1 = String.format(
-                                "Found the Duck at x %.1f, y %.1f, heading %.1f",
-                                targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y, targetInfo.angle);
-                        robot.globalTracer.traceInfo(moduleName, msg1);
-                        robot.speak(msg1);
-                        sm.setState(State.DRIVE_TO_THE_DUCK);
+                        robot.globalTracer.traceInfo(
+                            moduleName, "Found the duck at x=%.1f, y=%.1f, angle=%.1f",
+                            targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y, targetInfo.angle);
+                        robot.speak("Found the duck.");
+                        sm.setState(State.GO_PICKUP_DUCK);
                     }
                     else if (expireTime == null)
                     {
@@ -359,37 +333,43 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else if (TrcUtil.getCurrentTime() > expireTime)
                    {
-                       if(retryCount==2){
+                       if (retryCount == 1)
+                       {
+                           // Did not find the duck the second time at an angle, turn back and go forward to look again.
+                           robot.globalTracer.traceInfo(moduleName, "<<<<< Turn back and go forward to look again!");
+                           robot.speak("Turn back and go forward to look again.");
+                           robot.robotDrive.purePursuitDrive.start(
+                               event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                               robot.robotDrive.pathPoint(-2.0, -2.0, 180.0));
+                           sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
+                           expireTime = null;
+                           retryCount++;
+                       }
+                       else if (retryCount == 2)
+                       {
+                           robot.globalTracer.traceInfo(moduleName, "<<<<< Duck not found, giving up!");
+                           robot.speak("Duck not found, giving up.");
+                           // Did not find the duck the third time, give up and park.
                            sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
                        }
-                       else if(retryCount==1){
-                           // If time is up and we still haven't found the thing, then give up and do parking.
-                           robot.globalTracer.traceInfo(moduleName, "<<<<< Turn back and go forward then look again!");
-                           robot.speak("Turn back and go forward then look again!");
-                           //robot.robotDrive.pidDrive.setRelativeTurnTarget(robot.robotDrive.driveBase.getHeading()-35.0, event);
-                           robot.robotDrive.purePursuitDrive.start(event,robot.robotDrive.driveBase.getFieldPosition(),false, robot.robotDrive.pathPoint(-2, -2, 180.0));
-                           sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
-                           expireTime=null;
-
-                           retryCount++;
-                       }
-                       else{
+                       else
+                       {
+                           // Did not find the duck the first time, turn left and look again.
                            robot.globalTracer.traceInfo(moduleName, "<<<<< Turn left and look again!");
-                           robot.speak("Turn left and look again");
-                           robot.robotDrive.pidDrive.setRelativeTurnTarget(robot.robotDrive.driveBase.getHeading()-30.0, event);
-                           //robot.robotDrive.purePursuitDrive.start(event,robot.robotDrive.driveBase.getFieldPosition(),true,
-                                  // new TrcPose2D(0, 0.0, -30.0));
-                           //saveLocation = robot.robotDrive.driveBase.getFieldPosition();
+                           robot.speak("Turn left and look again.");
+                           robot.robotDrive.pidDrive.setRelativeTurnTarget(
+                               robot.robotDrive.driveBase.getHeading() - 30.0, event);
+//                           robot.robotDrive.purePursuitDrive.start(
+//                               event, robot.robotDrive.driveBase.getFieldPosition(), true,
+//                               new TrcPose2D(0.0, 0.0, -30.0));
                            sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                            expireTime=null;
-
                            retryCount++;
                        }
-
                     }
                     break;
 
-                case DRIVE_TO_THE_DUCK:
+                case GO_PICKUP_DUCK:
                     // Call pure pursuit using robot field position +
                     // after tuning distanceFromCenter will be real world distance from robot where robot is (0, 0)
                     // turns such that the robot is inline with the game piece and moves forward
@@ -397,61 +377,21 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     //robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event2, null, 3.0);
                     robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
-                    //since this is relative to robot position do not need to invert x or y
-//                    TrcPose2D relativeDuckLocation =
-//                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-//                            new TrcPose2D(
-//                                // minus bc robot is facing backwards in its y orientation so if it says target at right
-//                                // target actually at left
-//                                targetInfo.distanceFromCamera.x,
-//                                // robot is in opposite y orientation as the field
-//                                robot.robotDrive.driveBase.getYPosition() - targetInfo.distanceFromCamera.y,
-//                                robot.robotDrive.driveBase.getHeading()): //+ targetInfo.angle):
-//                            new TrcPose2D(
-//                                // plus bc robot is facing forwards in its y orientation so if it says target at right
-//                                // target actually at right
-//                                robot.robotDrive.driveBase.getXPosition() + targetInfo.distanceFromCamera.x,
-//                                // robot is in same y orientation as the field
-//                                robot.robotDrive.driveBase.getYPosition() + targetInfo.distanceFromCamera.y,
-//                                robot.robotDrive.driveBase.getHeading() + targetInfo.angle);
-//                    robot.globalTracer.traceInfo(moduleName, "Duck location at %s", duckLocation);
                     robot.robotDrive.purePursuitDrive.start(
                         event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), true,
-                            new TrcPose2D(targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y-4, targetInfo.angle)
-                            );
-
+                        new TrcPose2D(targetInfo.distanceFromCamera.x,
+                                      targetInfo.distanceFromCamera.y - 4.0,
+                                      targetInfo.angle));
                     deliveringDuck = true;
-
-                    sm.waitForSingleEvent(event, State.CHECK_FOR_DUCK);
-//                    sm.addEvent(event2);
-//                    sm.addEvent(event);
-                    //sm.waitForEvents(State.CHECK_FOR_DUCK);
+                    sm.waitForSingleEvent(event, State.DONE_PICKUP_DUCK);
                     break;
 
-                case CHECK_FOR_DUCK:
+                case DONE_PICKUP_DUCK:
+                    // Keep spinning the intake at low power to keep the duck from falling out.
                     robot.intake.setPower(0.4);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
-                   // if (robot.intake.hasObject())
-                   // {
-                        if (robot.blinkin != null)
-                        {
-                            robot.blinkin.setPatternState(Vision.gotTarget, true);
-                        }
-                        sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-                   // }
-                   // else{
-                        //sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
-                   // }
-
+                    sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
-
-//                case PICKUP_THE_DUCK:
-//                    // CodeReview: should use auto-assist with timeout, may also need to go slowly forward.
-//                    //robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event, null, 30.0 - elapsedTime - dumpingAndParkingTime);
-//                    //robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP, 1.25, event);
-//                    deliveringDuck = true;
-//                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-//                    break;
 
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
                     if (autoChoices.parking == FtcAuto.Parking.NO_PARKING)
@@ -461,6 +401,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     }
                     else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING)
                     {
+                        // CodeReview: check to see if we have enough time. If not, park at storage unit instead.
                         // We are parking at the warehouse.
                         sm.setState(State.DRIVE_TO_WAREHOUSE);
                     }
@@ -490,30 +431,23 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            //RobotParams.ROBOT_MAX_VELOCITY/10.0, RobotParams.ROBOT_MAX_ACCELERATION/10.0,
                             robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
-//                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-//                            (i, p) -> robot.globalTracer.traceInfo(
-//                                "*** TEST RED ***", "index=%d,waypoint=%s", i, p));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                           // RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-2.0, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                             robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
-//                        robot.robotDrive.purePursuitDrive.setWaypointEventHandler(
-//                            (i, p) -> robot.globalTracer.traceInfo(
-//                                "*** TEST BLUE ***", "index=%d,waypoint=%s", i, p));
                     }
-                    sm.waitForSingleEvent(event, State.DONE);//RETRACT_ODOMETRY_WHEELS);
+                    sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
 
                 case RETRACT_ODOMETRY_WHEELS:
+                    // CodeReview: after retracting od wheels, may want to check the time before running into warehouse.
                     // We are going over barriers, so retract everything to their proper heights and wait 2 seconds
                     // for them to be done.
                     robot.arm.setLevel(1);

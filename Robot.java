@@ -345,90 +345,17 @@ public class Robot
             {
                 TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
                 TrcPose2D targetPose = robotDrive.pidDrive.getAbsoluteTargetPose();
-
-                msg.append(" RobotPose=\"(");
-
-                if (robotDrive.encoderXPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", robotPose.x));
-                }
-
-                if (robotDrive.encoderYPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", robotPose.y));
-                }
-
-                if (robotDrive.gyroPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", robotPose.angle));
-                }
-
-                msg.append(")\" TargetPose=\"(");
-
-                if (robotDrive.encoderXPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", targetPose.x));
-                }
-
-                if (robotDrive.encoderYPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", targetPose.y));
-                }
-
-                if (robotDrive.gyroPidCtrl != null)
-                {
-                    msg.append(String.format(Locale.US, " %.2f", targetPose.angle));
-                }
-
-                msg.append(")\"");
+                msg.append(" RobotPose=" + robotPose + " TargetPose=" + targetPose);
             }
             else if (robotDrive.purePursuitDrive.isActive())
             {
                 TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
                 TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
                 TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition();
-
-                msg.append(String.format(" Path=%s", robotDrive.purePursuitDrive.getPath()));
-                msg.append(" RobotPose=\"(");
-
-                if (robotDrive.xPosPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, "%.2f", robotPose.x));
-                }
-
-                if (robotDrive.yPosPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, ",%.2f", robotPose.y));
-                }
-
-                if (robotDrive.turnPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, ",%.2f", robotPose.angle));
-                }
-
-                msg.append(")\" TargetPose=\"(");
-
-                if (robotDrive.xPosPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, "%.2f", targetPose.x));
-                }
-
-                if (robotDrive.yPosPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, ",%.2f", targetPose.y));
-                }
-
-                if (robotDrive.turnPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, ",%.2f", targetPose.angle));
-                }
-
-                msg.append(")\"");
-
-                if (robotDrive.velPidCoeff != null)
-                {
-                    msg.append(String.format(Locale.US, " vel=\"%.2f\"", TrcUtil.magnitude(robotVel.x, robotVel.y)));
-                }
+                msg.append(" RobotPose=" + robotPose +
+                           " TargetPose=" + targetPose +
+                           " vel=" + robotVel +
+                           " Path=" + robotDrive.purePursuitDrive.getPath());
             }
 
             if (battery != null)
