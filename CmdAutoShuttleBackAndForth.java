@@ -22,8 +22,6 @@
 
 package Ftc2022FreightFrenzy_3543;
 
-import java.util.Locale;
-
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRobot;
@@ -34,29 +32,8 @@ import TrcFtcLib.ftclib.FtcTensorFlow;
 
 class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 {
-    static final double FAST_ENCODER_X_KP                            = 0.1;
-    static final double FAST_ENCODER_X_KI                            = 0.0;
-    static final double FAST_ENCODER_X_KD                            = 0.0095;
-
-    static final double FAST_ENCODER_Y_KP                            = 0.04;
-    static final double FAST_ENCODER_Y_KI                            = 0.0;
-    static final double FAST_ENCODER_Y_KD                            = 0.004;
-
     private static final String moduleName = "CmdAutoShuttleBackAndForth";
-    private static final double ROUND_TRIP_TIME = 8.0;
-    private final Robot robot;
-    private final FtcAuto.AutoChoices autoChoices;
-    private final TrcTimer timer;
-    private final TrcEvent event;
-    private final TrcEvent pickupEvent;
-    private final TrcStateMachine<State> sm;
-    private int duckPosition = 0;
-    private Double expireTime = null;
-
-    private boolean usingVisionForPickup = false;
-    private FtcTensorFlow.TargetInfo freightInfo;
-    private final TrcPose2D lookingPos;
-
+    private static final double CYCLE_TRIP_TIME = 8.0;
 
     private enum State
     {
@@ -66,15 +43,25 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         DRIVE_INTO_WAREHOUSE,
         LOOK_FOR_FREIGHT,
         PICK_UP_FREIGHT_FROM_WAREHOUSE,
-
         DETERMINE_ROUND_TRIP_OR_DONE,
-
         RETRY_PICKUP,
-
         DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB,
 
         DONE
     }   //enum State
+
+    private final Robot robot;
+    private final FtcAuto.AutoChoices autoChoices;
+    private final TrcTimer timer;
+    private final TrcEvent event;
+    private final TrcEvent pickupEvent;
+    private final TrcStateMachine<State> sm;
+    private final TrcPose2D lookingPos;
+    private int duckPosition = 0;
+    private Double expireTime = null;
+    private boolean useVisionForPickup = false;
+
+    private FtcTensorFlow.TargetInfo freightInfo;
 
     /**
      * Constructor: Create an instance of the object.
@@ -93,18 +80,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         pickupEvent = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
         robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
-
         lookingPos = robot.robotDrive.pathPoint(1.5, -2.7, 90.0);
-
-
-//        robot.robotDrive.purePursuitDrive.setXPositionPidCoefficients(new TrcPidController.PidCoefficients(
-//                FAST_ENCODER_X_KP, FAST_ENCODER_X_KI, FAST_ENCODER_X_KD));
-//
-//       robot.robotDrive.purePursuitDrive.setYPositionPidCoefficients(new TrcPidController.PidCoefficients(FAST_ENCODER_Y_KP, FAST_ENCODER_Y_KI, FAST_ENCODER_Y_KD));
-//
-//
-//       robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
-
         sm.start(State.START_DELAY);
     }   //CmdAutoShuttleBackAndForth
 
@@ -170,7 +146,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (robot.vision != null)
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
-                        msg = String.format(Locale.US, "Duck found at position %d.", duckPosition);
+                        msg = "Duck found at position " + duckPosition;
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
@@ -181,10 +157,11 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         // We still can't see the duck, default to level 3.
                         //
                         duckPosition = 3;
-                        msg = String.format(Locale.US, "No duck found, default to position %d.", duckPosition);
+                        msg = "No duck found, default to position " + duckPosition;
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
+                    robot.arm.setLevel(1);
                     //
                     // Do start delay if any.
                     //
@@ -219,13 +196,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 3.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                     }
                     // Raise arm to the detected duck level at the same time.
@@ -237,41 +214,36 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state
-                    //robot.intake.autoAssist(RobotParams.INTAKE_POWER_DUMP, event, null, RobotParams.INTAKE_DUMP_TIME);
-
-                    robot.intake.setPower(-0.5, RobotParams.INTAKE_DUMP_TIME, event);
+                    robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
                 case DRIVE_INTO_WAREHOUSE:
                     // Fire and forget with lowering the arm.
-                    //robot.arm.setTarget(0.3, RobotParams.ARM_MIN_POS, false, null, 1.0);
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     robot.arm.setTarget(RobotParams.ARM_TRAVEL_POS);
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
                             robot.robotDrive.pathPoint(-0.5, -2.6, 90.0),
                             robot.robotDrive.pathPoint(0.5, -2.7, 90.0),
-                            robot.robotDrive.pathPoint(1.6, -2.7, 90.0));
+                            robot.robotDrive.pathPoint(1.65, -2.7, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                                robot.robotDrive.pathPoint(-0.5, 2, 0),
-                                //robot.robotDrive.pathPoint(0.5, 2.65, 90.0),
-                                robot.robotDrive.pathPoint(1.6, 2.7, 90.0));
+                            robot.robotDrive.pathPoint(-0.5, 2.6, 0.0),
+                            robot.robotDrive.pathPoint(0.5, 2.7, 90.0),
+                            robot.robotDrive.pathPoint(1.65, 2.7, 90.0));
                     }
-                    //sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     sm.waitForSingleEvent(event, State.LOOK_FOR_FREIGHT);
                     break;
 
                 case LOOK_FOR_FREIGHT:
-                    if(usingVisionForPickup){
+                    if (useVisionForPickup)
+                    {
                         freightInfo = robot.vision.getClosestFreightInfo();
                         if (freightInfo != null)
                         {
@@ -281,117 +253,114 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             }
                             sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                         }
-                        else if(expireTime==null){
-                            expireTime = TrcUtil.getCurrentTime()+2.0;
+                        else if (expireTime == null)
+                        {
+                            expireTime = TrcUtil.getCurrentTime() + 2.0;
                         }
-                        else if(TrcUtil.getCurrentTime()>expireTime){
-                            //if we cant see the freight, disable using visionForPickup because we dont want to waste any more time
-                            //looking for freight if vision is not working well
-                            usingVisionForPickup = false;
+                        else if (TrcUtil.getCurrentTime() > expireTime)
+                        {
+                            // if we cant see the freight, disable using visionForPickup because we dont want to waste
+                            // any more time looking for freight if vision is not working well.
+                            useVisionForPickup = false;
                             sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                         }
-
                     }
-                    else{
+                    else
+                    {
                         sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     }
-
-                break;
-
+                    break;
 
                 case PICK_UP_FREIGHT_FROM_WAREHOUSE:
-                    // If there are only 10 seconds left in autonomous, we go to done because we are already in the
-                    // warehouse timeout is timeleft-roundtriptime
-                    robot.globalTracer.traceInfo(moduleName, "arm position=%.1f", robot.arm.getPosition());
+                    // If there is not enough time left in autonomous, we go to done because we are already in the
+                    // warehouse timeout is timeleft - cycletriptime
                     robot.intake.autoAssist(
-                        RobotParams.INTAKE_POWER_PICKUP, pickupEvent, null, 30.0 - elapsedTime - ROUND_TRIP_TIME);
-                    //keep running drive base until next event is signaled
+                        RobotParams.INTAKE_POWER_PICKUP, pickupEvent, null, 30.0 - elapsedTime - CYCLE_TRIP_TIME);
+                    // Keep running drive base until next event is signaled
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.3);
                     robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
-
-                    //if we are using vision, drive to the target
-                    if(usingVisionForPickup){
+                    // If we are using vision, drive to the target
+                    if (useVisionForPickup)
+                    {
                         robot.robotDrive.purePursuitDrive.start(
-                                null, robot.robotDrive.driveBase.getFieldPosition(), true,
-                                new TrcPose2D(freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y ,
-                                        freightInfo.angle));
+                            event, robot.robotDrive.driveBase.getFieldPosition(), true,
+                            new TrcPose2D(
+                                freightInfo.distanceFromCamera.x, freightInfo.distanceFromCamera.y, freightInfo.angle));
                     }
                     else if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(2.6, -2.5, 90.0));
+                            robot.robotDrive.pathPoint(2.6, -2.6, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(2.6, 2.5, 90.0));
+                            robot.robotDrive.pathPoint(2.6, 2.6, 90.0));
                     }
-                    //event is signaled by intake when robot picked up a block  or pure pursuit drive is done
-                    //sm.addEvent(event);
+                    // Event is signaled by intake when robot picked up a block  or pure pursuit drive is done.
+                    sm.addEvent(event);
                     sm.addEvent(pickupEvent);
                     sm.waitForEvents(State.DETERMINE_ROUND_TRIP_OR_DONE);
-                    //sm.waitForSingleEvent(event, State.DETERMINE_ROUND_TRIP_OR_DONE);
                     break;
 
                 case DETERMINE_ROUND_TRIP_OR_DONE:
-                    // If intake has freight and there are more than round trip time left
-                    //robot.intake.setPower(0.0);
+                    // If intake has freight and there are more than round trip time left.
                     robot.robotDrive.purePursuitDrive.cancel();
+                    robot.intake.setPower(0.0);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
                     robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(false);
-
-                    if (robot.intake.hasObject() && 30.0 - elapsedTime > ROUND_TRIP_TIME)
+                    if (30.0 - elapsedTime > CYCLE_TRIP_TIME)
                     {
-                        if (robot.blinkin != null)
+                        if (robot.intake.hasObject())
                         {
-                            robot.blinkin.setPatternState(Vision.gotTarget, true);
+                            if (robot.blinkin != null)
+                            {
+                                robot.blinkin.setPatternState(Vision.gotTarget, true);
+                            }
+                            //if it has freight, keep running intake so block doesnt fall out
+                            robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
+                            //next state is driving out of warehouse (to try to dump the block)
+                            sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
                         }
-                        //if it has freight, keep running intake so block doesnt fall out
-                        robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
-                        //next state is driving out of warehouse (to try to dump the block)
-                        sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
-                    }
-                    //case where we jam blocks and dont pick anything up
-                    else if(30-elapsedTime>ROUND_TRIP_TIME){
-                        sm.setState(State.RETRY_PICKUP);
+                        else
+                        {
+                            //case where we jam blocks and don't pick anything up
+                            sm.setState(State.RETRY_PICKUP);
+                        }
                     }
                     else
                     {
-                        //turn off intake, set state to done
                         sm.setState(State.DONE);
                     }
                     break;
+
                 case RETRY_PICKUP:
                     robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
+                        event, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
                     sm.waitForSingleEvent(event, State.LOOK_FOR_FREIGHT);
                     break;
+
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
-                    //sm.setState(State.DONE);
                     distanceToHub = 1.8;
                     robot.arm.setLevel(3);
-
                     //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-                            robot.robotDrive.pathPoint(0.2, -2.6,  90.0),
-                            robot.robotDrive.pathPoint(-0.5, -2.6, 0 ),
-                            robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0));
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(0.2, -2.7,  90.0),
+                            robot.robotDrive.pathPoint(-0.5, -2.5, 0.0),
+                            robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(0.2, 2.7,  90.0),
-                            robot.robotDrive.pathPoint(-0.5, -2.7, 180),
-                            robot.robotDrive.pathPoint(-0.5, distanceToHub, 180));
+                            robot.robotDrive.pathPoint(-0.5, -2.5, 180.0),
+                            robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                     }
                     //next state is dumping
                     sm.waitForSingleEvent(event, State.DUMP_FREIGHT);

@@ -297,7 +297,12 @@ public class Vision
         return targets != null? targets[0]: null;
     }   //getBestDetectedTargetInfo
 
-    public FtcTensorFlow.TargetInfo getRealDuck()
+    /**
+     * This method looks for the rubber duck and returns its location info.
+     *
+     * @return duck location info, null if not found.
+     */
+    public FtcTensorFlow.TargetInfo getDuckLocation()
     {
         if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
@@ -305,7 +310,7 @@ public class Vision
                 LABEL_DUCK, tensorFlowVision::validateDuck);
 
         return targets != null? targets[0]: null;
-    }   //getRealDuck
+    }   //getDuckLocation
 
     /**
      * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
@@ -565,16 +570,14 @@ public class Vision
      */
     private class TensorFlowVision
     {
-        private final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
-        private final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-        private final String[] OBJECT_LABELS = {LABEL_BALL, LABEL_CUBE, LABEL_DUCK};//, LABEL_MARKER};
-
-        private final float TFOD_MIN_CONFIDENCE = 0.5f;
-        private final double ASPECT_RATIO_TOLERANCE_LOWER = 0.9;
-        private final double ASPECT_RATIO_TOLERANCE_UPPER = 1.1;
+        private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
+        private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
+        private static final float TFOD_MIN_CONFIDENCE = 0.5f;
+        private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.9;
+        private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.1;
         // Target size is area of target rect.
-        private final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
-        private final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
+        private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
+        private static final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
 
         private FtcTensorFlow tensorFlow = null;
 
@@ -599,20 +602,20 @@ public class Vision
             tfodParams.inputSize = 320;
 
             TrcHomographyMapper.Rectangle cameraRect = new TrcHomographyMapper.Rectangle(
-                    RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
-                    RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
-                    RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
-                    RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
+                RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPLEFT_Y,
+                RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_TOPRIGHT_Y,
+                RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMLEFT_Y,
+                RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_CAMERA_BOTTOMRIGHT_Y);
 
             TrcHomographyMapper.Rectangle worldRect = new TrcHomographyMapper.Rectangle(
-                    RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_Y,
-                    RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
-                    RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
-                    RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
+                RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_X, RobotParams.HOMOGRAPHY_WORLD_TOPLEFT_Y,
+                RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_TOPRIGHT_Y,
+                RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMLEFT_Y,
+                RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_X, RobotParams.HOMOGRAPHY_WORLD_BOTTOMRIGHT_Y);
 
             tensorFlow = new FtcTensorFlow(
-                    vuforia, tfodParams, TFOD_MODEL_ASSET, OBJECT_LABELS, cameraRect, worldRect,
-                    tracer);
+                vuforia, tfodParams, TFOD_MODEL_ASSET, new String[] {LABEL_BALL, LABEL_CUBE, LABEL_DUCK, LABEL_MARKER},
+                cameraRect, worldRect, tracer);
         }   //TensorFlowVision
 
         /**
@@ -654,8 +657,8 @@ public class Vision
         {
             FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
             double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
-            double area = targetInfo.rect.width*targetInfo.rect.height;
-            double distanceYTolerance = targetInfo.imageHeight/6.0;
+//            double area = targetInfo.rect.width*targetInfo.rect.height;
+//            double distanceYTolerance = targetInfo.imageHeight/6.0;
 
             return targetInfo.label.equals(LABEL_DUCK) &&
                    aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&

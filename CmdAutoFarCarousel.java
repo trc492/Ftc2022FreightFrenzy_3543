@@ -22,8 +22,6 @@
 
 package Ftc2022FreightFrenzy_3543;
 
-import java.util.Locale;
-
 import TrcCommonLib.trclib.TrcEvent;
 import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
@@ -72,7 +70,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
         timer = new TrcTimer(moduleName);
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.6);
+        robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
         sm.start(State.START_DELAY);
     }   //CmdAutoFarCarousel
 
@@ -143,7 +141,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     if (robot.vision != null)
                     {
                         duckPosition = robot.vision.getLastDuckPosition();
-                        msg = String.format(Locale.US, "Duck found at position %d.", duckPosition);
+                        msg = "Duck found at position " + duckPosition;
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
@@ -154,10 +152,11 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         // We still can't see the duck, default to level 3.
                         //
                         duckPosition = 3;
-                        msg = String.format(Locale.US, "No duck found, default to position %d.", duckPosition);
+                        msg = "No duck found, default to position " + duckPosition;
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
+                    robot.arm.setLevel(1);
                     //
                     // Do start delay if any.
                     //
@@ -199,13 +198,13 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-0.5, distanceToHub, 180.0));
                         }
                         // Raise arm to the detected duck level at the same time.
@@ -221,6 +220,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_CAROUSEL:
+                    // Delay half a second before lower the arm to avoid hitting the alliance shipping hub.
                     robot.arm.setLevel(0.5, 1);
                     if (!autoChoices.doCarousel)
                     {
@@ -233,17 +233,17 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.5, -1.0, 0.0),
                                 robot.robotDrive.pathPoint(-2.5, -2.2, 0.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 8.0, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 // First two points same as red alliance. Last point, yTarget and heading is different.
                                 robot.robotDrive.pathPoint(-2.5, 1.0, 180.0),
-                                robot.robotDrive.pathPoint(-2.5, 2.3, 180.0));
+                                robot.robotDrive.pathPoint(-2.5, 2.2, 180.0));
                         }
                         sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                     }
@@ -307,15 +307,13 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(0.5, -1.9, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 2.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(0.5, 1.8, 90.0));
                         }
                     }
@@ -325,8 +323,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-2.0, 0.0, 0.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                                 robot.robotDrive.pathPoint(0.5, -1.7, 90.0));
@@ -334,10 +331,8 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                event, 10.0, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    //RobotParams.ROBOT_MAX_VELOCITY, RobotParams.ROBOT_MAX_ACCELERATION,
-
-                                    robot.robotDrive.pathPoint(-2.0, 0.0, 180.0),
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.0, 0.0, 180.0),
                                 robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
                                 robot.robotDrive.pathPoint(0.5, 1.7, 90.0));
                         }
@@ -357,8 +352,7 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
                 case GET_INTO_WAREHOUSE:
                     robot.robotDrive.driveBase.holonomicDrive(0.0, 1.0, 0.0);
                     timer.set(0.8, event);
-                    sm.waitForSingleEvent(
-                        event, autoChoices.doCarousel? State.GET_TO_WAREHOUSE_CENTER: State.DONE);
+                    sm.waitForSingleEvent(event, autoChoices.doCarousel? State.GET_TO_WAREHOUSE_CENTER: State.DONE);
                     break;
 
                 case GET_TO_WAREHOUSE_CENTER:
