@@ -154,17 +154,7 @@ public class FtcAuto extends FtcOpMode
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:
-                if (!RobotParams.Preferences.noRobot)
-                {
-                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
-                }
-                break;
             case AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING:
-                if (!RobotParams.Preferences.noRobot)
-                {
-                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
-                }
-                break;
             case AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING:
                 if (!RobotParams.Preferences.noRobot)
                 {
@@ -383,10 +373,12 @@ public class FtcAuto extends FtcOpMode
 
         strategyMenu.addChoice("Near Carousel Autonomous", AutoStrategy.AUTO_NEAR_CAROUSEL, true, freightDeliveryMenu);
         strategyMenu.addChoice("Far Carousel Autonomous", AutoStrategy.AUTO_FAR_CAROUSEL, false, freightDeliveryMenu);
-        //the cmd shuttle back and forth and near carousel with duck does not require choices
+        // The cmd shuttle back and forth and near carousel with duck does not require choices.
         strategyMenu.addChoice("Shuttle Back and Forth Autonomous", AutoStrategy.AUTO_SHUTTLE_BACK_AND_FORTH, false);
-        strategyMenu.addChoice("Near Carousel With Duck Delivery Parking Storage Unit Auto", AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING, false);
-        strategyMenu.addChoice("Near Carousel With Duck Delivery Parking Warehouse Auto", AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING, false);
+        strategyMenu.addChoice("Near Carousel With Duck Delivery Parking Storage Unit Auto",
+                               AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING, false);
+        strategyMenu.addChoice("Near Carousel With Duck Delivery Parking Warehouse Auto",
+                               AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING, false);
 
         strategyMenu.addChoice("PID Drive", AutoStrategy.PID_DRIVE, false, xTargetMenu);
         strategyMenu.addChoice("Timed Drive", AutoStrategy.TIMED_DRIVE, false, driveTimeMenu);
@@ -424,19 +416,20 @@ public class FtcAuto extends FtcOpMode
         autoChoices.turnTarget = turnTargetMenu.getCurrentValue();
         autoChoices.driveTime = driveTimeMenu.getCurrentValue();
         autoChoices.drivePower = drivePowerMenu.getCurrentValue();
-        //
-        // Show choices.
-        //
-        //if we are doing nearcarousel duck delivery and storage or warehouse, we preset all of the choices
-        if(autoChoices.strategy==AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING||autoChoices.strategy==AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING){
+        // If we are doing NearCarousel duck delivery and storage or warehouse, we default other choices appropriately.
+        if (autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING ||
+            autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING)
+        {
             autoChoices.freightDelivery = true;
             autoChoices.duckDelivery = true;
             autoChoices.doCarousel = true;
-            autoChoices.parking = Parking.STORAGE_PARKING;
-            if(autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING){
-                autoChoices.parking = Parking.WAREHOUSE_PARKING;
-            }
+            autoChoices.parking =
+                autoChoices.strategy == AutoStrategy.AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING?
+                    Parking.WAREHOUSE_PARKING: Parking.STORAGE_PARKING;
         }
+        //
+        // Show choices.
+        //
         robot.dashboard.displayPrintf(2, "Auto Choices: %s", autoChoices);
     }   //doAutoChoicesMenus
 

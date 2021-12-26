@@ -378,7 +378,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
             if (traceState)
             {
-                robot.traceStateInfo(state);
+                robot.traceStateInfo(sm.getState());
             }
         }
 
