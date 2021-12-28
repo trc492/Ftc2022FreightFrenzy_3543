@@ -154,11 +154,16 @@ public class FtcAuto extends FtcOpMode
         switch (autoChoices.strategy)
         {
             case AUTO_NEAR_CAROUSEL:
+                if (!RobotParams.Preferences.noRobot)
+                {
+                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
+                }
+                break;
             case AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_STORAGE_PARKING:
             case AUTO_NEAR_CAROUSEL_DUCK_DELIVERY_WAREHOUSE_PARKING:
                 if (!RobotParams.Preferences.noRobot)
                 {
-                    autoCommand = new CmdAutoNearCarousel(robot, autoChoices);
+                    autoCommand = new CmdAutoNearCarouselWithDuck(robot, autoChoices);
                 }
                 break;
 
