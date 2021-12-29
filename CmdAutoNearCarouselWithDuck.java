@@ -142,8 +142,8 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     // Set robot starting position in the field.
                     //
                     robot.robotDrive.driveBase.setFieldPosition(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                                    RobotParams.STARTPOS_RED_NEAR : RobotParams.STARTPOS_BLUE_NEAR);
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                            RobotParams.STARTPOS_RED_NEAR : RobotParams.STARTPOS_BLUE_NEAR);
                     // Call vision at the beginning to figure out the position of the duck.
                     if (robot.vision != null)
                     {
@@ -182,103 +182,100 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     }
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
+                    // Drive to alliance shipping hub. We could be coming from starting position or carousel.
+                    // Note: the smaller the number the closer to the hub.
+                    double hubHeading, distanceToHub;
+                    double hubX, hubY;
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    {
+                        hubHeading = 30.0;
+                        distanceToHub = duckPosition == 3? 0.5: duckPosition == 2? 0.5: 0.5;
+                        hubX = -0.5;
+                        hubY = -1.0;
+                    }
+                    else
+                    {
+                        hubHeading = 150.0;
+                        distanceToHub = duckPosition == 3? 0.5: duckPosition == 2? 0.5: 0.5;
+                        hubX = -0.5;
+                        hubY = 1.0;
+                    }
+                    hubX -= distanceToHub*Math.sin(Math.toRadians(hubHeading));
+                    hubY -= distanceToHub*Math.cos(Math.toRadians(hubHeading));
 
-                        // Drive to alliance shipping hub. We could be coming from starting position or carousel.
-                        // Note: the smaller the number the closer to the hub.
-                        double distanceToHubX;
-                        double distanceToHubY;
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    if (deliveringDuck)
+                    {
+                        // We are coming from the duck pickup point somewhere near the carousel.
+                        if(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                            distanceToHubX = duckPosition == 3? 1: duckPosition == 2? 1: 1;
-                            distanceToHubY = duckPosition == 3? 1.8: duckPosition == 2? 1.8: 1.8;
-
-                        }
-                        else
-                        {
-                            distanceToHubX = duckPosition == 3? 1: duckPosition == 2? 1: 1;
-                            distanceToHubY = duckPosition == 3? 1.8: duckPosition == 2? 1.8: 1.8;
-
-
-                        }
-
-                        if (deliveringDuck)
-                        {
-                            // We are coming from the duck pickup point somewhere near the carousel.
-                            if(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE){
-                                robot.robotDrive.purePursuitDrive.start(
-                                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                        robot.robotDrive.pathPoint(-1.5, -2.5, 30.0),
-                                        robot.robotDrive.pathPoint(-distanceToHubX, -distanceToHubY, 30.0));
-                            }
-                            else{
-                                robot.robotDrive.purePursuitDrive.start(
-                                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                        robot.robotDrive.pathPoint(-1.5, 2.5, 150.0),
-                                        robot.robotDrive.pathPoint(-distanceToHubX, distanceToHubY, 150.0));
-                            }
-
-                        }
-                        // We are delivering freight, so we could be coming from starting position or the carousel.
-                        else if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            //add one extra point to make sure it doesnt overshoot the turn
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-
-                                    robot.robotDrive.pathPoint(-1.4, -2.2, 30.0),
-                                    robot.robotDrive.pathPoint(-distanceToHubX, -distanceToHubY, 30.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, -2.5, hubHeading),
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-
-                                    robot.robotDrive.pathPoint(-1.4, 2.2, 150.0),
-                                    robot.robotDrive.pathPoint(-distanceToHubX, distanceToHubY, 150.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, 2.5, 150.0),
+                                robot.robotDrive.pathPoint(hubX, hubY, 150.0));
                         }
-                        // Raise arm to the detected duck level at the same time.
-                        robot.arm.setLevel(duckPosition);
-                        // After we dump the freight to the right level for the bonus, any subsequent dumps will be to
-                        // the top.
-                        duckPosition = 3;
-                        sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
-
+                    }
+                    // We are delivering freight, so we could be coming from starting position or the carousel.
+                    else if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    {
+                        //add one extra point to make sure it doesnt overshoot the turn
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-1.4, -2.2, hubHeading),
+                            robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
+                    }
+                    else
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-1.4, 2.2, hubHeading),
+                            robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
+                    }
+                    // Raise arm to the detected duck level at the same time.
+                    robot.arm.setLevel(duckPosition);
+                    // After we dump the freight to the right level for the bonus, any subsequent dumps will be to
+                    // the top.
+                    duckPosition = 3;
+                    sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     break;
 
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done, signals event and goes to next state.
                     robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(
-                            event, deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.DRIVE_TO_CAROUSEL);
+                        event, deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.DRIVE_TO_CAROUSEL);
                     break;
 
                 case DRIVE_TO_CAROUSEL:
-                        // Drive to the carousel from the shipping hub
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.3, -1.8, 0.0));
-                                    robot.robotDrive.pathPoint(-2.3, -2.5, 0.0);
-                        }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.3, 1.8, 180.0));
-                                    robot.robotDrive.pathPoint(-2.3, 2.5, 180.0);
-
-                        }
-
-                        sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
-
+                    // Drive to the carousel from the shipping hub
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.3, -1.8, 0.0),
+                            robot.robotDrive.pathPoint(-2.3, -2.5, 0.0));
+                    }
+                    else
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.3, 1.8, 180.0),
+                            robot.robotDrive.pathPoint(-2.3, 2.5, 180.0));
+                    }
+                    sm.waitForSingleEvent(event, State.GET_TO_CAROUSEL);
                     break;
 
                 case GET_TO_CAROUSEL:
                     //set arm to level 0
-                    robot.arm.setLevel(0, 0);
+                    robot.arm.setLevel(0);
                     // We are a few inches from the carousel, strafe to the left
-                    robot.robotDrive.driveBase.holonomicDrive(-0.2,0.0 , 0.0, false);
+                    robot.robotDrive.driveBase.holonomicDrive(-0.2, 0.0, 0.0, false);
                     timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.8: 0.8, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
@@ -286,33 +283,29 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                 case SPIN_CAROUSEL:
                     // We touched the carousel, so stop the drive base.
                     robot.robotDrive.driveBase.stop();
-                    // Spin the carousel a bit extra time so duck doesnt go far
+                    // Spin the carousel a bit extra time so duck doesn't go far.
                     robot.spinner.set(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
-                                    RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
-                            RobotParams.SPINNER_TIME+1.0, event);
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                            RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
+                        RobotParams.SPINNER_TIME + 1.0, event);
                     sm.waitForSingleEvent(event, State.PREP_FOR_FINDING_THE_DUCK);
                     break;
 
-
-
                 case PREP_FOR_FINDING_THE_DUCK:
-
-                        if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-0.8, -2.3, 250.0));
-                        }
-                        else
-                        {
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-0.8, 2.3, 290.0));
-                        }
-                        retryCount = 0;
-                        sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
-
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-0.8, -2.3, 250.0));
+                    }
+                    else
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-0.8, 2.3, 290.0));
+                    }
+                    retryCount = 0;
+                    sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                     break;
 
                 case FIND_THE_DUCK:
@@ -324,8 +317,8 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                             robot.blinkin.setPatternState(Vision.sawTarget, true);
                         }
                         robot.globalTracer.traceInfo(
-                                moduleName, "Found the duck at x=%.1f, y=%.1f, angle=%.1f",
-                                targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y, targetInfo.angle);
+                            moduleName, "Found the duck at x=%.1f, y=%.1f, angle=%.1f",
+                            targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y, targetInfo.angle);
                         robot.speak("Found the duck.");
                         sm.setState(State.GO_PICKUP_DUCK);
                     }
@@ -335,40 +328,36 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     }
                     else if (TrcUtil.getCurrentTime() > expireTime)
                     {
-                        if (retryCount == 1)
+                        if (retryCount == 0)
                         {
-                            // Did not find the duck the second time,  go forward and look again.
+                            // Did not find the duck the first time, go forward and look again.
                             robot.globalTracer.traceInfo(moduleName, "<<<<< Go Forward and Look Again!");
                             robot.speak("Go Forward and Look Again ");
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), true,
-                                    robot.robotDrive.pathPoint(0.0, 10.0, 0.0));
-
+                                event, robot.robotDrive.driveBase.getFieldPosition(), true,
+                                new TrcPose2D(0.0, 10.0, 0.0));
                             sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
-                            expireTime=null;
+                            expireTime = null;
                             retryCount++;
                         }
-                        else if (retryCount == 2)
+                        else if (retryCount == 1)
+                        {
+                            // Did not find the duck the second time, go further forward and look again.
+                            robot.globalTracer.traceInfo(moduleName, "<<<<< Go Forward and Look Again!");
+                            robot.speak("Go Forward and Look Again ");
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), true,
+                                new TrcPose2D(0.0, 10.0, 0.0));
+                            sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
+                            expireTime = null;
+                            retryCount++;
+                        }
+                        else
                         {
                             robot.globalTracer.traceInfo(moduleName, "<<<<< Duck not found, giving up!");
                             robot.speak("Duck not found, giving up.");
                             // Did not find the duck the third time, give up and park.
                             sm.setState(State.DRIVE_TO_ALLIANCE_STORAGE_UNIT);
-                        }
-                        else
-                        {
-                            // Did not find the duck the first time, turn left and look again.
-                            robot.globalTracer.traceInfo(moduleName, "<<<<< Go Forward and Look Again!");
-                            robot.speak("Go Forward and Look Again ");
-                            robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), true,
-                                    robot.robotDrive.pathPoint(0.0, 10.0, 0.0));
-//                           robot.robotDrive.purePursuitDrive.start(
-//                               event, robot.robotDrive.driveBase.getFieldPosition(), true,
-//                               new TrcPose2D(0.0, 0.0, -30.0));
-                            sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
-                            expireTime=null;
-                            retryCount++;
                         }
                     }
                     break;
@@ -382,11 +371,11 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), true,
-                            new TrcPose2D(
-                                    targetInfo.distanceFromCamera.x,
-                                    targetInfo.distanceFromCamera.y - 4.0,    //adjust for intake offset from robot centroid.
-                                    targetInfo.angle));
+                        event, robot.robotDrive.driveBase.getFieldPosition(), true,
+                        new TrcPose2D(
+                            targetInfo.distanceFromCamera.x,
+                            targetInfo.distanceFromCamera.y - 4.0,    //adjust for intake offset from robot centroid.
+                            targetInfo.angle));
                     deliveringDuck = true;
                     sm.waitForSingleEvent(event, State.DONE_PICKUP_DUCK);
                     break;
@@ -405,49 +394,48 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                         sm.setState(State.DONE);
                     }
                     // If we don't have enough time to go to the warehouse, park at the storage unit instead.
-                    else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING  &&
-                            30.0 - elapsedTime > PARK_WAREHOUSE_TIME)
+                    else if (autoChoices.parking == FtcAuto.Parking.WAREHOUSE_PARKING &&
+                             30.0 - elapsedTime > PARK_WAREHOUSE_TIME)
                     {
                         // We are parking at the warehouse.
                         sm.setState(State.DRIVE_TO_WAREHOUSE);
                     }
                     else
                     {
-                        // Drive to storage unit. We could be coming from starting position, carousel or alliance hub.
+                        // Drive to storage unit. We could be coming from picking up duck or alliance hub.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.5, -1.4, 90.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.5, -1.4, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-2.5, 1.4, 90.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-2.5, 1.4, 90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;
 
                 case DRIVE_TO_WAREHOUSE:
-                    // We are heading to the warehouse but we could be coming from starting position, carousel or
-                    // alliance hub.
+                    // We are heading to the warehouse but we could be coming from picking up duck or alliance hub.
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-1.5, -0.2, 90.0),
-                                robot.robotDrive.pathPoint(0.5, -0.2, 90.0),
-                                robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-1.5, 0.0, 90.0),
+                            robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
+                            robot.robotDrive.pathPoint(0.5, -1.6, 90.0));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-1.5, -0.2, 90.0),
-                                robot.robotDrive.pathPoint(0.5, -0.2, 90.0),
-                                robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-1.5, 0.0, 90.0),
+                            robot.robotDrive.pathPoint(0.5, 0.0, 90.0),
+                            robot.robotDrive.pathPoint(0.5, 1.6, 90.0));
                     }
                     sm.waitForSingleEvent(event, State.RETRACT_ODOMETRY_WHEELS);
                     break;
@@ -472,7 +460,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 
                 case GET_TO_WAREHOUSE_CENTER:
                     robot.robotDrive.driveBase.holonomicDrive(
-                            autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 1.0: -1.0, 0.0, 0.0);
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 1.0: -1.0, 0.0, 0.0);
                     timer.set(0.25, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
@@ -496,4 +484,4 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         return !sm.isEnabled();
     }   //cmdPeriodic
 
-}   //class CmdAutoNearCarousel
+}   //class CmdAutoNearCarouselWithDuck
