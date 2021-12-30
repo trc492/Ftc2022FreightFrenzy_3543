@@ -164,6 +164,8 @@ public class RobotDrive
             "purePursuitDrive", driveBase,
             RobotParams.PPD_FOLLOWING_DISTANCE, RobotParams.PPD_POS_TOLERANCE, RobotParams.PPD_TURN_TOLERANCE,
             xPosPidCoeff, yPosPidCoeff, turnPidCoeff, velPidCoeff);
+        purePursuitDrive.getXPosPidCtrl().setSteadyStateErrorByMultiplier(2.0);
+        purePursuitDrive.getYPosPidCtrl().setSteadyStateErrorByMultiplier(2.0);
     }   //RobotDrive
 
     /**
