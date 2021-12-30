@@ -543,6 +543,11 @@ public class FtcTest extends FtcTeleOp
                     break;
 
                 case FtcGamepad.GAMEPAD_DPAD_UP:
+                    if (robot.vision != null && RobotParams.Preferences.useTensorFlow)
+                    {
+                        robot.vision.setTensorFlowZoomFactor(pressed? 1.5: 1.0);
+                    }
+                    processed = true;
                     break;
 
                 case FtcGamepad.GAMEPAD_DPAD_DOWN:

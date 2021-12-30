@@ -239,6 +239,13 @@ public class Vision
         }
     }   //setTensorFlowEnabled
 
+    public void setTensorFlowZoomFactor(double factor)
+    {
+        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+
+        tensorFlowVision.tensorFlow.setZoom(factor, 16.0/9.0);
+    }   //setTensorFlowZoomFactor
+
     /**
      * This method shuts down TensorFlow.
      */

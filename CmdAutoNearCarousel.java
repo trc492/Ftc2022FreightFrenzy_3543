@@ -219,7 +219,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     robot.spinner.set(
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
                             RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
-                        RobotParams.SPINNER_TIME, event);
+                        RobotParams.SPINNER_TIME+1, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
 
@@ -377,7 +377,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     // assumes distance from game object gives distance from computer to actual object
                     //robot.intake.autoAssist(RobotParams.INTAKE_POWER_PICKUP, event2, null, 3.0);
                     robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.25);
                     robot.robotDrive.purePursuitDrive.start(
                         event, robot.robotDrive.driveBase.getFieldPosition(), true,
                         new TrcPose2D(
