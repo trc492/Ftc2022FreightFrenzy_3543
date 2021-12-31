@@ -359,9 +359,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
                             robot.robotDrive.pathPoint(1.5, -2.7,  90.0),
-                                robot.robotDrive.pathPoint(-0.4, -2.7,  90.0),
-
-                                robot.robotDrive.pathPoint(-0.4, -2.5, 0.0),
+                            robot.robotDrive.pathPoint(-0.4, -2.7,  90.0),
+                            robot.robotDrive.pathPoint(-0.4, -2.5, 0.0),
                             robot.robotDrive.pathPoint(-0.4, -distanceToHub, 0.0));
                     }
                     else
