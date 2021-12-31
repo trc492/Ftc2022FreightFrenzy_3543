@@ -284,7 +284,6 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         RobotParams.INTAKE_POWER_PICKUP, pickupEvent, null, 30.0 - elapsedTime - CYCLE_TRIP_TIME);
                     // Keep running drive base until next event is signaled
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.3);
-                    robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
                     // If we are using vision, drive to the target
                     if (useVisionForPickup)
                     {
@@ -351,7 +350,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
                     distanceToHub = 1.8;
                     robot.arm.setLevel(3);
-                    //robot.robotDrive.purePursuitDrive.setWaypointEventHandler(this::wayPointEvent);
+//                    robot.robotDrive.purePursuitDrive.setWaypointEventHandler(this::wayPointEvent);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
