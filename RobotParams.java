@@ -149,7 +149,7 @@ public class RobotParams
 //    static final double ENCODER_Y_KD                            = 0.002;
     static final double ENCODER_Y_KP                            = 0.04;
     static final double ENCODER_Y_KI                            = 0.0;
-    static final double ENCODER_Y_KD                            = 0.004;
+    static final double ENCODER_Y_KD                            = 0.005;
     static final double ENCODER_Y_TOLERANCE                     = 1.0;
     static final double ENCODER_Y_INCHES_PER_COUNT              = 0.02166184604662450653409090909091;
 
@@ -240,7 +240,7 @@ public class RobotParams
     static final double INTAKE_POWER_PICKUP                     = 1.0;
     static final double INTAKE_POWER_DUMP                       = -0.6;
     static final double INTAKE_DUMP_TIME                        = 1.2;
-    static final double INTAKE_SENSOR_THRESHOLD                 = 4.4;    //in cm
+    static final double INTAKE_SENSOR_THRESHOLD                 = 4.6;    //in cm
     //
     // Spinner subsystem.
     //

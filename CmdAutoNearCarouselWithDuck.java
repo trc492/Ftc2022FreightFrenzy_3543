@@ -196,7 +196,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         hubHeading = 30.0;
-                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 1: 1;
+                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 1: 0.85;
                         hubX = -0.5;
                         hubY = -1.0;
                     }
@@ -273,7 +273,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 //robot.robotDrive.pathPoint(-2.3, -2.1, 0.0),
                                 robot.robotDrive.pathPoint(-1.5, -1.5, 40),
-                                robot.robotDrive.pathPoint(-2.2, -2.4, 40));
+                                robot.robotDrive.pathPoint(-2.2, -2.4, 45));
                     }
                     else
                     {
@@ -286,7 +286,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 
                 case GET_TO_CAROUSEL:
                     // We are a few inches from the carousel, drive slowly towards it to touch it.
-                    robot.robotDrive.driveBase.holonomicDrive(0.0, -0.25, 0.0, false);
+                    robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
                     timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.8: 0.8, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;

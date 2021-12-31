@@ -28,6 +28,7 @@ import TrcCommonLib.trclib.TrcRobot;
 import TrcCommonLib.trclib.TrcStateMachine;
 import TrcCommonLib.trclib.TrcTimer;
 import TrcCommonLib.trclib.TrcUtil;
+import TrcCommonLib.trclib.TrcWaypoint;
 import TrcFtcLib.ftclib.FtcTensorFlow;
 
 class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
@@ -161,10 +162,14 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         robot.globalTracer.traceInfo(moduleName, msg);
                         robot.speak(msg);
                     }
-                    robot.arm.setLevel(1);
+                    robot.arm.setLevel(duckPosition);
                     //
                     // Do start delay if any.
                     //
+                    if (autoChoices.startDelay < 1.0)
+                    {
+                        autoChoices.startDelay = 1.0;
+                    }
                     if (autoChoices.startDelay == 0.0)
                     {
                         //
@@ -186,7 +191,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
-                        distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.95: 1.95;
+                        distanceToHub = duckPosition == 3? 1.7: duckPosition == 2? 1.95: 1.8;
                     }
                     else
                     {
@@ -197,7 +202,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
+                            robot.robotDrive.pathPoint(-0.4, -distanceToHub, 0.0));
                     }
                     else
                     {
@@ -220,7 +225,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
                 case DRIVE_INTO_WAREHOUSE:
                     // Fire and forget with lowering the arm.
-                    robot.arm.setTarget(RobotParams.ARM_TRAVEL_POS);
+                    robot.arm.setLevel(0.5, 0);
+                    //robot.arm.setTarget(RobotParams.ARM_TRAVEL_POS);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
@@ -345,14 +351,18 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
                     distanceToHub = 1.8;
                     robot.arm.setLevel(3);
+                    //robot.robotDrive.purePursuitDrive.setWaypointEventHandler(this::wayPointEvent);
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
                     //back out to around the place where we start but still facing the warehouse and then drive to the shipping hub
                     if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(0.2, -2.7,  90.0),
-                            robot.robotDrive.pathPoint(-0.5, -2.5, 0.0),
-                            robot.robotDrive.pathPoint(-0.5, -distanceToHub, 0.0));
+                            robot.robotDrive.pathPoint(1.5, -2.7,  90.0),
+                                robot.robotDrive.pathPoint(-0.4, -2.7,  90.0),
+
+                                robot.robotDrive.pathPoint(-0.4, -2.5, 0.0),
+                            robot.robotDrive.pathPoint(-0.4, -distanceToHub, 0.0));
                     }
                     else
                     {
@@ -384,5 +394,19 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
 
         return !sm.isEnabled();
     }   //cmdPeriodic
+
+    private void wayPointEvent(int index, TrcWaypoint waypoint)
+    {
+        robot.globalTracer.traceInfo(
+                moduleName + ".wayPointEvent", "<<<< [%d] WayPoint=%s", index, waypoint);
+        if (index < 2)
+        {
+            robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
+        }
+        else if (index == 3)
+        {
+            robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
+        }
+    }   //wayPointEvent
 
 }   //class CmdAutoShuttleBackAndForth
