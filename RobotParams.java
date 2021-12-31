@@ -180,7 +180,9 @@ public class RobotParams
     static final double ROBOT_VEL_KF                            = 1.0 / ROBOT_MAX_VELOCITY;
     static final double PPD_FOLLOWING_DISTANCE                  = 6.0;
     static final double PPD_POS_TOLERANCE                       = 2.0;
-    static final double PPD_TURN_TOLERANCE                      = 2.0;
+    static final double PPD_POS_STEADY_STATE_ERR                = 4.0;
+    static final double PPD_TURN_TOLERANCE                      = 1.0;
+    static final double PPD_TURN_STEADY_STATE_ERR               = 2.0;
 
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_X             = 0.0;
     static final double HOMOGRAPHY_CAMERA_TOPLEFT_Y             = 0.0;

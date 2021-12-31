@@ -219,7 +219,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     robot.spinner.set(
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
                             RobotParams.SPINNER_POWER_RED: RobotParams.SPINNER_POWER_BLUE,
-                        RobotParams.SPINNER_TIME+1, event);
+                        RobotParams.SPINNER_TIME + 1.0, event);
                     sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
 
