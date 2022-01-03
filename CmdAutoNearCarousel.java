@@ -360,11 +360,12 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
 //                           robot.robotDrive.pidDrive.setRelativeTurnTarget(
 //                               robot.robotDrive.driveBase.getHeading() - 30.0, event);
                            robot.vision.setTensorFlowZoomFactor(1.5);
+                           sm.setState(State.FIND_THE_DUCK);
                            //TODO: debug why Pure Pursuit does not turn and also debug PidDrive relative turn.
 //                           robot.robotDrive.purePursuitDrive.start(
 //                               event, robot.robotDrive.driveBase.getFieldPosition(), true,
 //                               new TrcPose2D(0.0, 0.0, -30.0));
-                           sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
+//                           sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                            expireTime=null;
                            retryCount++;
                        }

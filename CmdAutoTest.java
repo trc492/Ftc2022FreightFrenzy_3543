@@ -155,7 +155,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 
 //                    robot.robotDrive.purePursuitDrive.start(
 //                        driveEvent, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
-                    sm.waitForSingleEvent(driveEvent, State.TEST_DRIVING);//LOOK_FOR_FREIGHT);
+//                    sm.waitForSingleEvent(driveEvent, State.TEST_DRIVING);//LOOK_FOR_FREIGHT);
+                    sm.setState(State.TEST_DRIVING);
                     break;
 
                 case TEST_DRIVING:
