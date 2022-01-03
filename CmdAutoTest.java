@@ -35,6 +35,9 @@ class CmdAutoTest implements TrcRobot.RobotCommand
     private enum State
     {
         START,
+
+        TEST_DRIVING,
+
         LOOK_FOR_FREIGHT,
         PICKING_UP_FREIGHT,
         CHECK_FOR_FREIGHT,
@@ -73,7 +76,6 @@ class CmdAutoTest implements TrcRobot.RobotCommand
         pickupEvent = new TrcEvent(moduleName + ".pickupEvent");
         sm = new TrcStateMachine<>(moduleName);
 
-        //robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_NEAR);
 
         startPos = robot.robotDrive.pathPoint(0.5, -2.7, 90.0);
         lookingPos = robot.robotDrive.pathPoint(1.5, -2.7, 90.0);
@@ -138,7 +140,8 @@ class CmdAutoTest implements TrcRobot.RobotCommand
             switch (state)
             {
                 case START:
-                    robot.robotDrive.driveBase.setFieldPosition(startPos);
+                    //robot.robotDrive.driveBase.setFieldPosition(startPos);
+                    robot.robotDrive.driveBase.setFieldPosition(RobotParams.STARTPOS_RED_NEAR);
 
                     if (robot.blinkin != null)
                     {
@@ -150,10 +153,20 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                         robot.arm.setTarget(RobotParams.ARM_TRAVEL_POS);
                     }
 
-                    robot.robotDrive.purePursuitDrive.start(
-                        driveEvent, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
-                    sm.waitForSingleEvent(driveEvent, State.LOOK_FOR_FREIGHT);
+//                    robot.robotDrive.purePursuitDrive.start(
+//                        driveEvent, robot.robotDrive.driveBase.getFieldPosition(), false, lookingPos);
+                    sm.waitForSingleEvent(driveEvent, State.TEST_DRIVING);//LOOK_FOR_FREIGHT);
                     break;
+
+                case TEST_DRIVING:
+                    robot.robotDrive.purePursuitDrive.start(
+                            driveEvent, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.0, -2.5, 225.0),
+                            robot.robotDrive.pathPoint(-1, -1.0, 90.0));
+                    sm.waitForSingleEvent(driveEvent, State.DONE);
+
+
+
 
                 case LOOK_FOR_FREIGHT:
                     freightInfo = robot.vision.getClosestFreightInfo();

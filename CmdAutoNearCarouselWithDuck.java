@@ -50,6 +50,9 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         GO_PICKUP_DUCK,
         DONE_PICKUP_DUCK,
 
+        TURN_AROUND,
+        DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK,
+
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE,
         RETRACT_ODOMETRY_WHEELS,
@@ -133,7 +136,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         else
         {
             boolean traceState = true;
-            boolean drivingTest = true;
+            boolean drivingTest = false;
             String msg;
 
             robot.dashboard.displayPrintf(1, "State: %s", state);
@@ -431,12 +434,25 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     sm.waitForSingleEvent(event, State.DONE_PICKUP_DUCK);
                     break;
 
+
+
+
                 case DONE_PICKUP_DUCK:
                     // Keep spinning the intake at low power to keep the duck from falling out.
                     robot.intake.setPower(0.5);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
-                    sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
+                    sm.setState(State.TURN_AROUND);
                     break;
+
+                case TURN_AROUND:
+                    robot.robotDrive.pidDrive.setAbsoluteTarget(0, 0, 45, event);
+                    sm.waitForSingleEvent(event,State.DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK );
+
+                case DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK:
+                    robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.0, 1.0, robot.robotDrive.driveBase.getHeading()));
+                    sm.waitForSingleEvent(event,State.DONE);
 
 
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
