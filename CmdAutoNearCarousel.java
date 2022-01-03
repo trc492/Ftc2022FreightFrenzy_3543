@@ -300,7 +300,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.0, -1.0, 180.0));
+                                robot.robotDrive.pathPoint(-2.0, -1.7, 180.0));
                         }
                         else
                         {
@@ -339,8 +339,8 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                            robot.globalTracer.traceInfo(moduleName, "<<<<< Turn back and go forward to look again!");
                            robot.speak("Turn back and go forward to look again.");
                            robot.robotDrive.purePursuitDrive.start(
-                               event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                               robot.robotDrive.pathPoint(-2.5, -1.5, 180.0));
+                               event, robot.robotDrive.driveBase.getFieldPosition(), true,
+                              new TrcPose2D(-10, 0, 0.0));
                            sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                            expireTime = null;
                            retryCount++;
@@ -355,10 +355,11 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                        else
                        {
                            // Did not find the duck the first time, turn left and look again.
-                           robot.globalTracer.traceInfo(moduleName, "<<<<< Turn left and look again!");
-                           robot.speak("Turn left and look again.");
-                           robot.robotDrive.pidDrive.setRelativeTurnTarget(
-                               robot.robotDrive.driveBase.getHeading() - 30.0, event);
+                           robot.globalTracer.traceInfo(moduleName, "<<<<< Zoom in  and look again!");
+                           robot.speak("Zoom in and Look again ");
+//                           robot.robotDrive.pidDrive.setRelativeTurnTarget(
+//                               robot.robotDrive.driveBase.getHeading() - 30.0, event);
+                           robot.vision.setTensorFlowZoomFactor(1.5);
                            //TODO: debug why Pure Pursuit does not turn and also debug PidDrive relative turn.
 //                           robot.robotDrive.purePursuitDrive.start(
 //                               event, robot.robotDrive.driveBase.getFieldPosition(), true,
