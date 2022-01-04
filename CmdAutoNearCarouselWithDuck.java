@@ -225,25 +225,25 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     if (deliveringDuck)
                     {
 //                        // We are coming from the duck pickup point somewhere near the carousel.
-                        robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-2.0, -1.0, 225.0),
-                            robot.robotDrive.pathPoint(-1, -1.0, 90.0));
-////                        // We are coming from the duck pickup point somewhere near the carousel.
-////                        if(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-////                        {
-////                            robot.robotDrive.purePursuitDrive.start(
-////                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-////                                robot.robotDrive.pathPoint(-1.5, -2.5, hubHeading),
-////                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
-////                        }
-////                        else
-////                        {
-////                            robot.robotDrive.purePursuitDrive.start(
-////                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-////                                robot.robotDrive.pathPoint(-1.5, 2.5, 150.0),
-////                                robot.robotDrive.pathPoint(hubX, hubY, 150.0));
-////                        }
+//                        robot.robotDrive.purePursuitDrive.start(
+//                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                            robot.robotDrive.pathPoint(-2.0, -1.0, 225.0),
+//                            robot.robotDrive.pathPoint(-1, -1.0, 90.0));
+                        // We are coming from the duck pickup point somewhere near the carousel.
+                        if(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                        {
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, -2.5, hubHeading),
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
+                        }
+                        else
+                        {
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, 2.5, 150.0),
+                                robot.robotDrive.pathPoint(hubX, hubY, 150.0));
+                        }
                     }
                     // We are delivering freight, so we could be coming from starting position or the carousel.
                     else if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
@@ -439,21 +439,31 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 
                 case DONE_PICKUP_DUCK:
                     // Keep spinning the intake at low power to keep the duck from falling out.
-                    robot.intake.setPower(0.5);
+                    robot.intake.setPower(0.3);
                     robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
-                    sm.setState(State.TURN_AROUND);
+                    sm.setState(State.TURN_AROUND);//DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
 
                 case TURN_AROUND:
-                    robot.robotDrive.pidDrive.setAbsoluteTarget(0, 0, 45, event);
-                    sm.waitForSingleEvent(event,State.DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK );
-
+                    //robot.robotDrive.purePursuitDrive.cancel();
+                    robot.globalTracer.traceInfo("<><><>", "FieldPos=%s, robotX=%.2f, robotY=%.2f, robotHeading=%.2f",
+                            robot.robotDrive.driveBase.getFieldPosition(),
+                            robot.robotDrive.driveBase.getXPosition(),
+                            robot.robotDrive.driveBase.getYPosition(),
+                            robot.robotDrive.driveBase.getHeading());
+//                    robot.robotDrive.purePursuitDrive.enableCatcher();
+//                    robot.robotDrive.purePursuitDrive.start(
+//                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                            new TrcPose2D(robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(), 60));
+                    robot.robotDrive.pidDrive.setRelativeTurnTarget(45, event);
+                    sm.waitForSingleEvent(event,State.DONE);//DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK);
+                    break;
                 case DRIVE_TO_ALLIANCE_SPINNING_HUB_FROM_DUCK:
                     robot.robotDrive.purePursuitDrive.start(
                         event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        robot.robotDrive.pathPoint(-2.0, 1.0, robot.robotDrive.driveBase.getHeading()));
+                        robot.robotDrive.pathPoint(-2.0, -1.0, robot.robotDrive.driveBase.getHeading()));
                     sm.waitForSingleEvent(event,State.DONE);
-
+                    break;
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
                     if (autoChoices.parking == FtcAuto.Parking.NO_PARKING)
                     {
@@ -472,9 +482,17 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                         // Drive to storage unit. We could be coming from picking up duck or alliance hub.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                            robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, -1.4, 90.0));
+                            if(deliveringDuck){
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(-1.5, -1.5, 90),
+                                        robot.robotDrive.pathPoint(-2.45, -1.6, 90.0));
+                            }
+                            else {
+                                robot.robotDrive.purePursuitDrive.start(
+                                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                        robot.robotDrive.pathPoint(-2.5, -1.5, 90));
+                            }
                         }
                         else
                         {
