@@ -85,7 +85,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 //            robot.robotDrive.yPosPidCoeff, robot.robotDrive.turnPidCoeff, robot.robotDrive.velPidCoeff);
 //        purePursuitDrive.setMsgTracer(robot.globalTracer);
 //        robot.arm.zeroCalibrate();
-        sm.start(State.START);
+        sm.start(State.PP_DRIVE);
     }   //CmdAutoTest
 
     //
@@ -293,7 +293,7 @@ class CmdAutoTest implements TrcRobot.RobotCommand
                     robot.robotDrive.purePursuitDrive.setStallDetectionEnabled(true);
                     robot.robotDrive.purePursuitDrive.start(
                         driveEvent, robot.robotDrive.driveBase.getFieldPosition(), true,
-                        new TrcPose2D(0.0, 24.0, 0.0));
+                        new TrcPose2D(0.0, 0.0, 90.0));
                     sm.waitForSingleEvent(driveEvent, State.DONE);
                     break;
 
