@@ -579,7 +579,7 @@ public class Vision
     {
         private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
         private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
-        private static final float TFOD_MIN_CONFIDENCE = 0.5f;
+        private static final float TFOD_MIN_CONFIDENCE = 0.2f;
         private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.9;
         private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.1;
         // Target size is area of target rect.
