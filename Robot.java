@@ -170,7 +170,7 @@ public class Robot
                 if (RobotParams.Preferences.useIntake)
                 {
                     TrcIntake.Parameters intakeParams = new TrcIntake.Parameters()
-                        .setMotorInverted(false)
+                        .setMotorInverted(true)
                         .setTriggerInverted(true)
                         .setAnalogThreshold(RobotParams.INTAKE_SENSOR_THRESHOLD)
                         .setMsgTracer(globalTracer);
