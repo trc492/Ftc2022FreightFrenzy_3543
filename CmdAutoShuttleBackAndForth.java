@@ -170,6 +170,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         autoChoices.startDelay = 1.0;
                     }
+
                     if (autoChoices.startDelay == 0.0)
                     {
                         //
@@ -265,7 +266,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         }
                         else if (TrcUtil.getCurrentTime() > expireTime)
                         {
-                            // if we cant see the freight, disable using visionForPickup because we dont want to waste
+                            // if we cant see the freight, disable visionForPickup because we dont want to waste
                             // any more time looking for freight if vision is not working well.
                             useVisionForPickup = false;
                             sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);

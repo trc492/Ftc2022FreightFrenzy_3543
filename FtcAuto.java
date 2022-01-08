@@ -394,14 +394,14 @@ public class FtcAuto extends FtcOpMode
         freightDeliveryMenu.addChoice("Do Delivery", true, true, duckDeliveryMenu);
         freightDeliveryMenu.addChoice("No Delivery", false, false, duckDeliveryMenu);
 
-        duckDeliveryMenu.addChoice("Do Duck Delivery ", true, false, carouselMenu);
-        duckDeliveryMenu.addChoice("No Duck Delivery", false, true, carouselMenu);
+        duckDeliveryMenu.addChoice("Do Duck Delivery ", true, true, carouselMenu);
+        duckDeliveryMenu.addChoice("No Duck Delivery", false, false, carouselMenu);
 
         carouselMenu.addChoice("Do Carousel", true, true, parkingMenu);
         carouselMenu.addChoice("No Carousel", false, false, parkingMenu);
 
-        parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, true);
-        parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, false);
+        parkingMenu.addChoice("Storage Parking", Parking.STORAGE_PARKING, false);
+        parkingMenu.addChoice("Warehouse Parking", Parking.WAREHOUSE_PARKING, true);
         parkingMenu.addChoice("No Parking", Parking.NO_PARKING, false);
         //
         // Traverse menus.

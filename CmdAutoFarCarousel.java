@@ -188,11 +188,11 @@ class CmdAutoFarCarousel implements TrcRobot.RobotCommand
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                            distanceToHub = duckPosition == 3? 1.87: duckPosition == 2? 1.95: 1.95;
+                            distanceToHub = duckPosition == 3? 1.75: duckPosition == 2? 1.75: 1.7;
                         }
                         else
                         {
-                            distanceToHub = duckPosition == 3? 1.9: duckPosition == 2? 1.95: 1.9;
+                            distanceToHub = duckPosition == 3? 1.75: duckPosition == 2? 1.75: 1.7;
                         }
 
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
