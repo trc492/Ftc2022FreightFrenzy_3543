@@ -208,7 +208,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     else
                     {
                         hubHeading = 180.0 - 30.0;
-                        distanceToHub = duckPosition == 3? 1: duckPosition == 2? 1: 1;
+                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
                         hubX = -0.5;
                         hubY = 1.0;
                     }
