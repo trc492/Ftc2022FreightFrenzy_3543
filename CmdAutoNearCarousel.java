@@ -44,7 +44,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
         DRIVE_TO_ALLIANCE_SHIPPING_HUB,
         DUMP_FREIGHT,
 
-        PREP_FOR_FINDING_THE_DUCK,
+        POSITION_TO_FIND_THE_DUCK,
         FIND_THE_DUCK,
         GO_PICKUP_DUCK,
         DONE_PICKUP_DUCK,
@@ -227,7 +227,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     if (!autoChoices.freightDelivery)
                     {
                         // We are not doing freight delivery, go to next state.
-                        sm.setState(State.PREP_FOR_FINDING_THE_DUCK);
+                        sm.setState(State.POSITION_TO_FIND_THE_DUCK);
                     }
                     else
                     {
@@ -294,10 +294,10 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     // Dumps the freight, when done, signals event and goes to next state.
                     robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
                     sm.waitForSingleEvent(
-                        event, deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.PREP_FOR_FINDING_THE_DUCK);
+                        event, deliveringDuck? State.DRIVE_TO_ALLIANCE_STORAGE_UNIT: State.POSITION_TO_FIND_THE_DUCK);
                     break;
 
-                case PREP_FOR_FINDING_THE_DUCK:
+                case POSITION_TO_FIND_THE_DUCK:
                     robot.arm.setLevel(0.25, 0);
                     // If we did not do Carousel, there is no duck on the floor, so skip it.
                     if (!autoChoices.duckDelivery || !autoChoices.doCarousel)
