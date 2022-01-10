@@ -333,6 +333,38 @@ public class Vision
     }   //compareCameraAngle
 
     /**
+     * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
+     *
+     * @param a specifies the first target
+     * @param b specifies the second target.
+     * @return negative value if a has smaller camera angle than b, 0 if a and b have equal camera angle, positive
+     *         value if a has larger camera angle than b.
+     */
+    private int compareDistanceToCenter(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
+    {
+        return (int)((Math.abs(a.distanceFromImageCenter.x) - Math.abs(b.distanceFromImageCenter.x))*1000);
+    }   //compareDistanceToCenter
+
+    /**
+     * This method returns target info of the closest freight detected.
+     *
+     * @return closest freight target info.
+     */
+    public FtcTensorFlow.TargetInfo /**/getClosestDuckInfo()
+    {
+        FtcTensorFlow.TargetInfo closestDuck = null;
+        FtcTensorFlow.TargetInfo[] targetsInfo = getDetectedTargetsInfo(LABEL_DUCK, tensorFlowVision::validateDuck);
+
+        if (targetsInfo != null)
+        {
+            Arrays.sort(targetsInfo, this::compareDistanceToCenter);
+            closestDuck = targetsInfo[0];
+        }
+
+        return closestDuck;
+    }   //getClosestDuckInfo
+
+    /**
      * This method calls vision to detect the best duck and returns its barcode position.
      *
      * @return duck barcode position array 1, 2, or 3, 0 if none found.
