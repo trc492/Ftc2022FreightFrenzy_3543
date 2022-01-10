@@ -46,7 +46,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
-import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * This class implements Vuforia/TensorFlow Vision for the game season. It creates and initializes all the vision
@@ -261,46 +261,31 @@ public class Vision
      *
      * @param label specifies the target label to detect, can be null if detects any target.
      * @param filter specifies the filter method to call to filter out false positives, can be null if not provided.
+     * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
      *
      * @return an array of detected targets, null if none found at the moment.
      */
-    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+    public FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(
+        String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
     {
         if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
 
-        return tensorFlowVision.getDetectedTargetsInfo(label, filter);
+        return tensorFlowVision.getDetectedTargetsInfo(label, filter, comparator);
     }   //getDetectedTargetsInfo
-
-    /**
-     * This method returns target info of the closest freight detected.
-     *
-     * @return closest freight target info.
-     */
-    public FtcTensorFlow.TargetInfo getClosestFreightInfo()
-    {
-        FtcTensorFlow.TargetInfo closestFreight = null;
-        FtcTensorFlow.TargetInfo[] targetsInfo = getDetectedTargetsInfo(null, tensorFlowVision::validateFreight);
-
-        if (targetsInfo != null)
-        {
-            Arrays.sort(targetsInfo, this::compareCameraAngle);
-            closestFreight = targetsInfo[0];
-        }
-
-        return closestFreight;
-    }   //getClosestFreightInfo
 
     /**
      * This method returns the best detected targets from TensorFlow vision.
      *
      * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+     * @param filter specifies the filter method to call to filter out false positives, can be null if not provided.
+     * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
      * @return the best detected target info.
      */
-    public FtcTensorFlow.TargetInfo getBestDetectedTargetInfo(String label)
+    public FtcTensorFlow.TargetInfo getBestDetectedTargetInfo(
+        String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
     {
-        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+        FtcTensorFlow.TargetInfo[] targets = getDetectedTargetsInfo(label, filter, comparator);
 
-        FtcTensorFlow.TargetInfo[] targets = tensorFlowVision.getDetectedTargetsInfo(label, null);
         return targets != null? targets[0]: null;
     }   //getBestDetectedTargetInfo
 
@@ -309,15 +294,20 @@ public class Vision
      *
      * @return duck location info, null if not found.
      */
-    public FtcTensorFlow.TargetInfo getDuckLocation()
+    public FtcTensorFlow.TargetInfo getDetectedDuckInfo()
     {
-        if (tensorFlowVision == null) throw new RuntimeException("TensorFlow Vision is not initialized!");
+        return getBestDetectedTargetInfo(LABEL_DUCK, tensorFlowVision::validateDuck, null);
+    }   //getDetectedDuckInfo
 
-        FtcTensorFlow.TargetInfo[] targets = tensorFlowVision.getDetectedTargetsInfo(
-                LABEL_DUCK, tensorFlowVision::validateDuck);
-
-        return targets != null? targets[0]: null;
-    }   //getDuckLocation
+    /**
+     * This method returns target info of the closest freight detected.
+     *
+     * @return closest freight target info.
+     */
+    public FtcTensorFlow.TargetInfo getClosestFreightInfo()
+    {
+        return getBestDetectedTargetInfo(null, tensorFlowVision::validateFreight, this::compareCameraAngle);
+    }   //getClosestFreightInfo
 
     /**
      * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
@@ -333,36 +323,27 @@ public class Vision
     }   //compareCameraAngle
 
     /**
-     * This method is called by the Arrays.sort to sort the target object by increasing camera angle.
+     * This method returns target info of the closest detected duck to image center.
+     *
+     * @return closest duck target info.
+     */
+    public FtcTensorFlow.TargetInfo getClosestDuckInfo()
+    {
+        return getBestDetectedTargetInfo(LABEL_DUCK, tensorFlowVision::validateDuck, this::compareDistanceToCenter);
+    }   //getClosestDuckInfo
+
+    /**
+     * This method is called by the Arrays.sort to sort the target object by increasing distance to image center.
      *
      * @param a specifies the first target
      * @param b specifies the second target.
-     * @return negative value if a has smaller camera angle than b, 0 if a and b have equal camera angle, positive
-     *         value if a has larger camera angle than b.
+     * @return negative value if a has smaller distance to image center than b, 0 if a and b have equal distance to
+     * image center, positive value if a has larger distance to image center than b.
      */
     private int compareDistanceToCenter(FtcTensorFlow.TargetInfo a, FtcTensorFlow.TargetInfo b)
     {
         return (int)((Math.abs(a.distanceFromImageCenter.x) - Math.abs(b.distanceFromImageCenter.x))*1000);
     }   //compareDistanceToCenter
-
-    /**
-     * This method returns target info of the closest freight detected.
-     *
-     * @return closest freight target info.
-     */
-    public FtcTensorFlow.TargetInfo /**/getClosestDuckInfo()
-    {
-        FtcTensorFlow.TargetInfo closestDuck = null;
-        FtcTensorFlow.TargetInfo[] targetsInfo = getDetectedTargetsInfo(LABEL_DUCK, tensorFlowVision::validateDuck);
-
-        if (targetsInfo != null)
-        {
-            Arrays.sort(targetsInfo, this::compareDistanceToCenter);
-            closestDuck = targetsInfo[0];
-        }
-
-        return closestDuck;
-    }   //getClosestDuckInfo
 
     /**
      * This method calls vision to detect the best duck and returns its barcode position.
@@ -618,7 +599,7 @@ public class Vision
         private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
         private static final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
 
-        private FtcTensorFlow tensorFlow = null;
+        private FtcTensorFlow tensorFlow;
 
         /**
          * Constructor: Create an instance of the object.
@@ -779,17 +760,13 @@ public class Vision
          *
          * @param label specifies the label of the targets to detect for, can be null for detecting any target.
          * @param filter specifies the filter to call to filter out false positive targets.
+         * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
          * @return array of detected target info.
          */
-        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(String label, FtcTensorFlow.FilterTarget filter)
+        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(
+            String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
         {
-            FtcTensorFlow.TargetInfo[] detectedTargets = tensorFlow.getDetectedTargetsInfo(label, filter);
-            if (detectedTargets != null)
-            {
-                Arrays.sort(detectedTargets, this::compareConfidence);
-            }
-
-            return detectedTargets;
+            return tensorFlow.getDetectedTargetsInfo(label, filter, comparator);
         }   //getDetectedTargetsInfo
 
         /**
@@ -801,7 +778,8 @@ public class Vision
         {
             final String funcName = "getDetectedDuckPositions";
             int[] duckPositions = null;
-            FtcTensorFlow.TargetInfo[] targetInfo = getDetectedTargetsInfo(Vision.LABEL_DUCK, null);
+            FtcTensorFlow.TargetInfo[] targetInfo =
+                getDetectedTargetsInfo(Vision.LABEL_DUCK, null, this::compareConfidence);
 
             if (targetInfo != null && targetInfo.length > 0)
             {

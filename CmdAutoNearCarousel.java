@@ -324,7 +324,7 @@ class CmdAutoNearCarousel implements TrcRobot.RobotCommand
                     break;
 
                 case FIND_THE_DUCK:
-                    targetInfo = robot.vision.getDuckLocation();
+                    targetInfo = robot.vision.getDetectedDuckInfo();
                     if (targetInfo != null)
                     {
                         if (robot.blinkin != null)
