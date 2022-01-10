@@ -308,7 +308,9 @@ class CmdAutoTest implements TrcRobot.RobotCommand
 
             if (traceState)
             {
-                robot.traceStateInfo(sm.getState());
+                robot.globalTracer.traceStateInfo(
+                    state, robot.robotDrive.driveBase, robot.robotDrive.pidDrive, robot.robotDrive.purePursuitDrive,
+                    null);
             }
         }
 

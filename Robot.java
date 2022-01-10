@@ -327,48 +327,6 @@ public class Robot
     }   //stopMode
 
     /**
-     * This method is typically called in the autonomous state machine to log the autonomous state info as a state
-     * event in the trace log file. The logged event can be used to play back autonomous path movement.
-     *
-     * @param state specifies the current state of the state machine.
-     */
-    public void traceStateInfo(Object state)
-    {
-        final String funcName = "traceStateInfo";
-
-        if (robotDrive != null)
-        {
-            StringBuilder msg = new StringBuilder();
-
-            msg.append(String.format(Locale.US, "tag=\">>>>>\" state=\"%s\"", state));
-            if (robotDrive.pidDrive.isActive())
-            {
-                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
-                TrcPose2D targetPose = robotDrive.pidDrive.getAbsoluteTargetPose();
-                msg.append(" RobotPose=" + robotPose + " TargetPose=" + targetPose);
-            }
-            else if (robotDrive.purePursuitDrive.isActive())
-            {
-                TrcPose2D robotPose = robotDrive.driveBase.getFieldPosition();
-                TrcPose2D robotVel = robotDrive.driveBase.getFieldVelocity();
-                TrcPose2D targetPose = robotDrive.purePursuitDrive.getTargetFieldPosition();
-                msg.append(" RobotPose=" + robotPose +
-                           " TargetPose=" + targetPose +
-                           " vel=" + robotVel +
-                           " Path=" + robotDrive.purePursuitDrive.getPath());
-            }
-
-            if (battery != null)
-            {
-                msg.append(String.format(
-                    Locale.US, " volt=\"%.2fV(%.2fV)\"", battery.getVoltage(), battery.getLowestVoltage()));
-            }
-
-            globalTracer.logEvent(funcName, "StateInfo", "%s", msg);
-        }
-    }   //traceStateInfo
-
-    /**
      * This method sends the text string to the Driver Station to be spoken using text to speech.
      *
      * @param sentence specifies the sentence to be spoken by the Driver Station.
