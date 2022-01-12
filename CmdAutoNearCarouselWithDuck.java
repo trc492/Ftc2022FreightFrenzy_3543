@@ -308,6 +308,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.5, -1.5, -90),
                             robot.robotDrive.pathPoint(-1.5, -1.5, -90.0),
                             robot.robotDrive.pathPoint(-1.0, -2.5, -90.0));
                     }
@@ -326,14 +327,14 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     robot.robotDrive.driveBase.holonomicDrive(
                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -0.3: 0.3, 0.0, 0.0);
                     timer.set(0.5, event);
-                    sm.waitForSingleEvent(event, State.STAY);
+                    sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                     break;
 
-                case STAY:
-                    // CodeReview: do we really need this?
-                    robot.robotDrive.driveBase.stop();
-                    timer.set(1.0, event);
-                    sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
+//                case STAY:
+//                    // CodeReview: do we really need this?
+//                    robot.robotDrive.driveBase.stop();
+//                    timer.set(1.0, event);
+//                    sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
 
                 case FIND_THE_DUCK:
                     targetInfo = robot.vision.getClosestDuckInfo();
@@ -483,27 +484,21 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                         // Drive to storage unit from the alliance shipping hub.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-                            if(deliveringDuck)
-                            {
+
                                 robot.robotDrive.purePursuitDrive.start(
                                     event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                     robot.robotDrive.pathPoint(-1.5, -1.5, 90.0),
-                                    robot.robotDrive.pathPoint(-2.45, -1.6, 90.0));
-                            }
-                            else
-                            {
-                                robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-1.5, 1.5, 90.0),
-                                    robot.robotDrive.pathPoint(-2.45, 1.6, 90.0));
-                            }
+                                    robot.robotDrive.pathPoint(-2.45, -1.5, 90.0));
+
+
+
                         }
                         else
                         {
-                            // CodeReview: why is this so different from RED_ALLIANCE?
                             robot.robotDrive.purePursuitDrive.start(
-                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                robot.robotDrive.pathPoint(-2.5, 1.4, 90.0));
+                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                    robot.robotDrive.pathPoint(-1.5, 1.5, 90.0),
+                                    robot.robotDrive.pathPoint(-2.45, 1.5, 90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }

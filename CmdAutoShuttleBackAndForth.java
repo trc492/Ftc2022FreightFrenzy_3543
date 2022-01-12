@@ -187,35 +187,44 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     }
 
                 case DRIVE_TO_ALLIANCE_SHIPPING_HUB:
-                    // Drive to alliance shipping hub.
+                    // Drive to alliance shipping hub. We are coming from starting position or somewhere near carousel.
                     // Note: the smaller the number the closer to the hub.
-                    double distanceToHub;
-
+                    double hubHeading, distanceToHub;
+                    double hubX, hubY;
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
-                        //used to be 1.95 for level 2
-                        distanceToHub = duckPosition == 3? 1.7: duckPosition == 2? 1.85: 1.8;
+                        hubHeading = -30.0;
+                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
+                        hubX = -0.5;
+                        hubY = -1.0;
                     }
                     else
                     {
-                        distanceToHub = duckPosition == 3? 1.9: duckPosition == 2? 1.85: 1.9;
+                        hubHeading = 180.0 + 30.0;
+                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
+                        hubX = -0.5;
+                        hubY = 1.0;
                     }
+                    hubX -= distanceToHub*Math.sin(Math.toRadians(hubHeading));
+                    hubY -= distanceToHub*Math.cos(Math.toRadians(hubHeading));
 
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
+                        // Add one extra point to make sure it doesn't overshoot the turn.
                         robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-0.4, -distanceToHub, 0.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-0.4, distanceToHub, 180.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
                     }
                     // Raise arm to the detected duck level at the same time.
                     robot.arm.setLevel(duckPosition);
-                    //after we dump the duck to the right level for the bonus, any subsequent dumps will be to the top
+                    // After we dump the freight to the right level for the bonus, any subsequent dumps will be to
+                    // the top.
                     duckPosition = 3;
                     sm.waitForSingleEvent(event, State.DUMP_FREIGHT);
                     break;
