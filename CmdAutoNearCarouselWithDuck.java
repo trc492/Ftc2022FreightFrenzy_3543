@@ -52,7 +52,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         GO_TO_PICKUP_POSITION,
         GO_PICKUP_DUCK,
         DONE_PICKUP_DUCK,
-        TURN_AROUND,
+//        TURN_AROUND,
 
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE,
@@ -226,14 +226,14 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, -2.5, hubHeading),
-                                robot.robotDrive.pathPoint(hubX , hubY, hubHeading ));
+                                robot.robotDrive.pathPoint(hubX , hubY, hubHeading));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 2.5, hubHeading),
-                                robot.robotDrive.pathPoint(hubX + 0.1, hubY, hubHeading - 12.0));
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
                         }
                     }
                     // We are coming from the starting position.
@@ -268,6 +268,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     break;
 
                 case DRIVE_TO_CAROUSEL:
+                    robot.arm.setLevel(0.5, 1);
                     // Drive to the carousel from the alliance shipping hub.
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
@@ -323,12 +324,13 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 
                 case ALIGN_WITH_WALL:
                     robot.robotDrive.driveBase.holonomicDrive(
-                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -0.5: 0.5, 0.0, 0.0);
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -0.3: 0.3, 0.0, 0.0);
                     timer.set(0.5, event);
                     sm.waitForSingleEvent(event, State.STAY);
                     break;
 
                 case STAY:
+                    // CodeReview: do we really need this?
                     robot.robotDrive.driveBase.stop();
                     timer.set(1.0, event);
                     sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
@@ -428,19 +430,19 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                new TrcPose2D(duckPose.x, duckPose.y+6.0, 180.0));
+                                new TrcPose2D(duckPose.x, duckPose.y + 6.0, 180.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                null, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 new TrcPose2D(duckPose.x, duckPose.y - 6.0, 0.0));
                         }
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
-                            null, robot.robotDrive.driveBase.getFieldPosition(), true,
+                            event, robot.robotDrive.driveBase.getFieldPosition(), true,
                             new TrcPose2D(targetInfo.distanceFromCamera.x, targetInfo.distanceFromCamera.y, 0.0));
                     }
                     sm.waitForSingleEvent(event, State.DONE_PICKUP_DUCK);
@@ -455,15 +457,13 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     sm.setState(State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
                     break;
 
-                case TURN_AROUND:
-                    robot.robotDrive.purePursuitDrive.start(
-                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                        new TrcPose2D(
-                            robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(), 45.0));
-                    sm.waitForSingleEvent(event,State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
-                    break;
-
-
+//                case TURN_AROUND:
+//                    robot.robotDrive.purePursuitDrive.start(
+//                        event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                        new TrcPose2D(
+//                            robot.robotDrive.driveBase.getXPosition(), robot.robotDrive.driveBase.getYPosition(), 45.0));
+//                    sm.waitForSingleEvent(event,State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
+//                    break;
 
                 case DRIVE_TO_ALLIANCE_STORAGE_UNIT:
                     if (autoChoices.parking == FtcAuto.Parking.NO_PARKING)
