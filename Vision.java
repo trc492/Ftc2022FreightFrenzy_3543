@@ -279,14 +279,38 @@ public class Vision
      * @param label specifies the label of the targets to detect for, can be null for detecting any target.
      * @param filter specifies the filter method to call to filter out false positives, can be null if not provided.
      * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
+     * @param dumpInfo specifies true to dump info for all detected target.
+     * @return the best detected target info.
+     */
+    public FtcTensorFlow.TargetInfo getBestDetectedTargetInfo(
+        String label, FtcTensorFlow.FilterTarget filter,
+        Comparator<? super FtcTensorFlow.TargetInfo> comparator, boolean dumpInfo)
+    {
+        FtcTensorFlow.TargetInfo[] targets = getDetectedTargetsInfo(label, filter, comparator);
+        if (targets != null && dumpInfo)
+        {
+            for (int i = 0; i < targets.length; i++)
+            {
+                tracer.traceInfo(
+                     "Vision.getBestDetectedTargetInfo", "[%d] Target=%s", i, targets[i]);
+            }
+        }
+
+        return targets != null? targets[0]: null;
+    }   //getBestDetectedTargetInfo
+
+    /**
+     * This method returns the best detected targets from TensorFlow vision.
+     *
+     * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+     * @param filter specifies the filter method to call to filter out false positives, can be null if not provided.
+     * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
      * @return the best detected target info.
      */
     public FtcTensorFlow.TargetInfo getBestDetectedTargetInfo(
         String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
     {
-        FtcTensorFlow.TargetInfo[] targets = getDetectedTargetsInfo(label, filter, comparator);
-
-        return targets != null? targets[0]: null;
+        return getBestDetectedTargetInfo(label, filter, comparator, false);
     }   //getBestDetectedTargetInfo
 
     /**
@@ -329,7 +353,8 @@ public class Vision
      */
     public FtcTensorFlow.TargetInfo getClosestDuckInfo()
     {
-        return getBestDetectedTargetInfo(LABEL_DUCK, tensorFlowVision::validateDuck, this::compareDistanceToCenter);
+        return getBestDetectedTargetInfo(
+            LABEL_DUCK, tensorFlowVision::validateDuck, this::compareDistanceToCenter, true);
     }   //getClosestDuckInfo
 
     /**
