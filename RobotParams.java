@@ -238,7 +238,7 @@ public class RobotParams
     // Intake subsystem.
     //
     static final double INTAKE_POWER_PICKUP                     = 1.0;
-    static final double INTAKE_POWER_DUMP                       = -0.6;
+    static final double INTAKE_POWER_DUMP                       = -0.4;
     static final double INTAKE_DUMP_TIME                        = 1.2;
     static final double INTAKE_SENSOR_THRESHOLD                 = 4.6;    //in cm
     //

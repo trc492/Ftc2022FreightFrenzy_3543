@@ -321,7 +321,7 @@ public class Vision
      */
     public FtcTensorFlow.TargetInfo getDetectedDuckInfo()
     {
-        return getBestDetectedTargetInfo(LABEL_DUCK, tensorFlowVision::validateDuck, null);
+        return getBestDetectedTargetInfo(LABEL_DUCK, null, null);
     }   //getDetectedDuckInfo
 
     /**
@@ -619,8 +619,8 @@ public class Vision
         private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
         private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
         private static final float TFOD_MIN_CONFIDENCE = 0.2f;
-        private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.9;
-        private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.1;
+        private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.75;
+        private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.33;
         // Target size is area of target rect.
         private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
         private static final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
@@ -705,10 +705,18 @@ public class Vision
             double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
 //            double area = targetInfo.rect.width*targetInfo.rect.height;
 //            double distanceYTolerance = targetInfo.imageHeight/6.0;
+            boolean isValid = targetInfo.label.equals(LABEL_DUCK) &&
+                              aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+                              aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+                              targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
+            tracer.traceInfo("validateDuck", "<<<<< valid=%s, duckInfo=%s, aspectRatio=%.2f",
+                    isValid, targetInfo, aspectRatio);
 
-            return targetInfo.label.equals(LABEL_DUCK);
+            return isValid;
+//            return targetInfo.label.equals(LABEL_DUCK) &&
 //                   aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-//                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER;
+//                   aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+//                   targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
 //                   area <= TARGET_SIZE_TOLERANCE_UPPER &&
 //                   area >= TARGET_SIZE_TOLERANCE_LOWER &&
 //                   Math.abs(targetInfo.distanceFromImageCenter.y) <= distanceYTolerance;
