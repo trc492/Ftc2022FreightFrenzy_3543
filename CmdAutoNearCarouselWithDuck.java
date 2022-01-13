@@ -48,11 +48,9 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         POSITION_TO_FIND_THE_DUCK,
         ALIGN_WITH_WALL,
         FIND_THE_DUCK,
-        STAY,
         GO_TO_PICKUP_POSITION,
         GO_PICKUP_DUCK,
         DONE_PICKUP_DUCK,
-//        TURN_AROUND,
 
         DRIVE_TO_ALLIANCE_STORAGE_UNIT,
         DRIVE_TO_WAREHOUSE,
@@ -226,14 +224,14 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, -2.5, hubHeading),
-                                robot.robotDrive.pathPoint(hubX , hubY, hubHeading+12));
+                                robot.robotDrive.pathPoint(hubX , hubY, hubHeading + 12.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
                                 event, robot.robotDrive.driveBase.getFieldPosition(), false,
                                 robot.robotDrive.pathPoint(-1.5, 2.5, hubHeading),
-                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading-12));
+                                robot.robotDrive.pathPoint(hubX, hubY, hubHeading - 12.0));
                         }
                     }
                     // We are coming from the starting position.
@@ -253,11 +251,12 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                             robot.robotDrive.pathPoint(hubX, hubY, hubHeading));
                     }
                     // Raise arm to the detected duck level at the same time.
-                    if(!deliveringDuck){
+                    if (!deliveringDuck)
+                    {
                         robot.arm.setLevel(duckPosition);
-
                     }
-                    else{
+                    else
+                    {
                         robot.arm.setLevel(0.5, duckPosition);
                     }
                     // After we dump the freight to the right level for the bonus, any subsequent dumps will be to
@@ -337,14 +336,8 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                     break;
 
-//                case STAY:
-//                    // CodeReview: do we really need this?
-//                    timer.set(1.0, event);
-//                    sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
-
                 case FIND_THE_DUCK:
-                     robot.robotDrive.driveBase.stop();
-
+                    robot.robotDrive.driveBase.stop();
                     targetInfo = robot.vision.getClosestDuckInfo();
                     robot.arm.setLevel(0);
                     if (targetInfo != null)

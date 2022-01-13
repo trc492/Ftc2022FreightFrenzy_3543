@@ -709,8 +709,8 @@ public class Vision
                               aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
                               aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
                               targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
-            tracer.traceInfo("validateDuck", "<<<<< valid=%s, duckInfo=%s, aspectRatio=%.2f",
-                    isValid, targetInfo, aspectRatio);
+            tracer.traceInfo("validateDuck", "<<<<< valid=%s, aspectRatio=%.2f, duckInfo=%s",
+                             isValid, aspectRatio, targetInfo);
 
             return isValid;
 //            return targetInfo.label.equals(LABEL_DUCK) &&
