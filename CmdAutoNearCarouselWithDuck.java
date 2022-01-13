@@ -316,6 +316,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(-2.5, 1.5, -90),
                             robot.robotDrive.pathPoint(-1.5, 1.5, -90.0),
                             robot.robotDrive.pathPoint(-1.0, 2.5, -90.0));
                     }
@@ -484,21 +485,17 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                         // Drive to storage unit from the alliance shipping hub.
                         if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                         {
-
-                                robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-1.5, -1.5, 90.0),
-                                    robot.robotDrive.pathPoint(-2.45, -1.5, 90.0));
-
-
-
+                            robot.robotDrive.purePursuitDrive.start(
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, -1.5, 90.0),
+                                robot.robotDrive.pathPoint(-2.45, -1.5, 90.0));
                         }
                         else
                         {
                             robot.robotDrive.purePursuitDrive.start(
-                                    event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                                    robot.robotDrive.pathPoint(-1.5, 1.5, 90.0),
-                                    robot.robotDrive.pathPoint(-2.45, 1.5, 90.0));
+                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                                robot.robotDrive.pathPoint(-1.5, 1.5, 90.0),
+                                robot.robotDrive.pathPoint(-2.45, 1.5, 90.0));
                         }
                         sm.waitForSingleEvent(event, State.DONE);
                     }
