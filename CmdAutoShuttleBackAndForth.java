@@ -195,6 +195,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         hubHeading = -30.0;
                         distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
+                        // alliance hub center location in tile unit.
                         hubX = -0.5;
                         hubY = -1.0;
                     }
@@ -202,9 +203,11 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         hubHeading = 180.0 + 30.0;
                         distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
+                        // alliance hub center location in tile unit.
                         hubX = -0.5;
                         hubY = 1.0;
                     }
+                    // calculate the hub perimeter point the robot needs to be at.
                     hubX -= distanceToHub*Math.sin(Math.toRadians(hubHeading));
                     hubY -= distanceToHub*Math.cos(Math.toRadians(hubHeading));
 
