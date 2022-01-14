@@ -398,14 +398,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false, redLookingPos);
-                        pickupHeadingInc +=5.0;
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false, blueLookingPos);
-                        pickupHeadingInc += 5.0;
                     }
+                    pickupHeadingInc +=5.0;
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
 
