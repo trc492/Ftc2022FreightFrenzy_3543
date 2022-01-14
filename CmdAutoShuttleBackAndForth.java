@@ -41,6 +41,10 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         START_DELAY,
         DRIVE_TO_ALLIANCE_SHIPPING_HUB,
         DUMP_FREIGHT,
+
+        PREP_FOR_DRIVE_INTO_WAREHOUSE,
+        ALIGN_TO_WALL,
+
         DRIVE_INTO_WAREHOUSE,
         LOOK_FOR_FREIGHT,
         PICK_UP_FREIGHT_FROM_WAREHOUSE,
@@ -62,7 +66,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
     private Double expireTime = null;
     private boolean useVisionForPickup = false;
     private FtcTensorFlow.TargetInfo freightInfo;
-    private double pickupHeading = 90.0;
+    private double pickupHeadingInc = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -235,61 +239,94 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                 case DUMP_FREIGHT:
                     // Dumps the freight, when done signals event and goes to next state
                     robot.intake.setPower(RobotParams.INTAKE_POWER_DUMP, RobotParams.INTAKE_DUMP_TIME, event);
+                    sm.waitForSingleEvent(event, State.PREP_FOR_DRIVE_INTO_WAREHOUSE);
+                    break;
+
+                case PREP_FOR_DRIVE_INTO_WAREHOUSE:
+                    robot.arm.setLevel(0.5, 0);
+                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(0.5, -2.5, 90.0));
+                    }
+                    else
+                    {
+                        robot.robotDrive.purePursuitDrive.start(
+                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+                            robot.robotDrive.pathPoint(0.5, 2.5, 90.0));
+                    }
+                    sm.waitForSingleEvent(event, State.ALIGN_TO_WALL);
+                    break;
+
+                case ALIGN_TO_WALL:
+
+                    robot.robotDrive.driveBase.holonomicDrive(
+                         autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.3: -0.3,
+                         0.0, 0.0);
+                    timer.set(0.8, event);
                     sm.waitForSingleEvent(event, State.DRIVE_INTO_WAREHOUSE);
                     break;
 
                 case DRIVE_INTO_WAREHOUSE:
                     // Fire and forget with lowering the arm.
-                    robot.arm.setLevel(0.5, 0);
-                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(0.5);
-                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
-                    {
-                        robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-0.5, -2.65, 90.0),
-                            robot.robotDrive.pathPoint(0.5, -2.7, 90.0),
-                            redLookingPos);
-                    }
-                    else
-                    {
-                        robot.robotDrive.purePursuitDrive.start(
-                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-0.5, 2.6, 0.0),
-                            robot.robotDrive.pathPoint(0.5, 2.7, 90.0),
-                            blueLookingPos);
-                    }
-                    sm.waitForSingleEvent(event, State.LOOK_FOR_FREIGHT);
+                    robot.robotDrive.driveBase.stop();
+                    double relocalizedY =
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE?
+                            -(RobotParams.HALF_FIELD_INCHES - RobotParams.ROBOT_WIDTH/2.0):
+                            (RobotParams.HALF_FIELD_INCHES - RobotParams.ROBOT_WIDTH/2.0);
+                    robot.robotDrive.driveBase.setFieldPosition(
+                        new TrcPose2D(robot.robotDrive.driveBase.getXPosition(),
+                        relocalizedY, 90.0));
+                    robot.robotDrive.purePursuitDrive.setMoveOutputLimit(1.0);
+                    robot.robotDrive.driveBase.holonomicDrive(0.0, 0.5, 0.0);
+                    timer.set(1, event);
+//                    if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
+//                    {
+//                        robot.robotDrive.purePursuitDrive.start(
+//                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                            robot.robotDrive.pathPoint(1.7, robot.robotDrive.driveBase.getYPosition(), 90.0),
+//                            redLookingPos);
+//                    }
+//                    else
+//                    {
+//                        robot.robotDrive.purePursuitDrive.start(
+//                            event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                            robot.robotDrive.pathPoint(1.7, 2.65, 90.0),
+//                            blueLookingPos);
+//                    }
+                    sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
 
-                case LOOK_FOR_FREIGHT:
-                    if (useVisionForPickup)
-                    {
-                        freightInfo = robot.vision.getClosestFreightInfo();
-                        if (freightInfo != null)
-                        {
-                            if (robot.blinkin != null)
-                            {
-                                robot.blinkin.setPatternState(Vision.sawTarget, true);
-                            }
-                            sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
-                        }
-                        else if (expireTime == null)
-                        {
-                            expireTime = TrcUtil.getCurrentTime() + 2.0;
-                        }
-                        else if (TrcUtil.getCurrentTime() > expireTime)
-                        {
-                            // if we cant see the freight, disable visionForPickup because we dont want to waste
-                            // any more time looking for freight if vision is not working well.
-                            useVisionForPickup = false;
-                            sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
-                        }
-                    }
-                    else
-                    {
-                        sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
-                    }
-                    break;
+//                case LOOK_FOR_FREIGHT:
+//                    if (useVisionForPickup)
+//                    {
+//                        freightInfo = robot.vision.getClosestFreightInfo();
+//                        if (freightInfo != null)
+//                        {
+//                            if (robot.blinkin != null)
+//                            {
+//                                robot.blinkin.setPatternState(Vision.sawTarget, true);
+//                            }
+//                            sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
+//                        }
+//                        else if (expireTime == null)
+//                        {
+//                            expireTime = TrcUtil.getCurrentTime() + 2.0;
+//                        }
+//                        else if (TrcUtil.getCurrentTime() > expireTime)
+//                        {
+//                            // if we cant see the freight, disable visionForPickup because we dont want to waste
+//                            // any more time looking for freight if vision is not working well.
+//                            useVisionForPickup = false;
+//                            sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        sm.setState(State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
+//                    }
+//                    break;
 
                 case PICK_UP_FREIGHT_FROM_WAREHOUSE:
                     // If there is not enough time left in autonomous, we go to done because we are already in the
@@ -310,13 +347,13 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
                             //we could try 2.7 and see what happens, makes backing out easier
-                            robot.robotDrive.pathPoint(2.6, -2.6, pickupHeading));
+                            robot.robotDrive.pathPoint(2.6, -2.6, 90.0 - pickupHeadingInc));
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(2.6, 2.6, pickupHeading));
+                            robot.robotDrive.pathPoint(2.6, 2.6, 90.0 + pickupHeadingInc));
                     }
                     // Event is signaled by intake when robot picked up a block  or pure pursuit drive is done.
                     sm.addEvent(event);
@@ -341,7 +378,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             }
                             //if it has freight, keep running intake so block doesnt fall out
                             robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
-                            //next state is driving out of warehouse (to try to dump the block)
+                            //next state is driving out of warehouse
                             sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
                         }
                         else
@@ -361,15 +398,15 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false, redLookingPos);
-                        pickupHeading -= 5.0;
+                        pickupHeadingInc +=5.0;
                     }
                     else
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false, blueLookingPos);
-                        pickupHeading += 5.0;
+                        pickupHeadingInc += 5.0;
                     }
-                    sm.waitForSingleEvent(event, State.LOOK_FOR_FREIGHT);
+                    sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
 
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
@@ -379,8 +416,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(1.5, -2.7,  90.0),
-                            robot.robotDrive.pathPoint(-0.4, -2.7,  90.0),
+                            robot.robotDrive.pathPoint(1.5, -2.65,  90.0),
+                            robot.robotDrive.pathPoint(-0.4, -2.65,  90.0),
                             robot.robotDrive.pathPoint(-0.4, -2.5, 0.0),
                             robot.robotDrive.pathPoint(-0.3, -distanceToHub, 0.0));
                     }

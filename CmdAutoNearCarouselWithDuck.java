@@ -33,7 +33,7 @@ import TrcFtcLib.ftclib.FtcTensorFlow;
 class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 {
     private static final String moduleName = "CmdAutoNearCarouselWithDuck";
-    private static final double PARK_WAREHOUSE_TIME = 8.0;
+    private static final double PARK_WAREHOUSE_TIME = 5.0;
 
     private enum State
     {
