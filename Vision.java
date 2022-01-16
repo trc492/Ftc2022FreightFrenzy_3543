@@ -620,11 +620,13 @@ public class Vision
         private static final String OPENCV_NATIVE_LIBRARY_NAME = "opencv_java3";
         private static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
         private static final float TFOD_MIN_CONFIDENCE = 0.2f;
-        private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.75;
-        private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.33;
-        // Target size is area of target rect.
-        private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
-        private static final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
+        private static final double TARGET_WIDTH_LOWER_TOLERANCE = 2.0;
+        private static final double TARGET_WIDTH_UPPER_TOLERANCE = 3.0;
+//        private static final double ASPECT_RATIO_TOLERANCE_LOWER = 0.75;
+//        private static final double ASPECT_RATIO_TOLERANCE_UPPER = 1.33;
+//        // Target size is area of target rect.
+//        private static final double TARGET_SIZE_TOLERANCE_LOWER = 4000.0;
+//        private static final double TARGET_SIZE_TOLERANCE_UPPER = 25000.0;
 
         private FtcTensorFlow tensorFlow;
 
@@ -677,11 +679,24 @@ public class Vision
             }
         }   //shutdown
 
+        /**
+         * This method maps a camera screen point to a real-world point.
+         *
+         * @param point specifies the camera screen point.
+         * @return real-world point.
+         */
         public Point mapPoint(Point point)
         {
             return tensorFlow != null? tensorFlow.mapPoint(point): null;
         }   //mapPoint
 
+        /**
+         * This method maps a camera screen point to a real-world point.
+         *
+         * @param x specifies the camera screen point x.
+         * @param y specifies the camera screen point y.
+         * @return real-world point.
+         */
         public Point mapPoint(double x, double y)
         {
             return mapPoint(new Point(x, y));
@@ -713,15 +728,6 @@ public class Vision
         private boolean validateDuck(Recognition target)
         {
             FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
-            Point worldLeftBottom = mapPoint(
-                    targetInfo.rect.x, targetInfo.rect.y + targetInfo.rect.height);
-            Point worldRightBottom = mapPoint(
-                    targetInfo.rect.x + targetInfo.rect.width,
-                    targetInfo.rect.y + targetInfo.rect.height);
-            double targetWidth = worldRightBottom.x - worldLeftBottom.x;
-
-            double duckWidthLowThreshold = 2;
-            double duckWidthHighThreshold = 3;
 //            double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
 //            double area = targetInfo.rect.width*targetInfo.rect.height;
 //            double distanceYTolerance = targetInfo.imageHeight/6.0;
@@ -730,10 +736,9 @@ public class Vision
 //                              aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
 //                              targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
             boolean isValid = targetInfo.label.equals(LABEL_DUCK) &&
-                              targetWidth >= duckWidthLowThreshold &&
-                              targetWidth <= duckWidthHighThreshold;
-            tracer.traceInfo("validateDuck", "<<<<< valid=%s, targetWidth=%.1f, duckInfo=%s",
-                             isValid, targetWidth, targetInfo);
+                              targetInfo.objectWidth >= TARGET_WIDTH_LOWER_TOLERANCE &&
+                              targetInfo.objectWidth <= TARGET_WIDTH_UPPER_TOLERANCE;
+            tracer.traceInfo("validateDuck", "<<<<< valid=%s, duckInfo=%s", isValid, targetInfo);
 
             return isValid;
 //            return targetInfo.label.equals(LABEL_DUCK) &&
