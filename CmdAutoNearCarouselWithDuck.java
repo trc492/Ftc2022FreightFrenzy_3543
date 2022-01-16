@@ -33,7 +33,7 @@ import TrcFtcLib.ftclib.FtcTensorFlow;
 class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
 {
     private static final String moduleName = "CmdAutoNearCarouselWithDuck";
-    private static final double PARK_WAREHOUSE_TIME = 5.0;
+    private static final double PARK_WAREHOUSE_TIME = 8.0;
 
     private enum State
     {
@@ -92,6 +92,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
         robot.robotDrive.purePursuitDrive.setFastModeEnabled(true);
+
         sm.start(State.START_DELAY);
     }   //CmdAutoNearCarousel
 
@@ -203,7 +204,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     if (autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE)
                     {
                         hubHeading = 30.0;
-                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.9: 0.85;
+                        distanceToHub = duckPosition == 3? 0.7: duckPosition == 2? 0.8: 0.8;
                         // alliance hub center location in tile unit.
                         hubX = -0.5;
                         hubY = -1.0;
@@ -286,7 +287,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     {
                         robot.robotDrive.purePursuitDrive.start(
                             event, robot.robotDrive.driveBase.getFieldPosition(), false,
-                            robot.robotDrive.pathPoint(-2.5, -2.1, 0.0));
+                            robot.robotDrive.pathPoint(-2.35, -2.1, 0.0));
                     }
                     else
                     {
@@ -300,7 +301,7 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                 case GET_TO_CAROUSEL:
                     // We are a few inches from the carousel, drive slowly towards it to touch it.
                     robot.robotDrive.driveBase.holonomicDrive(0.0, -0.2, 0.0, false);
-                    timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.8: 0.8, event);
+                    timer.set(autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? 0.9: 0.9, event);
                     sm.waitForSingleEvent(event, State.SPIN_CAROUSEL);
                     break;
 
@@ -341,8 +342,8 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                 case ALIGN_WITH_WALL:
                     // Gently bump the side wall to re-align the robot.
                     robot.robotDrive.driveBase.holonomicDrive(
-                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -0.3: 0.3, 0.0, 0.0);
-                    timer.set(0.5, event);
+                        autoChoices.alliance == FtcAuto.Alliance.RED_ALLIANCE? -0.3: 0.4, 0.0, 0.0);
+                    timer.set(  1.0, event);
                     sm.waitForSingleEvent(event, State.FIND_THE_DUCK);
                     break;
 
@@ -351,8 +352,10 @@ class CmdAutoNearCarouselWithDuck implements TrcRobot.RobotCommand
                     robot.robotDrive.driveBase.stop();
                     // Use vision to find the duck and filter out the pile of ducks on the side.
                     targetInfo = robot.vision.getClosestDuckInfo();
+
                     // Make sure the arm is at the lowest preparing to scoop up the duck.
                     robot.arm.setLevel(0);
+                    //backupfix if We dont find the bug tomorrow: add this to if statement: targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
                     if (targetInfo != null)
                     {
                         if (robot.blinkin != null)

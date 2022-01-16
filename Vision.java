@@ -30,6 +30,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.opencv.core.Point;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcHashMap;
@@ -676,6 +677,16 @@ public class Vision
             }
         }   //shutdown
 
+        public Point mapPoint(Point point)
+        {
+            return tensorFlow != null? tensorFlow.mapPoint(point): null;
+        }   //mapPoint
+
+        public Point mapPoint(double x, double y)
+        {
+            return mapPoint(new Point(x, y));
+        }   //mapPoint
+
         /**
          * This method is called by the Arrays.sort to sort the target object by decreasing confidence.
          *
@@ -702,15 +713,27 @@ public class Vision
         private boolean validateDuck(Recognition target)
         {
             FtcTensorFlow.TargetInfo targetInfo = tensorFlow.getTargetInfo(target);
-            double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
+            Point worldLeftBottom = mapPoint(
+                    targetInfo.rect.x, targetInfo.rect.y + targetInfo.rect.height);
+            Point worldRightBottom = mapPoint(
+                    targetInfo.rect.x + targetInfo.rect.width,
+                    targetInfo.rect.y + targetInfo.rect.height);
+            double targetWidth = worldRightBottom.x - worldLeftBottom.x;
+
+            double duckWidthLowThreshold = 2;
+            double duckWidthHighThreshold = 3;
+//            double aspectRatio = (double)targetInfo.rect.width/(double)targetInfo.rect.height;
 //            double area = targetInfo.rect.width*targetInfo.rect.height;
 //            double distanceYTolerance = targetInfo.imageHeight/6.0;
+//            boolean isValid = targetInfo.label.equals(LABEL_DUCK) &&
+//                              aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
+//                              aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
+//                              targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
             boolean isValid = targetInfo.label.equals(LABEL_DUCK) &&
-                              aspectRatio <= ASPECT_RATIO_TOLERANCE_UPPER &&
-                              aspectRatio >= ASPECT_RATIO_TOLERANCE_LOWER &&
-                              targetInfo.rect.x > 20 && targetInfo.rect.x < targetInfo.imageWidth - 20;
-            tracer.traceInfo("validateDuck", "<<<<< valid=%s, aspectRatio=%.2f, duckInfo=%s",
-                             isValid, aspectRatio, targetInfo);
+                              targetWidth >= duckWidthLowThreshold &&
+                              targetWidth <= duckWidthHighThreshold;
+            tracer.traceInfo("validateDuck", "<<<<< valid=%s, targetWidth=%.1f, duckInfo=%s",
+                             isValid, targetWidth, targetInfo);
 
             return isValid;
 //            return targetInfo.label.equals(LABEL_DUCK) &&
