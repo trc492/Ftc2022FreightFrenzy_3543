@@ -50,6 +50,11 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
         PICK_UP_FREIGHT_FROM_WAREHOUSE,
         DETERMINE_ROUND_TRIP_OR_DONE,
         RETRY_PICKUP,
+
+        BACKUP,
+        REALIGN_TO_WALL,
+        BACK_OUT_OF_WAREHOUSE,
+
         DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB,
 
         DONE
@@ -380,6 +385,7 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                             robot.intake.setPower(RobotParams.INTAKE_POWER_PICKUP);
                             //next state is driving out of warehouse
                             sm.setState(State.DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB);
+                            //sm.setState(State.BACKUP); - new untested algo
                         }
                         else
                         {
@@ -407,6 +413,43 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
                     pickupHeadingInc +=5.0;
                     sm.waitForSingleEvent(event, State.PICK_UP_FREIGHT_FROM_WAREHOUSE);
                     break;
+                //new untested backing out
+//                case BACKUP:
+//                    if (autoChoices.alliance==FtcAuto.Alliance.RED_ALLIANCE)
+//                    {
+//                        robot.robotDrive.purePursuitDrive.start(
+//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                                robot.robotDrive.pathPoint(1.3, -2.6,  90.0));
+//                    }
+//                    else{
+//                        robot.robotDrive.purePursuitDrive.start(
+//                                event, robot.robotDrive.driveBase.getFieldPosition(), false,
+//                                robot.robotDrive.pathPoint(1.3, 2.6,  90.0));
+//                    }
+//                    sm.waitForSingleEvent(event, State.REALIGN_TO_WALL);
+//                    break;
+//                case REALIGN_TO_WALL:
+//                    timer.set(0.5, event);
+//                    if(autoChoices.alliance ==FtcAuto.Alliance.RED_ALLIANCE){
+//                        robot.robotDrive.driveBase.holonomicDrive(0.3, 0, 0);
+//                    }
+//                    else{
+//                        robot.robotDrive.driveBase.holonomicDrive(-0.3, 0, 0);
+//                    }
+//                    sm.waitForSingleEvent(event, State.BACK_OUT_OF_WAREHOUSE);
+//                    break;
+//                case BACK_OUT_OF_WAREHOUSE:
+//                    //dont want to use holonomic but pure pursuit makes it scrape wall
+//                    timer.set(1.0, event);
+//                    if(autoChoices.alliance ==FtcAuto.Alliance.RED_ALLIANCE){
+//                        robot.robotDrive.driveBase.holonomicDrive(0.3, 0, 0);
+//                    }
+//                    else{
+//                        robot.robotDrive.driveBase.holonomicDrive(-0.3, 0, 0);
+//                    }
+//                    sm.waitForSingleEvent(event, State.DRIVE_TO_ALLIANCE_SHIPPING_HUB);
+//                    break;
+
 
                 case DRIVE_OUT_OF_WAREHOUSE_TO_SHIPPING_HUB:
                     distanceToHub = 1.8;
