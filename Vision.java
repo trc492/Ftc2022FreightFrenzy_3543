@@ -294,7 +294,7 @@ public class Vision
             for (int i = 0; i < targets.length; i++)
             {
                 tracer.traceInfo(
-                     "Vision.getBestDetectedTargetInfo", "[%d] Target=%s", i, targets[i]);
+                    "Vision.getBestDetectedTargetInfo", "[%d] Target=%s", i, targets[i]);
             }
         }
 
@@ -680,6 +680,20 @@ public class Vision
         }   //shutdown
 
         /**
+         * This method returns an array of detected targets from TensorFlow vision.
+         *
+         * @param label specifies the label of the targets to detect for, can be null for detecting any target.
+         * @param filter specifies the filter to call to filter out false positive targets.
+         * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
+         * @return array of detected target info.
+         */
+        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(
+            String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
+        {
+            return tensorFlow.getDetectedTargetsInfo(label, filter, comparator);
+        }   //getDetectedTargetsInfo
+
+        /**
          * This method maps a camera screen point to a real-world point.
          *
          * @param point specifies the camera screen point.
@@ -816,20 +830,6 @@ public class Vision
 
             return pos;
         }   //determineDuckPosition
-
-        /**
-         * This method returns an array of detected targets from TensorFlow vision.
-         *
-         * @param label specifies the label of the targets to detect for, can be null for detecting any target.
-         * @param filter specifies the filter to call to filter out false positive targets.
-         * @param comparator specifies the comparator to sort the array if provided, can be null if not provided.
-         * @return array of detected target info.
-         */
-        private FtcTensorFlow.TargetInfo[] getDetectedTargetsInfo(
-            String label, FtcTensorFlow.FilterTarget filter, Comparator<? super FtcTensorFlow.TargetInfo> comparator)
-        {
-            return tensorFlow.getDetectedTargetsInfo(label, filter, comparator);
-        }   //getDetectedTargetsInfo
 
         /**
          * This method calls vision to detect all the ducks and returns their barcode positions in an array.
