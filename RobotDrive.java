@@ -186,20 +186,6 @@ public class RobotDrive
     }   //cancel
 
     /**
-     * This method enables/disables robot base odometry.
-     *
-     * @param enabled specifies true to enable odometry, false to disable.
-     */
-    public void setOdometryEnabled(boolean enabled)
-    {
-        leftFrontWheel.setOdometryEnabled(enabled);
-        rightFrontWheel.setOdometryEnabled(enabled);
-        leftBackWheel.setOdometryEnabled(enabled);
-        rightBackWheel.setOdometryEnabled(enabled);
-        driveBase.setOdometryEnabled(enabled);
-    }   //setOdometryEnabled
-
-    /**
      * This method creates a TrcPose2D point in the target path for PurePursuitDrive.
      *
      * @param xTargetLocation specifies the target location in field reference frame.
