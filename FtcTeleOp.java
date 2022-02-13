@@ -180,7 +180,7 @@ public class FtcTeleOp extends FtcOpMode
 
         if (robot.spinner != null)
         {
-            robot.dashboard.displayPrintf(5, "Spinner: Pow=%.1f", robot.spinner.getPower());
+            robot.dashboard.displayPrintf(5, "Spinner: Pow=%.1f", robot.spinner.getMotorPower());
         }
 
         if (robot.odwDeployer != null)
