@@ -836,7 +836,7 @@ public class FtcTest extends FtcTeleOp
         if (!RobotParams.Preferences.noRobot)
         {
             robot.dashboard.displayPrintf(
-                8, "Enc: ", "lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
+                8, "Enc: lf=%.0f,rf=%.0f,lb=%.0f,rb=%.0f",
                 robot.robotDrive.leftFrontWheel.getPosition(), robot.robotDrive.rightFrontWheel.getPosition(),
                 robot.robotDrive.leftBackWheel.getPosition(), robot.robotDrive.rightBackWheel.getPosition());
         }
@@ -844,7 +844,7 @@ public class FtcTest extends FtcTeleOp
         if (robot.robotDrive.gyro != null)
         {
             robot.dashboard.displayPrintf(
-                9, "Gyro: ", "Rate=%.3f,Heading=%.1f",
+                9, "Gyro: Rate=%.3f,Heading=%.1f",
                 robot.robotDrive.gyro.getZRotationRate().value, robot.robotDrive.gyro.getZHeading().value);
         }
     }   //doSensorsTest
