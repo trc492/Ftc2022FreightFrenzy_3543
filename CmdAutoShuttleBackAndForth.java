@@ -488,8 +488,8 @@ class CmdAutoShuttleBackAndForth implements TrcRobot.RobotCommand
             if (traceState)
             {
                 robot.globalTracer.traceStateInfo(
-                    state, robot.robotDrive.driveBase, robot.robotDrive.pidDrive, robot.robotDrive.purePursuitDrive,
-                    null);
+                    sm.toString(), state, robot.robotDrive.driveBase, robot.robotDrive.pidDrive,
+                    robot.robotDrive.purePursuitDrive, null);
             }
         }
 
