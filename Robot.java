@@ -148,20 +148,21 @@ public class Robot
             {
                 if (RobotParams.Preferences.useArm)
                 {
+                    final FtcMotorActuator.MotorParams motorParams = new FtcMotorActuator.MotorParams(
+                        RobotParams.ARM_MOTOR_INVERTED,
+                        RobotParams.ARM_HAS_LOWER_LIMIT_SWITCH, RobotParams.ARM_LOWER_LIMIT_INVERTED,
+                        RobotParams.ARM_HAS_UPPER_LIMIT_SWITCH, RobotParams.ARM_UPPER_LIMIT_INVERTED);
                     final TrcPidActuator.Parameters armParams = new TrcPidActuator.Parameters()
                         .setPosRange(RobotParams.ARM_MIN_POS, RobotParams.ARM_MAX_POS)
                         .setScaleOffset(RobotParams.ARM_DEG_PER_COUNT, RobotParams.ARM_OFFSET)
                         .setPidParams(new TrcPidController.PidParameters(
                             RobotParams.ARM_KP, RobotParams.ARM_KI, RobotParams.ARM_KD, RobotParams.ARM_TOLERANCE))
-                        .setMotorParams(
-                            RobotParams.ARM_MOTOR_INVERTED,
-                            RobotParams.ARM_HAS_LOWER_LIMIT_SWITCH, RobotParams.ARM_LOWER_LIMIT_INVERTED,
-                            RobotParams.ARM_HAS_UPPER_LIMIT_SWITCH, RobotParams.ARM_UPPER_LIMIT_INVERTED,
-                            RobotParams.ARM_CAL_POWER)
                         .setStallProtectionParams(
-                            RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
+                            RobotParams.ARM_STALL_MIN_POWER, RobotParams.ARM_STALL_TOLERANCE,
+                            RobotParams.ARM_STALL_TIMEOUT, RobotParams.ARM_RESET_TIMEOUT)
+                        .setZeroCalibratePower(RobotParams.ARM_CAL_POWER)
                         .setPosPresets(RobotParams.ARM_PRESET_LEVELS);
-                    arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, armParams).getPidActuator();
+                    arm = new FtcMotorActuator(RobotParams.HWNAME_ARM, motorParams, armParams).getPidActuator();
                     arm.setMsgTracer(globalTracer);
                     arm.setBeep(androidTone);
                     arm.zeroCalibrate();

@@ -33,7 +33,6 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.opencv.core.Point;
 
 import TrcCommonLib.trclib.TrcDbgTrace;
-import TrcCommonLib.trclib.TrcHashMap;
 import TrcCommonLib.trclib.TrcHomographyMapper;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcRevBlinkin;
@@ -69,27 +68,17 @@ public class Vision
     public static final String duckPos3 = "DuckPos3";
     public static final String gotTarget = "GotTarget";
     public static final String sawTarget = "SawTarget";
-    private final TrcHashMap<String, TrcRevBlinkin.LEDPattern> targetLEDPatternMap =
-        new TrcHashMap<String, TrcRevBlinkin.LEDPattern>()
-            .add(duckPos1, TrcRevBlinkin.LEDPattern.SolidRed)
-            .add(duckPos2, TrcRevBlinkin.LEDPattern.SolidGreen)
-            .add(duckPos3, TrcRevBlinkin.LEDPattern.SolidBlue)
-            .add(sawTarget, TrcRevBlinkin.LEDPattern.SolidViolet)
-            .add(gotTarget, TrcRevBlinkin.LEDPattern.SolidAqua)
-            .add(redStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeRed)
-            .add(blueStorageName, TrcRevBlinkin.LEDPattern.FixedStrobeBlue)
-            .add(redAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseRed)
-            .add(blueAllianceWallName, TrcRevBlinkin.LEDPattern.FixedLightChaseBlue);
-    private final TrcRevBlinkin.LEDPattern[] ledPatternPriorities = {
-        TrcRevBlinkin.LEDPattern.SolidRed,
-        TrcRevBlinkin.LEDPattern.SolidGreen,
-        TrcRevBlinkin.LEDPattern.SolidBlue,
-        TrcRevBlinkin.LEDPattern.SolidViolet,
-        TrcRevBlinkin.LEDPattern.SolidAqua,
-        TrcRevBlinkin.LEDPattern.FixedStrobeRed,
-        TrcRevBlinkin.LEDPattern.FixedStrobeBlue,
-        TrcRevBlinkin.LEDPattern.FixedLightChaseRed,
-        TrcRevBlinkin.LEDPattern.FixedLightChaseBlue};
+
+    private final TrcRevBlinkin.Pattern[] ledPatternPriorities = {
+        new TrcRevBlinkin.Pattern(duckPos1, TrcRevBlinkin.RevLedPattern.SolidRed),
+        new TrcRevBlinkin.Pattern(duckPos2, TrcRevBlinkin.RevLedPattern.SolidGreen),
+        new TrcRevBlinkin.Pattern(duckPos3, TrcRevBlinkin.RevLedPattern.SolidBlue),
+        new TrcRevBlinkin.Pattern(sawTarget, TrcRevBlinkin.RevLedPattern.SolidViolet),
+        new TrcRevBlinkin.Pattern(gotTarget, TrcRevBlinkin.RevLedPattern.SolidAqua),
+        new TrcRevBlinkin.Pattern(redStorageName, TrcRevBlinkin.RevLedPattern.FixedStrobeRed),
+        new TrcRevBlinkin.Pattern(blueStorageName, TrcRevBlinkin.RevLedPattern.FixedStrobeBlue),
+        new TrcRevBlinkin.Pattern(redAllianceWallName, TrcRevBlinkin.RevLedPattern.FixedLightChaseRed),
+        new TrcRevBlinkin.Pattern(blueAllianceWallName, TrcRevBlinkin.RevLedPattern.FixedLightChaseBlue)};
 
     private final Robot robot;
     private final TrcDbgTrace tracer;
@@ -148,7 +137,6 @@ public class Vision
      */
     public void setupBlinkin()
     {
-        robot.blinkin.setNamedPatternMap(targetLEDPatternMap);
         robot.blinkin.setPatternPriorities(ledPatternPriorities);
     }   //setupBlinkin
 
