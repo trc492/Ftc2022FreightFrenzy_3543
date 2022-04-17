@@ -269,10 +269,12 @@ public class RobotDrive
             double yDelta = relPose.y/numPoints;
             double angleDelta = relPose.angle/numPoints;
 
-            for (int i = 1; i <= numPoints; i++)
+            for (int i = 1; i < numPoints; i++)
             {
                 points.add(startPoint.addRelativePose(new TrcPose2D(xDelta*i, yDelta*i, angleDelta*i)));
             }
+
+            points.add(endPoint);
         }
     }   //addIntermediatePoints
 
