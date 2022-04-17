@@ -24,14 +24,21 @@ package Ftc2022FreightFrenzy_3543;
 
 import org.opencv.core.Point;
 
+import java.util.ArrayList;
+
+import TrcCommonLib.trclib.TrcDbgTrace;
 import TrcCommonLib.trclib.TrcDriveBase;
 import TrcCommonLib.trclib.TrcDriveBaseOdometry;
 import TrcCommonLib.trclib.TrcGyro;
 import TrcCommonLib.trclib.TrcMecanumDriveBase;
+import TrcCommonLib.trclib.TrcPath;
+import TrcCommonLib.trclib.TrcPathBuilder;
 import TrcCommonLib.trclib.TrcPidController;
 import TrcCommonLib.trclib.TrcPidDrive;
 import TrcCommonLib.trclib.TrcPose2D;
 import TrcCommonLib.trclib.TrcPurePursuitDrive;
+import TrcCommonLib.trclib.TrcUtil;
+import TrcCommonLib.trclib.TrcWaypoint;
 import TrcFtcLib.ftclib.FtcBNO055Imu;
 import TrcFtcLib.ftclib.FtcDcMotor;
 
@@ -238,5 +245,68 @@ public class RobotDrive
     {
         return pathPoint(targetLocation.x, targetLocation.y, heading, true);
     }   //pathPoint
+
+    /**
+     * This method adds a series of intermediate points for a given end point so that the robot will turn only
+     * angleInc at each intermediate point.
+     *
+     * @param points specifies the points list to add intermediate points to.
+     * @param endPoint specifies the new segment end point.
+     * @param angleInc specifies the angle increment between intermediate points.
+     */
+    private void addIntermediatePoints(ArrayList<TrcPose2D> points, TrcPose2D endPoint, double angleInc)
+    {
+        if (points.size() == 0)
+        {
+            points.add(endPoint);
+        }
+        else
+        {
+            TrcPose2D startPoint = points.get(points.size() - 1);
+            TrcPose2D relPose = endPoint.relativeTo(startPoint);
+            int numPoints = (int) Math.round(Math.abs(relPose.angle/angleInc));
+            double xDelta = relPose.x/numPoints;
+            double yDelta = relPose.y/numPoints;
+            double angleDelta = relPose.angle/numPoints;
+
+            for (int i = 1; i <= numPoints; i++)
+            {
+                points.add(startPoint.addRelativePose(new TrcPose2D(xDelta*i, yDelta*i, angleDelta*i)));
+            }
+        }
+    }   //addIntermediatePoints
+
+    /**
+     * This method builds a path with the given list of poses. It will also insert intermediate points between poses
+     * so that the robot will only turn up to angleInc between intermediate points.
+     *
+     * @param angleInc specifies the angle increment between intermediate points.
+     * @param incrementalPath specifies true if the poses are incremental from the their poses.
+     * @param poses specifies an array of poses used to build the path.
+     * @return path built.
+     */
+    public TrcPath buildPath(double angleInc, boolean incrementalPath, TrcPose2D... poses)
+    {
+        final String funcName = "buildPath";
+        ArrayList<TrcPose2D> points = new ArrayList<>();
+
+        addIntermediatePoints(points, driveBase.getFieldPosition(), angleInc);
+        for (TrcPose2D pose: poses)
+        {
+            if (incrementalPath)
+            {
+                pose = points.get(points.size() - 1).addRelativePose(pose);
+            }
+            addIntermediatePoints(points, pose, angleInc);
+        }
+
+        TrcWaypoint[] waypoints = new TrcWaypoint[points.size()];
+        for (int i = 0; i < points.size(); i++)
+        {
+            waypoints[i] = new TrcWaypoint(points.get(i), null);
+        }
+
+        return new TrcPath(waypoints);
+    }   //buildPath
 
 }   //class RobotDrive
