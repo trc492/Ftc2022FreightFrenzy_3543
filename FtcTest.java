@@ -335,39 +335,14 @@ public class FtcTest extends FtcTeleOp
     }   //stopMode
 
     /**
-     * This method is called periodically during test mode to perform low frequency tasks such as teleop control or
-     * displaying status or test results.
+     * This method is called periodically at a fast rate. Typically, you put code that requires servicing at a
+     * high frequency here. To make the robot as responsive and as accurate as possible especially in autonomous
+     * mode, you will typically put that code here.
      *
      * @param elapsedTime specifies the elapsed time since the mode started.
      */
     @Override
-    public void runPeriodic(double elapsedTime)
-    {
-        if (allowTeleOp())
-        {
-            //
-            // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
-            //
-            super.runPeriodic(elapsedTime);
-        }
-
-        switch (testChoices.test)
-        {
-            case SENSORS_TEST:
-            case SUBSYSTEMS_TEST:
-                doSensorsTest();
-                doVisionTest();
-                break;
-        }
-    }   //runPeriodic
-
-    /**
-     * This method is called continuously during test mode to execute the test command.
-     *
-     * @param elapsedTime specifies the elapsed time since the mode started.
-     */
-    @Override
-    public void runContinuous(double elapsedTime)
+    public void fastPeriodic(double elapsedTime)
     {
         //
         // Run the testCommand if any.
@@ -483,7 +458,35 @@ public class FtcTest extends FtcTeleOp
                 elapsedTimer.getAverageElapsedTime(), elapsedTimer.getMinElapsedTime(),
                 elapsedTimer.getMaxElapsedTime());
         }
-    }   //runContinuous
+    }   //fastPeriodic
+
+    /**
+     * This method is called periodically at a slow rate. Typically, you put code that doesn't require frequent
+     * update here. For example, TeleOp joystick code or status display code can be put here since human responses
+     * are considered slow.
+     *
+     * @param elapsedTime specifies the elapsed time since the mode started.
+     */
+    @Override
+    public void slowPeriodic(double elapsedTime)
+    {
+        if (allowTeleOp())
+        {
+            //
+            // Allow TeleOp to run so we can control the robot in subsystem test or drive speed test modes.
+            //
+            super.slowPeriodic(elapsedTime);
+        }
+
+        switch (testChoices.test)
+        {
+            case SENSORS_TEST:
+            case SUBSYSTEMS_TEST:
+                doSensorsTest();
+                doVisionTest();
+                break;
+        }
+    }   //slowPeriodic
 
     //
     // Overrides TrcGameController.ButtonHandler in TeleOp.

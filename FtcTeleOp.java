@@ -106,14 +106,14 @@ public class FtcTeleOp extends FtcOpMode
     }   //stopMode
 
     /**
-     * This method is called periodically about 50 times a second. Typically, you put code that doesn't require
-     * frequent update here. For example, TeleOp joystick code can be put here since human responses are considered
-     * slow.
+     * This method is called periodically at a slow rate. Typically, you put code that doesn't require frequent
+     * update here. For example, TeleOp joystick code or status display code can be put here since human responses
+     * are considered slow.
      *
      * @param elapsedTime specifies the elapsed time since the mode started.
      */
     @Override
-    public void runPeriodic(double elapsedTime)
+    public void slowPeriodic(double elapsedTime)
     {
         //
         // DriveBase subsystem.
@@ -188,7 +188,7 @@ public class FtcTeleOp extends FtcOpMode
             robot.dashboard.displayPrintf(
                 6, "odwDep: deployed=%s", robot.odwDeployer == null? "n/a": robot.odwDeployer.isDeployed());
         }
-    }   //runPeriodic
+    }   //slowPeriodic
 
     //
     // Implements TrcGameController.ButtonHandler interface.

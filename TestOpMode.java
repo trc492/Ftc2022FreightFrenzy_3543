@@ -32,14 +32,14 @@ public class TestOpMode extends FtcOpMode
     }   //initRobot
 
     @Override
-    public void runPeriodic(double elapsedTime)
+    public void slowPeriodic(double elapsedTime)
     {
         if (intakeOwner == null)
         {
             intake.setPower(gamepad.getRightStickY(true));
         }
         dashboard.displayPrintf(1, "Distance: %.3f cm", intake.getSensorValue());
-    }   //runPeriodic
+    }   //slowPeriodic
 
     public void gamepadButtonEvent(TrcGameController gamepad, int button, boolean pressed)
     {
